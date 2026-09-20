@@ -103,6 +103,8 @@ The demo demonstrates the feature set available to real accounts: plan creation,
 
 Parity applies to features, not evidence provenance. Demo forecasts, sensor inputs and clocks remain explicitly synthetic, library suggestions are labelled and no demo operation calls AI or changes an account plan. Existing week revisions, notice-approval invalidation and account ownership remain enforced. The afternoon sample represents an elapsed timetable, not proof that an activity, meal or rest took place.
 
+The first visit from a browser opens the demo automatically and shows a dialog that names it as the demo and points to the Demo switch at the top for turning it off and registering a kindergarten. A local flag records that the visit happened, so returning visitors and anyone who signs out see the sign-in page instead. The auto-started demo uses the same isolated demo record and never creates or reads an account.
+
 ## Required first-plan details
 
 Generation requires kindergarten name, group name, location, age band, teaching brief, at least one available material and a schedulable daily rhythm. The teacher explicitly reviews suggested routine times before submitting. These product requirements do not change air-quality thresholds or turn a draft into an approved parent notice. Parent access stays URL-based without a parent account.

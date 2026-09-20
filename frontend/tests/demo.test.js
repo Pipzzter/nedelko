@@ -39,9 +39,12 @@ test('demo uses the planner and shared parent page; links, languages and isolate
   };
   const route = hash => { window.location.hash = hash; window.dispatchEvent(new window.Event('hashchange')); };
   await import('../../frontend/src/app.js');
-  await wait(() => document.querySelector('.auth-card'));
-  click('Explore a sample week'); await wait(() => document.querySelector('.day-plan'));
+  await wait(() => document.querySelector('.modal-overlay'));
+  assert.match(document.querySelector('#demo-intro-title').textContent, /demo/i);
+  assert.equal(document.querySelector('.auth-card'), null, 'the first visit opens the demo, not the sign-in page');
+  click('Explore the demo'); await wait(() => document.querySelector('.day-plan') && !document.querySelector('.modal-overlay'));
   const teacherPath = window.location.hash;
+  assert.match(teacherPath, /^#demo\//);
   assert.equal(document.querySelectorAll('.calendar-day').length, 5);
   assert.ok(document.querySelector('.timeline .kind-transition'), 'an outdoor day shows go-out and come-in transitions');
   assert.equal(document.querySelectorAll('.timeline .kind-transition').length, 2);
