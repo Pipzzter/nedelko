@@ -7,6 +7,7 @@ import { Calendar } from '../components/Calendar.js';
 import { AirCard } from '../components/AirCard.js';
 import { DayPlan } from '../components/DayPlan.js';
 import { Messages } from '../components/Messages.js';
+import { ParentNoteForm } from '../components/ParentNoteForm.js';
 
 export function ParentWeek({ token }) {
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('eko-language') === 'en' ? 'en' : 'mk'; } catch { return 'mk'; } });
@@ -44,6 +45,7 @@ export function ParentWeek({ token }) {
         <${PlanChanges} changes=${data.changes} today=${data.today} lang=${lang} onSelect=${setSelected}/>
         <${DayPlan} day=${day} data=${dashboard} lang=${lang} clock=${data.clock} materials=${data.materials} readOnly=${true}/>
         <${Messages} week=${week} selected=${selected} lang=${lang} readOnly=${true}/>
+        <${ParentNoteForm} key=${token} token=${token} days=${data.days} selected=${selected} lang=${lang}/>
         <footer class="parent-footer">${t('lastChecked', lang)}: ${localizedDate(data.updatedAt, lang, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${busy ? ` · ${t('loading', lang)}` : ''}</footer>
       `}</main></div></div>`;
 }

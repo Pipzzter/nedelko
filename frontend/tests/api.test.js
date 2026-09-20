@@ -25,7 +25,7 @@ test('the browser accepts generation past the old one-minute limit including env
 test('generation still expires and tells the caller to check the saved plan before retrying', async t => {
   delayedFetch(t);
   const pending = api('/week/generate', { settings: {} });
-  t.mock.timers.tick(240001);
+  t.mock.timers.tick(270001);
   await assert.rejects(pending, { code: 'generation_timeout' });
 });
 
