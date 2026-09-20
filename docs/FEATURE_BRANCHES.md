@@ -4,6 +4,8 @@ This document records the original feature stack based on `495c3b8` (`initial co
 
 The follow-up `refactor/align-demo-with-live` removes the classroom simulation from the current product and aligns the demo with account planning and read-only parent sharing. Its review base is `main` at `938697a`. Review the new change separately from the original feature history.
 
+`feat/simplify-planning-navigation` is stacked on `refactor/align-demo-with-live` at `0a1c1db`. It replaces the separate creation/editing sidebar links with Weekly plan and provides an explicit regeneration action. Review it against the demo-parity branch so its diff contains only navigation work. Merge demo parity first, then retarget the navigation PR to `main` and verify that its diff still contains only the navigation change. These follow-up branches have been prepared locally; publishing them is a separate action.
+
 ## Branches
 
 | Order | Branch | Feature commit | Review title |

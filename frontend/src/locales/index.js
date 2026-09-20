@@ -80,6 +80,8 @@ const copy = {
   classroomOccasion: ['Изборна тема, не државен празник', 'Optional theme, not a public holiday'],
   useHolidayLesson: ['Примени ја празничната еко-идеја', 'Use the occasion’s eco activity'],
   home: ['Почетна', 'Home'], editWeek: ['Уреди недела', 'Edit week'], createPlan: ['Создај план', 'Create plan'],
+  weeklyPlan: ['Неделен план', 'Weekly plan'], regenerateWeek: ['Генерирај ја неделата одново', 'Regenerate week'],
+  saveBeforeRegenerate: ['Зачувајте ги измените пред повторно да ја генерирате неделата.', 'Save your changes before regenerating the week.'],
   brand: ['ЕкоЧувар', 'EkoCuvar'], signIn: ['Најави се', 'Sign in'], signUp: ['Создај сметка', 'Create account'], signOut: ['Одјави се', 'Sign out'],
   username: ['Корисничко име', 'Username'], password: ['Лозинка', 'Password'], name: ['Вашето име', 'Your name'],
   demo: ['Демо', 'Demo'], tryDemo: ['Разгледај пример-недела', 'Explore a sample week'],

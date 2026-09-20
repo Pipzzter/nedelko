@@ -168,7 +168,7 @@
   .lesson-card { background: var(--schedule-bg); border: 1px solid var(--schedule-border); border-radius: 17px; padding: 20px; margin-top: 3px; position: sticky; top: 20px; }
   .activity-detail-time { display: block; font-size: 11px; color: var(--schedule-ink); margin-top: 8px; }
   .day-decision { font-size: 12px; line-height: 1.7; color: #617453; margin-bottom: 20px; }
-  .editor-toolbar { display: flex; justify-content: flex-end; margin: 18px 0 8px; }
+  .editor-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; margin: 18px 0 8px; }
   .lesson-illustration { height: 128px; display: flex; justify-content: center; margin: -8px 0 8px; }
   .lesson-illustration img { height: 100%; width: auto; max-width: 100%; }
   .pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; font-size: 10px; border-radius: 6px; font-weight: 500; }

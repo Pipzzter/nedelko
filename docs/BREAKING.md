@@ -56,3 +56,7 @@ No real teacher/parent trial, accessibility audit, penetration test, production 
 ## Demo parity follow-up, 2026-09-20
 
 `npm.cmd test` passes 122 tests; `npm.cmd run check` checks 71 JavaScript files. The removed classroom simulation's tests have been replaced by coverage of the current shared workflows. HTTP tests verify matching demo/account parent response shapes, read-only parent endpoints, retired classroom routes, opt-in sharing, revocation and isolation from saved account plans. DOM flows verify identical teacher navigation, the sample-week entry, bilingual parent pages, revoked-link recovery and switching between isolated demo URLs. These are automated fixtures, not real family use or a live AI result.
+
+## Planning navigation follow-up, 2026-09-20
+
+The full 122-test suite and syntax checks for 71 JavaScript files pass after the navigation change. The account DOM flow covers both empty-week entry points, the shared active navigation item, regeneration failure and cancellation without losing the saved week, old create/edit bookmarks, pending-edit protection, deletion and subsequent creation. The demo DOM flow covers successful regeneration, fixed-date retention and the same shared parent page. Both languages are exercised. Visual browser verification could not run because the UI tool reported no connected browsers; no screenshot or actual phone check is claimed for these follow-ups.

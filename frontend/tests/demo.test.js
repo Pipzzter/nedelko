@@ -12,7 +12,7 @@ import { demoWeekById } from '../../backend/config/demo.js';
 test('demo uses the planner and shared parent page; links, languages and isolated deep links work', async t => {
   const server = createApp({ store: openStore(':memory:'),
     conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', demoWeek }) => demoConditions(LOCATIONS.find(l => l.id === locationId), scenario, Date.now(), demoWeekById(demoWeek)),
-    curriculumProvider: (dates, settings, options) => createCurriculum(dates, settings, { ...options, useAI: false }) });
+    curriculumProvider: (dates, settings, options) => { assert.equal(options.useAI, false); return createCurriculum(dates, settings, options); } });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const base = `http://127.0.0.1:${server.address().port}`;
   const nativeFetch = globalThis.fetch;
@@ -43,7 +43,21 @@ test('demo uses the planner and shared parent page; links, languages and isolate
   click('Explore a sample week'); await wait(() => document.querySelector('.day-plan'));
   const teacherPath = window.location.hash;
   assert.equal(document.querySelectorAll('.calendar-day').length, 5);
-  assert.deepEqual([...document.querySelectorAll('.sidebar nav a')].map(link => link.textContent.trim()), ['Home', 'Create plan', 'Edit week']);
+  assert.deepEqual([...document.querySelectorAll('.sidebar nav a')].map(link => link.textContent.trim()), ['Home', 'Weekly plan']);
+  click('Weekly plan'); await wait(() => document.querySelector('.week-editor'));
+  assert.equal(window.location.hash, teacherPath.replace(/home$/, 'plan'));
+  click('Regenerate week'); await wait(() => document.querySelector('.planning-replace'));
+  assert.equal(window.location.hash, teacherPath.replace(/home$/, 'plan/new'));
+  assert.match(document.querySelector('.planning-replace').textContent, /replaces this week’s activities/);
+  const confirmation = document.querySelector('#plan-rhythmConfirmed');
+  confirmation.checked = true; confirmation.dispatchEvent(new window.Event('change', { bubbles: true }));
+  await new Promise(resolve => setTimeout(resolve, 0));
+  document.querySelector('.plan-builder').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+  await wait(() => document.querySelector('.week-editor'));
+  assert.equal(window.location.hash, teacherPath.replace(/home$/, 'plan'));
+  assert.equal(document.querySelector('.sidebar nav [aria-current="page"]').textContent.trim(), 'Weekly plan');
+  assert.equal(document.querySelector('.calendar-day').getAttribute('data-date'), '2026-09-07');
+  click('Home'); await wait(() => document.querySelector('.day-plan'));
   assert.equal(document.querySelector('.share-url'), null);
   click('Create parent link'); await wait(() => document.querySelector('.share-url'));
   const parentPath = new URL(document.querySelector('.share-url').value).hash;
