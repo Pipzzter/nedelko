@@ -1,0 +1,19 @@
+{
+  "name": "eko-cuvar",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A local Macedonian kindergarten eco-week planner that adapts activities to air quality and weather.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env backend/server.js",
+    "dev": "node --watch --env-file-if-exists=.env backend/server.js",
+    "test": "node --test backend/tests/*.test.js frontend/tests/*.test.js",
+    "check": "node scripts/check.js"
+  },
+  "devDependencies": {
+    "linkedom": "0.18.12"
+  }
+}

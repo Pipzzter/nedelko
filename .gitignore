@@ -1,0 +1,9 @@
+.env
+.env.*
+!.env.example
+.cache/
+.local/
+node_modules/
+coverage/
+.idea/
+*.log

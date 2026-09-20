@@ -1,0 +1,28 @@
+// City/neighbourhood centres. Catalog endpoints verified 2026-09-20.
+// A listed city does not imply that its sensors currently have usable evidence.
+export const LOCATIONS = Object.freeze([
+  ['centar', 'Скопје · Центар', 'Skopje · Centar', 41.9981, 21.4254, 'skopje'],
+  ['karpos', 'Скопје · Карпош', 'Skopje · Karposh', 42.0048, 21.3910, 'skopje'],
+  ['aerodrom', 'Скопје · Аеродром', 'Skopje · Aerodrom', 41.9865, 21.4645, 'skopje'],
+  ['kisela-voda', 'Скопје · Кисела Вода', 'Skopje · Kisela Voda', 41.978, 21.440, 'skopje'],
+  ['gazi-baba', 'Скопје · Гази Баба', 'Skopje · Gazi Baba', 42.0116, 21.460, 'skopje'],
+  ['bitola', 'Битола', 'Bitola', 41.0314, 21.3347, 'bitola'],
+  ['kumanovo', 'Куманово', 'Kumanovo', 42.1322, 21.7144, 'kumanovo'],
+  ['prilep', 'Прилеп', 'Prilep', 41.3441, 21.5528, 'prilep'],
+  ['tetovo', 'Тетово', 'Tetovo', 42.0103, 20.9716, 'tetovo'],
+  ['veles', 'Велес', 'Veles', 41.7157, 21.7753, 'veles'],
+  ['shtip', 'Штип', 'Shtip', 41.7458, 22.1958, 'shtip'],
+  ['ohrid', 'Охрид', 'Ohrid', 41.1231, 20.8016, 'ohrid'],
+  ['gostivar', 'Гостивар', 'Gostivar', 41.7978, 20.9083, 'gostivar'],
+  ['strumica', 'Струмица', 'Strumica', 41.4378, 22.6427, 'strumica'],
+  ['kichevo', 'Кичево', 'Kichevo', 41.5127, 20.9589, 'kichevo'],
+  ['kochani', 'Кочани', 'Kochani', 41.9164, 22.4128, 'kochani'],
+  ['struga', 'Струга', 'Struga', 41.1778, 20.6783, 'struga'],
+  ['radovis', 'Радовиш', 'Radovish', 41.6383, 22.4647, 'radovis'],
+  ['negotino', 'Неготино', 'Negotino', 41.4839, 22.0892, 'negotino'],
+  ['resen', 'Ресен', 'Resen', 41.0889, 21.0122, 'resen'],
+  ['krusevo', 'Крушево', 'Krushevo', 41.3689, 21.2489, 'krusevo'],
+  ['bogdanci', 'Богданци', 'Bogdanci', 41.2031, 22.5756, 'bogdanci'],
+  ['stardojran', 'Стар Дојран', 'Star Dojran', 41.1875, 22.7208, 'stardojran'],
+  ['novoselo', 'Ново Село', 'Novo Selo', 41.4147, 22.8811, 'novoselo'],
+].map(([id, name, nameEn, lat, lon, pulseCity]) => Object.freeze({ id, name, nameEn, lat, lon, pulseCity })));
