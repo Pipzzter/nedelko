@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { randomBytes } from 'node:crypto';
 
 export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuvar.sqlite', import.meta.url))) {
   if (filename !== ':memory:') mkdirSync(dirname(filename), { recursive: true });
@@ -23,7 +24,10 @@ export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuva
     CREATE TABLE IF NOT EXISTS group_profiles (
       user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, settings TEXT NOT NULL
     );
-`);
+    CREATE TABLE IF NOT EXISTS parent_links (
+      token TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      week_start TEXT NOT NULL, expires_at INTEGER NOT NULL, UNIQUE(user_id, week_start)
+    );`);
   return {
     db,
     userByName: username => db.prepare('SELECT * FROM users WHERE username = ?').get(username),
@@ -42,6 +46,25 @@ export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuva
     saveProfile(userId, settings) {
       db.prepare('INSERT INTO group_profiles VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET settings = excluded.settings')
         .run(userId, JSON.stringify(settings));
+    },
+    sharing(userId, start, now = Date.now()) {
+      const row = db.prepare('SELECT token, expires_at FROM parent_links WHERE user_id = ? AND week_start = ? AND expires_at > ?').get(userId, start, now);
+      return row ? { path: `/#parents/${row.token}`, expiresAt: new Date(row.expires_at).toISOString() } : null;
+    },
+    shareWeek(userId, start, rotate = false) {
+      const existing = this.sharing(userId, start);
+      if (existing && !rotate) return existing;
+      const token = randomBytes(32).toString('hex');
+      db.prepare('INSERT INTO parent_links VALUES (?, ?, ?, ?) ON CONFLICT(user_id, week_start) DO UPDATE SET token = excluded.token, expires_at = excluded.expires_at')
+        .run(token, userId, start, Date.now() + 14 * 86400000);
+      return this.sharing(userId, start);
+    },
+    revokeShare(userId, start) { db.prepare('DELETE FROM parent_links WHERE user_id = ? AND week_start = ?').run(userId, start); },
+    sharedWeek(token, now = Date.now()) {
+      return db.prepare('SELECT user_id AS userId, week_start AS weekStart FROM parent_links WHERE token = ? AND expires_at > ?').get(token, now);
+    },
+    weeksToRefresh(today) {
+      return db.prepare("SELECT user_id AS userId, week_start AS weekStart FROM weeks WHERE payload != 'null' AND week_start <= ? AND week_start >= date(?, '-6 days')").all(today, today);
     },
     week(userId, start) {
       const row = db.prepare('SELECT payload, revision FROM weeks WHERE user_id = ? AND week_start = ?').get(userId, start);
@@ -63,6 +86,7 @@ export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuva
       // Keep only the revision as a tombstone, so stale tabs cannot edit a regenerated week.
       const removed = !!db.prepare("UPDATE weeks SET payload = 'null', revision = revision + 1 WHERE user_id = ? AND week_start = ? AND revision = ? AND payload != 'null'")
         .run(userId, start, expectedRevision).changes;
+      if (removed) this.revokeShare(userId, start);
       return removed;
     },
     close() { db.close(); },

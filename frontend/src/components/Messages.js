@@ -1,7 +1,7 @@
 import { html, useState, useEffect } from '../lib/ui.js';
 import { t } from '../locales/index.js';
 import { Icon } from './Icon.js';
-export function Messages({ week, selected, lang, onRecheck, onApprove, busy }) {
+export function Messages({ week, share, selected, lang, onRecheck, onApprove, busy }) {
   const [tab, setTab] = useState('daily'); const [copied, setCopied] = useState(false); const [copyFailed, setCopyFailed] = useState(false);
   const pair = tab === 'weekly' ? week.messages.weekly : week.messages.daily[selected];
   useEffect(() => { setCopied(false); setCopyFailed(false); }, [tab, selected, lang, pair?.[lang]]);
@@ -9,7 +9,7 @@ export function Messages({ week, selected, lang, onRecheck, onApprove, busy }) {
   const approved = tab === 'daily' && week.approval?.date === selected && Date.now() - Date.parse(week.approval.at) < 15 * 60000;
   const checkValid = week.checkedDate === selected && Date.now() - Date.parse(week.checkedAt) < 15 * 60000;
   const copy = async () => {
-    try { await navigator.clipboard.writeText(pair[lang]); setCopied(true); setCopyFailed(false); }
+    try { const link = share ? new URL(share.path, window.location.href).href : ''; await navigator.clipboard.writeText(tab === 'weekly' && link ? link : `${pair[lang]}${link ? `\n\n${link}` : ''}`); setCopied(true); setCopyFailed(false); }
     catch { setCopyFailed(true); }
   };
   return html`<section class="card messages-card"><div class="card-heading"><div><span class="eyebrow">${t('parents', lang)}</span><h2>${lang === 'mk' ? 'Мала порака, сè што треба.' : 'A little note, everything they need.'}</h2></div><span class=${`pill ${approved ? 'status-outside' : 'neutral'}`}>${t(approved ? 'approved' : 'draftMessage', lang)}</span></div>

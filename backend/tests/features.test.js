@@ -5,6 +5,7 @@ import { createApp } from '../http/app.js';
 import { openStore } from '../storage/database.js';
 import { createCurriculum, createDayCurriculum } from '../services/curriculum.js';
 import { demoConditions } from '../services/conditions.js';
+import { startAutoRefresh } from '../services/auto-refresh.js';
 import { DEFAULT_SETTINGS as EMPTY_SETTINGS, validateSettings } from '../domain/settings.js';
 import { calendarSnapshot } from '../domain/holidays.js';
 import { createWeek, adaptWeek, replaceDayTheme } from '../domain/week.js';
@@ -42,6 +43,53 @@ test('kindergarten and teaching brief validate and keep one canonical location',
   assert.deepEqual(settings.gradinka, { name: 'Our kindergarten', locationId: 'bitola' });
   assert.equal(settings.teacherPrompt, 'Autumn with music');
   for (const teacherPrompt of [123, '<script>', 'x'.repeat(2001)]) assert.throws(() => validateSettings({ ...DEFAULT_SETTINGS, teacherPrompt }), { code: 'invalid_instruction' });
+});
+
+test('parent link gives a bounded read-only projection; rotation, revocation and ownership are enforced', async t => {
+  const { client, store } = await fixture(t);
+  const teacher = client(); const other = client(); const parent = client();
+  const user = (await teacher('/api/auth/register', account)).body.user;
+  await other('/api/auth/register', { ...account, username: 'other.teacher' });
+  const settings = { ...DEFAULT_SETTINGS, gradinka: { name: 'Sun Garden' }, groupName: 'Sunflowers', teacherPrompt: 'PRIVATE-TEACHER-BRIEF' };
+  let week = (await teacher('/api/week/generate', { settings })).body.week;
+  assert.equal(store.profile(user.id).gradinka.name, 'Sun Garden');
+  assert.equal((await parent('/api/week/share', { action: 'enable', revision: week.revision })).status, 401);
+  assert.equal((await other('/api/week/share', { action: 'enable', revision: week.revision })).status, 404);
+  const share = (await teacher('/api/week/share', { action: 'enable', revision: week.revision })).body.share;
+  const token = share.path.split('/').at(-1);
+  assert.match(token, /^[a-f0-9]{64}$/);
+  const page = await parent(`/api/parents/${token}`);
+  assert.equal(page.status, 200); assert.equal(page.body.days.length, 5);
+  assert.equal(page.body.kindergarten, 'Sun Garden'); assert.equal(page.body.groupName, 'Sunflowers');
+  assert.doesNotMatch(JSON.stringify(page.body), /PRIVATE-TEACHER-BRIEF|teacherPrompt|password|userId|generationError|outdoorOrder|token/);
+  assert.equal((await parent(`/api/parents/${token}`, {})).status, 405);
+  assert.equal((await parent('/api/week/edit', { revision: week.revision, settings, days: week.days, token })).status, 401);
+  assert.equal((await parent(`/api/parents/${'f'.repeat(64)}`)).status, 404);
+  const rotated = (await teacher('/api/week/share', { action: 'rotate', revision: week.revision })).body.share;
+  assert.notEqual(rotated.path, share.path);
+  assert.equal((await parent(`/api/parents/${token}`)).status, 404);
+  assert.equal((await parent(`/api/parents/${rotated.path.split('/').at(-1)}`)).status, 200);
+  await teacher('/api/week/share', { action: 'revoke', revision: week.revision });
+  assert.equal((await parent(`/api/parents/${rotated.path.split('/').at(-1)}`)).status, 404);
+  const renewed = (await teacher('/api/week/share', { action: 'enable', revision: week.revision })).body.share;
+  await teacher('/api/week/delete', { revision: week.revision });
+  assert.equal((await parent(`/api/parents/${renewed.path.split('/').at(-1)}`)).status, 404);
+  assert.equal(store.profile(user.id).groupName, 'Sunflowers', 'profile survives deleting a week');
+});
+
+test('demo links are isolated and immediately show adapted pollution messages', async t => {
+  const { client, store } = await fixture(t); const teacher = client(); const parent = client();
+  const demo = (await teacher('/api/demo', {})).body;
+  const share = (await teacher('/api/week/share', { demoId: demo.demoId, revision: demo.week.revision, action: 'enable' })).body.share;
+  const endpoint = `/api/parents/${share.path.split('/').at(-1)}`;
+  assert.equal((await parent(endpoint)).body.days[0].mode, 'outside');
+  await teacher(`/api/dashboard?demoId=${demo.demoId}&scenario=polluted&fresh=1`);
+  const polluted = (await parent(endpoint)).body;
+  assert.equal(polluted.days[0].mode, 'inside');
+  assert.match(polluted.days[0].message.en, /elevated PM2.5 readings/);
+  assert.equal(polluted.mode, 'demo');
+  assert.equal(store.db.prepare('SELECT count(*) AS n FROM parent_links').get().n, 0);
+  assert.equal(store.db.prepare('SELECT count(*) AS n FROM weeks').get().n, 0);
 });
 
 test('refreshing a week preserves newer group preferences and an empty dashboard restores their location', async t => {
@@ -95,6 +143,23 @@ test('failed AI day generation and stale previews preserve the existing plan', a
   const proposal = (await teacher('/api/week/day/suggest', request)).body;
   const edited = await teacher('/api/week/edit', { settings: week.settings, days: week.days, revision: week.revision });
   assert.equal((await teacher('/api/week/day/apply', { proposalId: proposal.proposalId, revision: edited.body.week.revision })).status, 409);
+});
+
+test('automatic refresh adapts an active week and messages without a browser or model call', async t => {
+  const profile = demoWeekById('independence');
+  const normal = demoConditions(LOCATIONS[0], 'normal', Date.now(), profile);
+  const dates = planningWeekDates(normal.clock);
+  let week = createWeek(DEFAULT_SETTINGS, { themes: localCurriculum(dates, DEFAULT_SETTINGS), source: 'library' }, normal);
+  let refreshCount = 0;
+  const worker = startAutoRefresh({ intervalMs: 3600000, now: () => Date.parse(normal.clock),
+    store: { weeksToRefresh: () => [{ userId: 'teacher', weekStart: week.weekStart }] },
+    refreshWeek: async () => { refreshCount++; week = adaptWeek(week, demoConditions(LOCATIONS[0], 'polluted', Date.now(), profile)); },
+  });
+  t.after(() => worker.stop());
+  await worker.tick();
+  assert.equal(refreshCount, 1); assert.equal(week.days[0].mode, 'inside');
+  assert.match(week.messages.daily[dates[0]].en, /elevated PM2.5/);
+  worker.stop(); await worker.tick(); assert.equal(refreshCount, 1);
 });
 
 test('day replacement preserves custom rows and refuses elapsed eco lessons', () => {

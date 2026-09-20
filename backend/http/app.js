@@ -2,7 +2,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve, sep, extname } from 'node:path';
-import { randomUUID, randomInt } from 'node:crypto';
+import { randomUUID, randomInt, randomBytes } from 'node:crypto';
 import { LOCATIONS, skopjeParts, POLICY, SCENARIOS } from '../config/index.js';
 import { demoWeekById, demoWeekOptions, DEFAULT_DEMO_WEEK } from '../config/demo.js';
 import { prepareDemoWeek } from '../domain/demo-week.js';
@@ -12,6 +12,8 @@ import { createWeek, adaptWeek, editWeek, dashboard, outdoorPlanningContext, rep
 import { getConditions } from '../services/conditions.js';
 import { createCurriculum, createDayCurriculum } from '../services/curriculum.js';
 import { aiStatus } from '../services/ai.js';
+import { parentView } from '../domain/parent-view.js';
+import { startAutoRefresh } from '../services/auto-refresh.js';
 import { getHolidayCalendar } from '../services/holidays.js';
 import { calendarSnapshot } from '../domain/holidays.js';
 import { register, login, tokenHash, readSessionCookie, createSession } from '../services/auth.js';
@@ -22,7 +24,7 @@ const FRONTEND = fileURLToPath(new URL('../../frontend/', import.meta.url));
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 
 export function createApp({ store = openStore(), conditionsProvider = getConditions, curriculumProvider = createCurriculum,
-  dayCurriculumProvider = createDayCurriculum, holidayProvider = getHolidayCalendar } = {}) {
+  dayCurriculumProvider = createDayCurriculum, holidayProvider = getHolidayCalendar, autoRefreshMs = 0 } = {}) {
   const limit = rateLimiter(); const demos = new Map(); const locks = new Map(); const proposals = new Map();
   const withLock = async (key, operation) => {
     if (locks.has(key)) throw invalid('operation_pending', 409);
@@ -45,8 +47,26 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
     if (updateProfile) store.saveProfile(user.id, result.settings);
     return result;
   }
+  function sharing(user, demoId, week) {
+    if (!week) return null;
+    if (!demoId) return store.sharing(user.id, week.weekStart);
+    const record = demoRecord(demoId);
+    return record.parentToken ? { path: `/#parents/${record.parentToken}`, expiresAt: new Date(record.at + 3600000).toISOString() } : null;
+  }
   function present(week, conditions, user, demoId) {
-    return { ...dashboard(week, conditions), demoId, profile: !demoId && user ? store.profile(user.id) : null };
+    return { ...dashboard(week, conditions), demoId, share: sharing(user, demoId, week),
+      profile: !demoId && user ? store.profile(user.id) : null };
+  }
+  async function refreshStoredWeek(userId, start) {
+    return withLock(userId, async () => {
+      let old = store.week(userId, start);
+      if (!old) throw invalid('parent_link_unavailable', 404);
+      const today = skopjeParts(new Date()).date;
+      if (Date.now() - Date.parse(old.conditionsCheckedAt) < 300000 && old.today === today) return old;
+      old = save({ id: userId }, null, { ...old, approval: null, checkedAt: null, checkedDate: null }, old.revision);
+      const conditions = await conditionsProvider({ locationId: old.settings.locationId, mode: 'live', fresh: true });
+      return save({ id: userId }, null, adaptWeek(old, conditions), old.revision);
+    });
   }
   const server = http.createServer(async (request, response) => {
     securityHeaders(response);
@@ -70,6 +90,26 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
       const cookie = readSessionCookie(request); const user = cookie ? store.session(tokenHash(cookie)) : null;
       if (request.method === 'GET' && url.pathname === '/api/auth/me') return send(200, { user });
       if (request.method === 'GET' && url.pathname === '/api/config') return send(200, { locations: LOCATIONS, defaults: DEFAULT_SETTINGS, materials: MATERIALS, ai: aiStatus(), demoWeeks: demoWeekOptions(), defaultDemoWeek: DEFAULT_DEMO_WEEK, demoScenarios: SCENARIOS, version: '1.0.0' });
+      if (url.pathname.startsWith('/api/parents/')) {
+        response.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        if (request.method !== 'GET') throw invalid('method_not_allowed', 405);
+        const token = url.pathname.slice('/api/parents/'.length);
+        if (!/^[a-f0-9]{64}$/.test(token)) throw invalid('parent_link_unavailable', 404);
+        for (const [id, record] of demos) {
+          if (record.parentToken !== token) continue;
+          if (Date.now() - record.at > 3600000 || !record.week) throw invalid('parent_link_unavailable', 404);
+          return send(200, parentView(record.week, sharing(null, id, record.week).expiresAt));
+        }
+        const owner = store.sharedWeek(token);
+        if (!owner) throw invalid('parent_link_unavailable', 404);
+        let week = store.week(owner.userId, owner.weekStart);
+        if (!week) throw invalid('parent_link_unavailable', 404);
+        const today = skopjeParts(new Date()).date;
+        if (today >= week.weekStart && today <= week.days.at(-1).date) week = await refreshStoredWeek(owner.userId, owner.weekStart);
+        // Re-check revocation after any awaited refresh.
+        if (!store.sharedWeek(token)) throw invalid('parent_link_unavailable', 404);
+        return send(200, parentView(week, store.sharing(owner.userId, owner.weekStart).expiresAt));
+      }
       if (request.method === 'POST' && ['/api/auth/register', '/api/auth/login'].includes(url.pathname)) {
         limit(`auth:${request.socket.remoteAddress}`, 12, 15 * 60000);
         const body = await jsonBody(request);
@@ -142,6 +182,21 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
           return send(201, present(week, conditions, user, demoId));
         });
       }
+      if (request.method === 'POST' && url.pathname === '/api/week/share') {
+        return await withLock(demoId || user.id, async () => {
+          const week = currentWeek();
+          if (!week) throw invalid('no_plan', 404);
+          if (body.revision !== week.revision) throw invalid('plan_changed', 409);
+          if (!['enable', 'rotate', 'revoke'].includes(body.action)) throw invalid('invalid_plan');
+          if (demoId) {
+            const record = demoRecord(demoId);
+            if (body.action === 'revoke') record.parentToken = null;
+            else if (!record.parentToken || body.action === 'rotate') record.parentToken = randomBytes(32).toString('hex');
+          } else if (body.action === 'revoke') store.revokeShare(user.id, week.weekStart);
+          else store.shareWeek(user.id, week.weekStart, body.action === 'rotate');
+          return send(200, { week, share: sharing(user, demoId, week) });
+        });
+      }
       if (request.method === 'POST' && ['/api/week/day/suggest', '/api/week/day/apply'].includes(url.pathname)) {
         return await withLock(demoId || user.id, async () => {
           const week = currentWeek();
@@ -177,7 +232,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
           const old = currentWeek();
           if (!old) throw invalid('no_plan', 404);
           if (old.revision !== body.revision) throw invalid('plan_changed', 409);
-          if (demoId) { const record = demoRecord(demoId); record.week = null; record.revision++; }
+          if (demoId) { const record = demoRecord(demoId); record.week = null; record.parentToken = null; record.revision++; }
           else if (!store.deleteWeek(user.id, old.weekStart, old.revision)) throw invalid('plan_changed', 409);
           return send(200, { week: null, settings: old.settings });
         });
@@ -212,6 +267,9 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
     }
   });
   server.requestTimeout = 60000; server.headersTimeout = 15000;
+  const automatic = autoRefreshMs > 0 ? startAutoRefresh({ store, refreshWeek: refreshStoredWeek, intervalMs: autoRefreshMs }) : null;
+  server.on('listening', () => { automatic?.tick().catch(() => {}); });
+  server.on('close', () => automatic?.stop());
   server.on('close', () => store.close());
   return server;
 }
