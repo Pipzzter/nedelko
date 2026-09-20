@@ -78,3 +78,9 @@ Weekly and future-day messages are drafts. Approval applies only to the current 
 ## Scope
 
 PM2.5-only screening omits other pollutants, pollen, UV, indoor air, individual health needs and actual yard/ground conditions. Forecast weather is imperfect. EPA school guidance supplies a decision reference, not a Macedonian regulatory endorsement. WHO’s 24-hour PM2.5 guideline is not a threshold for a half-hour play session. No environmental savings or real-world adoption are claimed.
+
+## Guided planning and day-specific AI
+
+New plans require a kindergarten name, one group, location, age range, a teaching brief, materials and a valid timetable. The form asks the teacher to review meal and rest times. Group settings are saved per teacher; existing plans remain editable.
+
+AI previews affect one upcoming day only and require a separate apply. Previews are owner- and revision-bound, expire after ten minutes, preserve timetable times and other days, and invalidate notice approval when applied. Explicit failures leave existing lessons intact. The library fallback is labelled and does not interpret teaching instructions. Weather and air rules remain deterministic.

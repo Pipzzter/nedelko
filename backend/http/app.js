@@ -6,11 +6,12 @@ import { randomUUID, randomInt } from 'node:crypto';
 import { LOCATIONS, skopjeParts, POLICY, SCENARIOS } from '../config/index.js';
 import { demoWeekById, demoWeekOptions, DEFAULT_DEMO_WEEK } from '../config/demo.js';
 import { prepareDemoWeek } from '../domain/demo-week.js';
-import { DEFAULT_SETTINGS, MATERIALS, validateSettings, invalid, minutes } from '../domain/settings.js';
+import { DEFAULT_SETTINGS, MATERIALS, validateSettings, validateGenerationSettings, invalid, minutes, teacherInstruction } from '../domain/settings.js';
 import { planningWeekDates } from '../domain/planner.js';
-import { createWeek, adaptWeek, editWeek, dashboard, outdoorPlanningContext } from '../domain/week.js';
+import { createWeek, adaptWeek, editWeek, dashboard, outdoorPlanningContext, replaceDayTheme } from '../domain/week.js';
 import { getConditions } from '../services/conditions.js';
-import { createCurriculum } from '../services/curriculum.js';
+import { createCurriculum, createDayCurriculum } from '../services/curriculum.js';
+import { aiStatus } from '../services/ai.js';
 import { getHolidayCalendar } from '../services/holidays.js';
 import { calendarSnapshot } from '../domain/holidays.js';
 import { register, login, tokenHash, readSessionCookie, createSession } from '../services/auth.js';
@@ -20,8 +21,9 @@ import { securityHeaders, jsonBody, rateLimiter } from './security.js';
 const FRONTEND = fileURLToPath(new URL('../../frontend/', import.meta.url));
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 
-export function createApp({ store = openStore(), conditionsProvider = getConditions, curriculumProvider = createCurriculum, holidayProvider = getHolidayCalendar } = {}) {
-  const limit = rateLimiter(); const demos = new Map(); const locks = new Map();
+export function createApp({ store = openStore(), conditionsProvider = getConditions, curriculumProvider = createCurriculum,
+  dayCurriculumProvider = createDayCurriculum, holidayProvider = getHolidayCalendar } = {}) {
+  const limit = rateLimiter(); const demos = new Map(); const locks = new Map(); const proposals = new Map();
   const withLock = async (key, operation) => {
     if (locks.has(key)) throw invalid('operation_pending', 409);
     locks.set(key, true); try { return await operation(); } finally { locks.delete(key); }
@@ -31,7 +33,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
     if (!record || Date.now() - record.at > 3600000) { demos.delete(id); throw invalid('demo_expired', 404); }
     return record;
   }
-  function save(user, demoId, week, expected) {
+  function save(user, demoId, week, expected, updateProfile = false) {
     if (demoId) {
       const record = demoRecord(demoId);
       if ((record.week?.revision || 0) !== expected) throw invalid('plan_changed', 409);
@@ -39,7 +41,12 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
       record.week = { ...week, revision: record.revision }; return record.week;
     }
     const result = store.saveWeek(user.id, week, expected);
-    if (!result) throw invalid('plan_changed', 409); return result;
+    if (!result) throw invalid('plan_changed', 409);
+    if (updateProfile) store.saveProfile(user.id, result.settings);
+    return result;
+  }
+  function present(week, conditions, user, demoId) {
+    return { ...dashboard(week, conditions), demoId, profile: !demoId && user ? store.profile(user.id) : null };
   }
   const server = http.createServer(async (request, response) => {
     securityHeaders(response);
@@ -62,7 +69,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
       if (request.method === 'POST' && ((request.headers.origin && request.headers.origin !== `http://${host}`) || request.headers['sec-fetch-site'] === 'cross-site')) throw invalid('cross_origin', 403);
       const cookie = readSessionCookie(request); const user = cookie ? store.session(tokenHash(cookie)) : null;
       if (request.method === 'GET' && url.pathname === '/api/auth/me') return send(200, { user });
-      if (request.method === 'GET' && url.pathname === '/api/config') return send(200, { locations: LOCATIONS, defaults: DEFAULT_SETTINGS, materials: MATERIALS, demoWeeks: demoWeekOptions(), defaultDemoWeek: DEFAULT_DEMO_WEEK, demoScenarios: SCENARIOS, version: '1.0.0' });
+      if (request.method === 'GET' && url.pathname === '/api/config') return send(200, { locations: LOCATIONS, defaults: DEFAULT_SETTINGS, materials: MATERIALS, ai: aiStatus(), demoWeeks: demoWeekOptions(), defaultDemoWeek: DEFAULT_DEMO_WEEK, demoScenarios: SCENARIOS, version: '1.0.0' });
       if (request.method === 'POST' && ['/api/auth/register', '/api/auth/login'].includes(url.pathname)) {
         limit(`auth:${request.socket.remoteAddress}`, 12, 15 * 60000);
         const body = await jsonBody(request);
@@ -74,13 +81,15 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
         response.setHeader('Set-Cookie', 'eko_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0'); return send(200, { ok: true });
       }
       if (request.method === 'POST' && url.pathname === '/api/demo') {
-        const body = await jsonBody(request); const settings = validateSettings({ ...DEFAULT_SETTINGS, locationId: body.locationId || 'centar' });
+        const body = await jsonBody(request); const settings = validateSettings({ ...DEFAULT_SETTINGS, locationId: body.locationId || 'centar',
+          gradinka: { name: 'Сончева градина' }, groupName: 'Сончогледи', ageGroup: 'mixed', teacherPrompt: 'Eco activities with movement, shared creations and care for nature.' });
         const profile = demoWeekById(body.demoWeek);
         const conditions = await conditionsProvider({ locationId: settings.locationId, mode: 'demo', scenario: 'normal', demoWeek: profile.id });
         const curriculum = await curriculumProvider(planningWeekDates(conditions.clock), settings, { useAI: false });
         const week = { ...prepareDemoWeek(createWeek(settings, curriculum, conditions), conditions, profile), revision: 1 }; const demoId = randomUUID();
         for (const [id, record] of demos) if (Date.now() - record.at > 3600000 || demos.size >= 50) demos.delete(id);
-        demos.set(demoId, { week, revision: 1, demoWeek: profile.id, at: Date.now() }); return send(201, { ...dashboard(week, conditions), demoId });
+        demos.set(demoId, { week, revision: 1, demoWeek: profile.id, at: Date.now() });
+        return send(201, present(week, conditions, user, demoId));
       }
       const body = request.method === 'POST' ? await jsonBody(request) : {};
       const demoId = body.demoId || url.searchParams.get('demoId');
@@ -101,7 +110,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
       }
       if (request.method === 'GET' && url.pathname === '/api/dashboard') {
         return await withLock(demoId || user.id, async () => {
-          let old = currentWeek(); const locationId = old?.settings.locationId || url.searchParams.get('location') || 'centar';
+          let old = currentWeek(); const locationId = old?.settings.locationId || url.searchParams.get('location') || (!demoId && store.profile(user.id)?.locationId) || 'centar';
           if (old) old = save(user, demoId, { ...old, approval: null, checkedAt: null, checkedDate: null }, old.revision);
           const years = old ? [...new Set(old.days.map(day => Number(day.date.slice(0, 4))))] : [];
           const [conditions, calendars] = await Promise.all([
@@ -109,12 +118,12 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
             Promise.all(years.map(year => demoId ? calendarSnapshot(year) : holidayProvider(year))),
           ]);
           const week = old ? save(user, demoId, adaptWeek({ ...old, holidayCalendars: calendars }, conditions), old.revision) : null;
-          return send(200, { ...dashboard(week, conditions), demoId });
+          return send(200, present(week, conditions, user, demoId));
         });
       }
       if (request.method === 'POST' && url.pathname === '/api/week/generate') {
         return await withLock(demoId || user.id, async () => {
-          const settings = validateSettings(body.settings); const old = currentWeek();
+          const settings = validateGenerationSettings(body.settings); const old = currentWeek();
           if (old ? body.revision !== old.revision : body.revision) throw invalid('plan_changed', 409);
           const conditions = await conditionsProvider({ locationId: settings.locationId, mode, scenario, demoWeek });
           const dates = planningWeekDates(conditions.clock);
@@ -129,8 +138,38 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
           });
           let generated = createWeek(settings, curriculum, conditions, calendars);
           if (demoId) generated = prepareDemoWeek(generated, conditions, demoWeekById(demoWeek));
-          const week = save(user, demoId, generated, old?.revision || 0);
-          return send(201, { ...dashboard(week, conditions), demoId });
+          const week = save(user, demoId, generated, old?.revision || 0, true);
+          return send(201, present(week, conditions, user, demoId));
+        });
+      }
+      if (request.method === 'POST' && ['/api/week/day/suggest', '/api/week/day/apply'].includes(url.pathname)) {
+        return await withLock(demoId || user.id, async () => {
+          const week = currentWeek();
+          if (!week) throw invalid('no_plan', 404);
+          if (body.revision !== week.revision) throw invalid('plan_changed', 409);
+          const owner = demoId || user.id;
+          if (url.pathname.endsWith('/suggest')) {
+            const day = week.days.find(day => day.date === body.date);
+            const local = skopjeParts(new Date(demoId ? week.clock : new Date().toISOString()));
+            const slot = day?.timeline.find(row => row.kind === 'eco');
+            if (!day?.theme || day.closed || !slot || day.date < local.date || day.date === local.date && minutes(slot.start) <= local.minutes) throw invalid('activity_finished', 409);
+            const instruction = teacherInstruction(body.instruction);
+            if (!instruction) throw invalid('invalid_instruction');
+            limit(`ai-day:${owner}`, 12, 3600000);
+            const result = await dayCurriculumProvider(day, week.settings, { instruction, useAI: !demoId });
+            if (!result.theme) return send(503, { error: 'ai_day_failed', generationIssue: result.generationIssue, generationError: result.generationError || null });
+            for (const [key, proposal] of proposals) if (proposal.expiresAt < Date.now() || proposals.size >= 100) proposals.delete(key);
+            const proposalId = randomUUID();
+            const proposal = { ...result, owner, date: day.date, revision: week.revision, expiresAt: Date.now() + 10 * 60000 };
+            proposals.set(proposalId, proposal);
+            return send(200, { proposalId, date: day.date, theme: result.theme, source: result.source, expiresAt: proposal.expiresAt });
+          }
+          const proposal = proposals.get(body.proposalId);
+          if (!proposal || proposal.owner !== owner || proposal.expiresAt <= Date.now() || proposal.revision !== week.revision) throw invalid('proposal_expired', 409);
+          const conditions = await conditionsProvider({ locationId: week.settings.locationId, mode, scenario, demoWeek, fresh: true });
+          const next = save(user, demoId, replaceDayTheme(week, proposal.date, proposal.theme, proposal.source, conditions), week.revision);
+          proposals.delete(body.proposalId);
+          return send(200, present(next, conditions, user, demoId));
         });
       }
       if (request.method === 'POST' && url.pathname === '/api/week/delete') {
@@ -164,7 +203,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
             next.checkedAt = new Date().toISOString(); next.checkedDate = skopjeParts(new Date(conditions.clock)).date;
             next.checkedObservation = conditions.assessment.oldestObservation;
           }
-          const week = save(user, demoId, next, old.revision); return send(200, { ...dashboard(week, conditions), demoId });
+          const week = save(user, demoId, next, old.revision, !url.pathname.endsWith('/recheck')); return send(200, present(week, conditions, user, demoId));
         });
       }
       throw invalid('not_found', 404);

@@ -8,6 +8,7 @@ export const MATERIALS = [
   ['crayons', 'Боички', 'Crayons'], ['fabric', 'Остатоци од ткаенина', 'Fabric scraps'],
 ].map(([id, mk, en]) => ({ id, label: pair(mk, en) }));
 export const DEFAULT_SETTINGS = {
+  gradinka: { name: '', locationId: 'centar' }, teacherPrompt: '',
   locationId: 'centar', groupName: '', ageGroup: '4-5', dayStart: '07:30', dayEnd: '16:00', duration: 45, outdoorDays: 2,
   materials: ['paper', 'cardboard', 'leaves', 'crayons'], preferences: { ...DEFAULT_COMFORT },
   blocks: [
@@ -19,6 +20,10 @@ export const DEFAULT_SETTINGS = {
   ],
 };
 export const invalid = (code = 'invalid_plan', status = 400) => Object.assign(new Error(code), { status, code });
+export function teacherInstruction(value = '') {
+  if (typeof value !== 'string' || value.length > 2000 || /[<>\u0000-\u0008\u000b-\u001f]/u.test(value)) throw invalid('invalid_instruction');
+  return value.trim().replace(/\r?\n/g, ' ');
+}
 export function cleanText(value, max = 200) {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > max || /[<>\p{Cc}]/u.test(value)) throw invalid('invalid_text');
   return value.trim().replace(/\u2014/g, ',');
@@ -50,6 +55,8 @@ export function validateTimeline(items, settings) {
 export function validateSettings(input) {
   if (!input || typeof input !== 'object') throw invalid('invalid_settings');
   const locationId = locationById(input.locationId).id;
+  const gradinka = { name: input.gradinka?.name ? cleanText(input.gradinka.name, 100) : '', locationId };
+  const teacherPrompt = teacherInstruction(input.teacherPrompt);
   const groupName = input.groupName ? cleanText(input.groupName, 60) : '';
   if (!['3-4', '4-5', '5-6', 'mixed'].includes(input.ageGroup)) throw invalid('invalid_age');
   const dayStart = validTime(input.dayStart); const dayEnd = validTime(input.dayEnd);
@@ -69,7 +76,14 @@ export function validateSettings(input) {
   for (const block of blocks) { gaps.push(minutes(block.start) - cursor); cursor = minutes(block.end); }
   gaps.push(minutes(dayEnd) - cursor);
   if (!gaps.some(gap => gap >= input.duration)) throw invalid('no_activity_space');
-  return { locationId, groupName, ageGroup: input.ageGroup, dayStart, dayEnd, duration: input.duration,
+  return { locationId, gradinka, teacherPrompt, groupName, ageGroup: input.ageGroup, dayStart, dayEnd, duration: input.duration,
     outdoorDays: input.outdoorDays, materials, preferences, blocks };
+}
+export function validateGenerationSettings(input) {
+  if (!input || typeof input !== 'object') throw invalid('invalid_settings');
+  if (typeof input.gradinka?.name !== 'string' || !input.gradinka.name.trim()) throw invalid('kindergarten_required');
+  if (typeof input.groupName !== 'string' || !input.groupName.trim()) throw invalid('group_required');
+  if (typeof input.teacherPrompt !== 'string' || !input.teacherPrompt.trim()) throw invalid('brief_required');
+  return validateSettings(input);
 }
 export { minutes, timeLabel };

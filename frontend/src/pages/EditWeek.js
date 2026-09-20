@@ -4,6 +4,8 @@ import { Calendar } from '../components/Calendar.js';
 import { InlineText } from '../components/InlineText.js';
 import { Icon, WeatherIcon } from '../components/Icon.js';
 import { Occasions, HolidaySources } from '../components/Holidays.js';
+import { DayAssistant } from '../components/DayAssistant.js';
+import { GenerationStatus } from '../components/GenerationStatus.js';
 
 const toMinutes = time => Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
 const toTime = n => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`;
@@ -20,7 +22,7 @@ function draftIssue(draft, today) {
   return null;
 }
 
-export function EditWeek({ data, lang, onSave, onDelete, busy, onCancel, selected, onSelect, error }) {
+export function EditWeek({ data, lang, onSave, onDelete, busy, onCancel, selected, onSelect, error, onSuggestDay, onApplyDay }) {
   const [draft, setDraft] = useState(() => structuredClone(data.week));
   const [open, setOpen] = useState(selected || data.today);
   const [editor, setEditor] = useState(null);
@@ -80,12 +82,13 @@ export function EditWeek({ data, lang, onSave, onDelete, busy, onCancel, selecte
   };
   const issueText = issue ? `${dayName(issue.date, lang)}: ${issue.code === 'day_full' ? t('dayFull', lang) : errorText(issue.code, lang)}` : error;
   return html`<form class="week-editor" onSubmit=${submit} noValidate>
+    <${GenerationStatus} week=${data.week} lang=${lang}/>
     <${Calendar} data=${{ ...data, week: draft }} lang=${lang} selected=${open} onSelect=${choose} compact=${true}/>
     <div class="editor-toolbar">
       <button type="button" class="button danger-quiet" disabled=${busy} onClick=${() => setConfirmDelete(true)}><${Icon} name="trash" size=${16}/>${t('deleteWeek', lang)}</button>
     </div>
     ${confirmDelete && html`<div class="delete-week-confirm" role="alert"><div><b>${t('deleteWeekQuestion', lang)}</b><p>${t('deleteWeekHelp', lang)}</p></div><button type="button" class="button secondary" disabled=${busy} onClick=${() => setConfirmDelete(false)}>${t('keepWeek', lang)}</button><button type="button" class="button danger" disabled=${busy} onClick=${onDelete}>${t('deleteAndStart', lang)}</button></div>`}
-    <details class="week-preferences"><summary>${t('weekOptions', lang)}</summary><label class="outdoor-target">${t('outdoorDays', lang)}<select disabled=${busy} value=${draft.settings.outdoorDays} onChange=${e => { const value = Number(e.currentTarget.value); setDraft(previous => ({ ...previous, settings: { ...previous.settings, outdoorDays: value } })); }}>${[0, 1, 2, 3, 4, 5].map(n => html`<option value=${n}>${n}</option>`)}</select></label><${HolidaySources} calendars=${draft.holidayCalendars} lang=${lang}/>
+    <details class="week-preferences"><summary>${t('weekOptions', lang)}</summary><div class="profile-fields"><label>${t('kindergartenName', lang)}<input maxLength="100" value=${draft.settings.gradinka?.name || ''} onInput=${e => setDraft({ ...draft, settings: { ...draft.settings, gradinka: { name: e.currentTarget.value, locationId: draft.settings.locationId } } })}/></label><label>${t('groupName', lang)}<input maxLength="60" value=${draft.settings.groupName} onInput=${e => setDraft({ ...draft, settings: { ...draft.settings, groupName: e.currentTarget.value } })}/></label></div><label class="outdoor-target">${t('outdoorDays', lang)}<select disabled=${busy} value=${draft.settings.outdoorDays} onChange=${e => { const value = Number(e.currentTarget.value); setDraft(previous => ({ ...previous, settings: { ...previous.settings, outdoorDays: value } })); }}>${[0, 1, 2, 3, 4, 5].map(n => html`<option value=${n}>${n}</option>`)}</select></label><${HolidaySources} calendars=${draft.holidayCalendars} lang=${lang}/>
       ${draft.generationIssue && html`<p class="soft-note">${t(draft.generationIssue, lang)}</p>`}
       ${draft.generationError?.httpStatus && html`<details class="soft-note"><summary>${t('aiErrorDetails', lang)}</summary><p style="overflow-wrap:anywhere"><code>HTTP ${draft.generationError.httpStatus}${draft.generationError.code ? ` · ${draft.generationError.code}` : ''}</code>${draft.generationError.requestId && html`<br/><code>${draft.generationError.requestId}</code>`}</p></details>`}
     </details>
@@ -105,6 +108,7 @@ export function EditWeek({ data, lang, onSave, onDelete, busy, onCancel, selecte
           <${Occasions} day=${day} lang=${lang}/>
           <p class="day-weather-note">${t(day.summary.kind === 'unknown' ? 'weatherUnknown' : day.summary.kind, lang)} · ${degrees(day.summary.min)} / ${degrees(day.summary.max)}${Number.isFinite(day.summary.wind) ? ` · ${t('windLabel', lang)} ${Math.round(day.summary.wind)} km/h` : ''}. ${t(`reason_${day.reason}`, lang)}</p>
           ${!editable ? html`<p class="soft-note">${t(day.theme ? 'pastReadOnly' : 'pastEmpty', lang)}</p>` : html`<fieldset disabled=${busy} class="day-editor-fields">
+            ${onSuggestDay && !day.closed && hasEco && !(day.date === data.today && eco.start <= localTime(data.clock).time) && html`<${DayAssistant} key=${day.date} day=${day} lang=${lang} demo=${!!data.demoId} busy=${busy} dirty=${!!editor || JSON.stringify(draft) !== JSON.stringify(data.week)} onSuggest=${onSuggestDay} onApply=${onApplyDay}/>`}
             <div class="day-place-control"><label>${t('ecoActivityPlace', lang)}<select class="day-place-select" value=${day.outdoorPreference} disabled=${day.closed || !hasEco || lessonFinished} aria-describedby=${`place-help-${day.date}`} onChange=${e => changeDay(day.date, { outdoorPreference: e.currentTarget.value })}><option value="auto">${t('automatic', lang)}</option><option value="inside">${t('inside', lang)}</option><option value="outside">${t('outside', lang)}</option></select></label>
               <p id=${`place-help-${day.date}`} class="soft-note" role="status">${t(day.closed ? 'reason_closed' : !hasEco ? 'reason_no_slot' : lessonFinished ? 'reason_finished' : placeChanged ? 'savePlaceChoice' : day.outdoorPreference === 'outside' && day.mode !== 'outside' ? 'outdoorChoiceBlocked' : 'dayPlaceHelp', lang)}</p>
             </div>
