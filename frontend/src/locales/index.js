@@ -69,6 +69,8 @@ const copy = {
   description_meal: ['Подготовка за оброкот, јадење и заедничко средување, со поддршка од воспитувачот.', 'Prepare for the meal, eat and tidy up together, with support from the teacher.'],
   description_rest: ['Мирна подготовка за одмор. Воспитувачот ги поддржува децата додека се смируваат и одмораат.', 'A calm transition to rest. The teacher supports children as they settle down and rest.'],
   description_routine: ['Заеднички дневен ритуал според распоредот на групата, со насоки од воспитувачот.', 'A shared daily routine from the group’s timetable, guided by the teacher.'],
+  description_transition: ['Мирен премин: децата се подготвуваат, се облекуваат и одат заедно со воспитувачот.', 'A calm transition: children get ready, dress and move together with the teacher.'],
+  transitionOut: ['Се подготвуваме за надвор', 'Getting ready to go outside'], transitionIn: ['Се враќаме и смируваме', 'Coming back inside'],
   fixDay: ['Проверете го овој ден', 'Check this day'],
   holidayCalendar: ['Празници и наставни теми', 'Holidays and classroom occasions'],
   holidayHelp: ['Датумите доаѓаат од Министерството за економија и труд. Ноќта на вештерките и еко-деновите се изборни наставни теми. Вие потврдувате кои денови се неработни во вашата градинка.', 'Dates come from the Ministry of Economy and Labour. Halloween and environmental days are optional classroom themes. You confirm which days your kindergarten is closed.'],

@@ -43,6 +43,8 @@ test('demo uses the planner and shared parent page; links, languages and isolate
   click('Explore a sample week'); await wait(() => document.querySelector('.day-plan'));
   const teacherPath = window.location.hash;
   assert.equal(document.querySelectorAll('.calendar-day').length, 5);
+  assert.ok(document.querySelector('.timeline .kind-transition'), 'an outdoor day shows go-out and come-in transitions');
+  assert.equal(document.querySelectorAll('.timeline .kind-transition').length, 2);
   assert.deepEqual([...document.querySelectorAll('.sidebar nav a')].map(link => link.textContent.trim()), ['Home']);
   click('Regenerate week'); await wait(() => document.querySelector('.planning-replace'));
   assert.equal(window.location.hash, teacherPath);

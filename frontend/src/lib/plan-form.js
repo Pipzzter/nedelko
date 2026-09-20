@@ -6,8 +6,7 @@ export function planIssues(value, config, rhythmConfirmed = true) {
   if (!value.teacherPrompt?.trim()) add('teacherPrompt', 'requiredBrief', 1);
   if (!value.materials?.length) add('materials', 'requiredMaterials', 1);
   if (!Number.isInteger(value.outdoorDays) || value.outdoorDays < 0 || value.outdoorDays > 5) add('outdoorDays', 'requiredOutdoorDays', 1);
-  if (![15,30,45,60].includes(value.duration)) add('duration', 'requiredDuration', 1);
-  const timesValid = timePattern.test(value.dayStart) && timePattern.test(value.dayEnd) && value.dayStart >= '06:00' && value.dayEnd <= '19:00' && minutes(value.dayEnd) - minutes(value.dayStart) >= 180;
+  const timesValid =timePattern.test(value.dayStart) && timePattern.test(value.dayEnd) && value.dayStart >= '06:00' && value.dayEnd <= '19:00' && minutes(value.dayEnd) - minutes(value.dayStart) >= 180;
   if (!timesValid) add('dayStart', 'checkDayTimes', 2);
   const rows = [...value.blocks].sort((a,b) => a.start.localeCompare(b.start));
   if (!['meal', 'rest'].every(kind => rows.some(row => row.kind === kind))) add('routines', 'dailyRoutinesRequired', 2);
