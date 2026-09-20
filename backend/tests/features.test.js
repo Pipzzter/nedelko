@@ -88,6 +88,7 @@ test('demo links are isolated and immediately show adapted pollution messages', 
   const polluted = (await parent(endpoint)).body;
   assert.equal(polluted.days[0].mode, 'inside');
   assert.match(polluted.days[0].message.en, /elevated PM2.5 readings/);
+  assert.ok(polluted.changes.some(change => change.from === polluted.today && change.reason === 'pollution'));
   assert.equal(polluted.mode, 'demo');
   assert.equal(store.db.prepare('SELECT count(*) AS n FROM parent_links').get().n, 0);
   assert.equal(store.db.prepare('SELECT count(*) AS n FROM weeks').get().n, 0);

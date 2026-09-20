@@ -82,6 +82,9 @@
   }
 }
 @layer components {
+  .day-change + .day-change { margin-top: 12px; }
+  .day-change p + p { margin-top: 6px; }
+  .text-button { text-decoration: underline; text-underline-offset: 3px; font-weight: 650; padding: 4px; }
   .change-assistant { margin-top: 22px; }
   .change-activity { padding-top: 20px; border-top: 1px solid var(--line); }
   .change-form { display: grid; gap: 12px; margin-top: 14px; }

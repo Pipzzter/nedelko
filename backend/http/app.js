@@ -66,7 +66,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
       let old = store.week(userId, start);
       if (!old) throw invalid('parent_link_unavailable', 404);
       const today = skopjeParts(new Date()).date;
-      if (Date.now() - Date.parse(old.conditionsCheckedAt) < 300000 && old.today === today) return old;
+      if (Date.now() - Date.parse(old.conditionsCheckedAt) < 60000 && old.today === today) return old;
       old = save({ id: userId }, null, { ...old, approval: null, checkedAt: null, checkedDate: null }, old.revision);
       const conditions = await conditionsProvider({ locationId: old.settings.locationId, mode: 'live', fresh: true });
       return save({ id: userId }, null, adaptWeek(old, conditions), old.revision);

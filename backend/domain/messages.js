@@ -43,7 +43,14 @@ export function parentMessages(week) {
       const outdoors = day.mode === 'outside';
       const place = lang === 'mk' ? outdoors ? 'надвор' : 'внатре' : outdoors ? 'outside' : 'indoors';
       const reasons = { pollution: ['Поради покачената PM2.5 процена, денес остануваме внатре.', 'With elevated PM2.5 readings, today’s activity is indoors.'], unknown_air: ['Нема доволно свежи локални мерења за да потврдиме излегување.', 'There are not enough fresh local readings to confirm outdoor play.'], weather: ['Планот е приспособен на временските услови.', 'The plan has been adjusted for the weather.'], air_forecast: ['Прогнозата за воздухот го насочува планот внатре.', 'The air forecast points to an indoor plan.'], unknown_weather: ['Временската прогноза е недостапна, па подготвуваме активност внатре.', 'The weather forecast is unavailable, so an indoor activity is prepared.'] };
-      const reason = reasons[day.reason]?.[lang === 'mk' ? 0 : 1] ?? '';
+      let reason = reasons[day.reason]?.[lang === 'mk' ? 0 : 1] ?? '';
+      const change = week.changes?.find(item => item.from === day.date);
+      if (change) {
+        reason += change.to ? lang === 'mk'
+          ? ` Друг привремен ден за активност надвор: ${shortDate(change.to)}. Потребна е проверка тоа утро.`
+          : ` Another provisional outdoor day: ${shortDate(change.to)}. A check that morning is still required.`
+          : lang === 'mk' ? ' Моментално нема друг соодветен ден за активност надвор.' : ' No replacement outdoor day currently meets the planning checks.';
+      }
       const hasEco = day.timeline.some(row => row.kind === 'eco');
       const title = hasEco ? day.theme.title[lang] : lang === 'mk' ? 'Дневни активности' : 'Day activities';
       const what = hasEco ? day.activity?.[lang] ?? day.theme.inside[lang] : day.timeline.filter(row => row.kind === 'activity').slice(0, 2).map(row => row.label[lang]).join('. ') + '.';

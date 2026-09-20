@@ -1,7 +1,7 @@
 import { skopjeParts } from '../config/index.js';
 
 // Runs without a teacher's browser. Uses deterministic adaptation, never model calls.
-export function startAutoRefresh({ store, refreshWeek, intervalMs = 300000, now = Date.now }) {
+export function startAutoRefresh({ store, refreshWeek, intervalMs = 60000, now = Date.now }) {
   let running = false;
   let stopped = false;
   const tick = async () => {

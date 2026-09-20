@@ -2,6 +2,7 @@ import { html, useState, useEffect, text, dayName, localizedDate } from '../lib/
 import { api } from '../lib/api.js';
 import { t, parentReason } from '../locales/index.js';
 import { Icon } from '../components/Icon.js';
+import { PlanChanges } from '../components/PlanChanges.js';
 
 export function ParentWeek({ token }) {
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('eko-language') === 'en' ? 'en' : 'mk'; } catch { return 'mk'; } });
@@ -37,6 +38,7 @@ export function ParentWeek({ token }) {
         ${data.mode === 'demo' && html`<p class="demo-banner">${t('demoSample', lang)}</p>`}
         <div class="parent-meta" id="family-week"><span>${localizedDate(data.weekStart, lang, { day: 'numeric', month: 'long' })} – ${localizedDate(data.days.at(-1).date, lang, { day: 'numeric', month: 'long' })}</span><button class="button quiet" onClick=${() => window.print()}>${t('printWeek', lang)}</button></div>
         <p class="soft-note">${t('parentProvisional', lang)}</p>
+        <${PlanChanges} changes=${data.changes} today=${data.today} lang=${lang} onSelect=${setSelected}/>
         <nav class="parent-days" aria-label=${t('parentWeek', lang)}>${data.days.map(item => html`<button key=${item.date} class=${`parent-day-tile ${item.date === selected ? 'selected' : ''}`} aria-pressed=${item.date === selected} onClick=${() => setSelected(item.date)}>
           <span>${dayName(item.date, lang)}</span><b>${Number(item.date.slice(8))}</b><span class=${`pill status-${item.mode}`}>${t(item.mode, lang)}</span><small>${text(item.title, lang) || t('noDay', lang)}</small></button>`)}</nav>
         ${day && html`<article class="card parent-day-detail"><div class="card-heading"><div><span class="eyebrow">${day.date === data.today ? t('today', lang) : dayName(day.date, lang)}</span><h2>${text(day.title, lang) || t('noDay', lang)}</h2></div><span class=${`pill status-${day.mode}`}>${t(day.mode, lang)}</span></div>
