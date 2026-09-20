@@ -6,6 +6,9 @@ export const MATERIALS = [
   ['paper', 'Користена хартија', 'Used paper'], ['cardboard', 'Чист картон', 'Clean cardboard'],
   ['leaves', 'Паднати лисја', 'Fallen leaves'], ['cups', 'Чаши за повеќекратна употреба', 'Reusable cups'],
   ['crayons', 'Боички', 'Crayons'], ['fabric', 'Остатоци од ткаенина', 'Fabric scraps'],
+  ['blocks', 'Големи коцки за градење', 'Large building blocks'], ['dominoes', 'Големи домино-плочки', 'Large classroom dominoes'],
+  ['balls', 'Меки топки', 'Soft balls'], ['books', 'Сликовници', 'Picture books'],
+  ['screen', 'Екран со содржина избрана од воспитувачот', 'Screen with teacher-selected content'],
 ].map(([id, mk, en]) => ({ id, label: pair(mk, en) }));
 export const DEFAULT_SETTINGS = {
   gradinka: { name: '', locationId: 'centar' }, teacherPrompt: '',

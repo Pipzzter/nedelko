@@ -109,7 +109,7 @@ export function validateCurriculum(value, settings, { count = 5 } = {}) {
   return value.map(t => {
     if (!t || typeof t !== 'object' || Array.isArray(t)) throw invalid('invalid_curriculum');
     const result = {};
-    for (const [key, length] of [['title', 100], ['goal', 220], ['inside', 400], ['outside', 400], ['habit', 180]]) {
+    for (const [key, length] of [['title', 100], ['goal', 220], ['inside', 1200], ['outside', 1200], ['habit', 180]]) {
       result[key] = textPair(t[key], length);
       if (Object.values(result[key]).some(v => /ignore.{0,20}instructions|system prompt|air is clean|safe to (?:go|play)|безбедно.{0,15}надвор|воздухот е чист|\bAQI\b|PM2[.,]5|\bhttps?:/iu.test(v))) throw invalid('invalid_curriculum');
     }

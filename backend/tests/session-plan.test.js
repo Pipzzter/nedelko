@@ -4,7 +4,8 @@ import { DEFAULT_SETTINGS, pair } from '../domain/settings.js';
 import { createWeek, adaptWeek, dailyPlanningContext } from '../domain/week.js';
 import { demoConditions } from '../services/conditions.js';
 import { localCurriculum } from '../domain/curriculum.js';
-import { validateSessions, titleKey } from '../domain/session-plan.js';
+import { validateSessions, titleKey, activityDescription } from '../domain/session-plan.js';
+import { PLAY_IDEAS, playChoices } from '../domain/play-ideas.js';
 import { LOCATIONS } from '../config/index.js';
 import { planningWeekDates } from '../domain/planner.js';
 
@@ -25,7 +26,7 @@ test('whole-day session output must cover exact slots once with distinct bilingu
   const conditions = demoConditions(LOCATIONS[0], 'normal'); const dates = planningWeekDates(conditions.clock);
   const themes = localCurriculum(dates, DEFAULT_SETTINGS); const planningDays = dailyPlanningContext(dates, DEFAULT_SETTINGS, conditions);
   const sessions = planningDays.flatMap(day => day.slots.filter(row => row.kind === 'activity').map((row, i) => ({ date: day.date, slotId: row.id,
-    title: pair(`Игра ${day.date} ${i}`, `Game ${day.date} ${i}`), description: pair('Со воспитувачот редиме форми.', 'With the teacher, arrange shapes.') })));
+    title: pair(`Игра ${day.date} ${i}`, `Game ${day.date} ${i}`), description: structuredClone(PLAY_IDEAS[i % PLAY_IDEAS.length].note) })));
   const validated = validateSessions(sessions, planningDays, themes, dates);
   assert.throws(() => validateSessions(sessions.slice(1), planningDays, themes, dates));
   const duplicate = structuredClone(sessions); duplicate[1].title.en = duplicate[0].title.en;
@@ -39,4 +40,13 @@ test('whole-day session output must cover exact slots once with distinct bilingu
     if (row.occasionIds?.length) continue;
     assert.deepEqual(row.label, item.title); assert.deepEqual(row.note, item.description);
   }
+});
+
+test('activity details reject one-line summaries and library games use available supplies', () => {
+  assert.throws(() => activityDescription(pair('Редиме боички.', 'Sort crayons.')), { code: 'activity_detail_required' });
+  for (const idea of PLAY_IDEAS) assert.deepEqual(activityDescription(idea.note), idea.note);
+  assert.ok(playChoices(['cardboard']).some(item => /tower/.test(item.label.en)));
+  assert.ok(!playChoices(['paper']).some(item => item.materials.includes('dominoes')));
+  assert.ok(playChoices(['dominoes']).some(item => item.materials.includes('dominoes')));
+  assert.ok(playChoices([]).length >= 6, 'provide varied games without assuming equipment');
 });

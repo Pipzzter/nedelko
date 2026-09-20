@@ -114,3 +114,7 @@ Home is the single teacher workspace in both modes. A new account first shows Cr
 ## Shared parent dashboard
 
 The parent link uses the same calendar, current-air card, selectable timetable, complete activity details and daily/weekly messages as Home. The public API explicitly projects learning content and public environmental evidence; teacher briefs, account identifiers, edit revisions and AI diagnostics remain private. Parent requests cannot edit plans, approve notices, change activity locations or alter sharing settings. Conditions retain measurement timestamps and source labels. Demo sharing remains isolated and visibly synthetic.
+
+## Activity detail and variety
+
+New AI supporting sessions must include at least three sentences and 160–1200 characters in each language. The model receives a shared brief asking for a concrete challenge, steps/roles, a child-led choice or test, and a finale, scaled to the scheduled time. Main lesson descriptions allow 1200 characters; older saved lessons remain readable. These are content checks, not a claim that creativity or educational quality can be certified automatically. The local activity library now includes practical building, storytelling, pretend-play, rhythm and movement games. New optional classroom supplies are teacher-selected; model material IDs remain allowlisted. Regeneration is required to replace existing saved activities; existing plans are not silently rewritten by this release.

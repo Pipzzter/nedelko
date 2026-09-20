@@ -29,7 +29,7 @@ export function validateDayChange(day, settings, request, change, clock) {
       next.theme = theme; next.baseTheme = structuredClone(theme); next.themePinned = true;
       next.timeline = next.timeline.map(item => item.id === row.id ? { ...item, label: theme.title, customized: true } : item);
     } else {
-      const label = learningText(change?.label, 100); const note = learningText(change?.note, 280);
+      const label = learningText(change?.label, 100); const note = learningText(change?.note, 1200);
       next.timeline = next.timeline.map(item => item.id === row.id ? { ...item, label, note, customized: true } : item);
     }
   } else if (request.scope === 'schedule') {
@@ -53,7 +53,7 @@ export function validateDayChange(day, settings, request, change, clock) {
       if (day.date === local.date && minutes(row.start) <= local.minutes) throw invalid('activity_finished', 409);
       const raw = change.timeline.find(item => item.id === row.id);
       const label = row.kind === 'eco' ? theme.title : learningText(row.label, 100);
-      const note = raw.note == null ? undefined : learningText(raw.note, 280);
+      const note = raw.note == null ? undefined : learningText(raw.note, 1200);
       return { ...original, ...row, label, ...(note ? { note } : {}), customized: true };
     });
     next.theme = theme; next.baseTheme = structuredClone(theme); next.themePinned = true;
