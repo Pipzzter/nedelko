@@ -13,6 +13,7 @@ import { getConditions } from '../services/conditions.js';
 import { createCurriculum, createDayCurriculum } from '../services/curriculum.js';
 import { aiStatus } from '../services/ai.js';
 import { parentView } from '../domain/parent-view.js';
+import { dailyTopics } from '../domain/teaching-brief.js';
 import { startAutoRefresh } from '../services/auto-refresh.js';
 import { getHolidayCalendar } from '../services/holidays.js';
 import { calendarSnapshot } from '../domain/holidays.js';
@@ -172,9 +173,9 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
           const years = [...new Set(dates.map(date => Number(date.slice(0, 4))))];
           const calendars = await Promise.all(years.map(year => demoId ? calendarSnapshot(year) : holidayProvider(year)));
           const curriculum = await curriculumProvider(dates, settings, { useAI: !demoId, calendars, variant: demoId ? 0 : randomInt(1000000),
-            outdoorContext: outdoorPlanningContext(dates, settings, conditions) });
+            outdoorContext: outdoorPlanningContext(dates, settings, conditions), today: skopjeParts(new Date(conditions.clock)).date });
           // An explicit AI retry must never replace the saved week with another fallback.
-          if (!demoId && body.requireAI === true && curriculum.source !== 'ai') return send(503, {
+          if (!demoId && (body.requireAI === true || dailyTopics(settings.teacherPrompt).length) && curriculum.source !== 'ai') return send(503, {
             error: 'ai_retry_failed', generationIssue: curriculum.generationIssue || 'ai_unavailable',
             generationError: curriculum.generationError ?? null,
           });

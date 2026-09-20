@@ -22,7 +22,7 @@ export const DEFAULT_SETTINGS = {
 export const invalid = (code = 'invalid_plan', status = 400) => Object.assign(new Error(code), { status, code });
 export function teacherInstruction(value = '') {
   if (typeof value !== 'string' || value.length > 2000 || /[<>\u0000-\u0008\u000b-\u001f]/u.test(value)) throw invalid('invalid_instruction');
-  return value.trim().replace(/\r?\n/g, ' ');
+  return value.trim().replace(/\r\n/g, '\n');
 }
 export function cleanText(value, max = 200) {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > max || /[<>\p{Cc}]/u.test(value)) throw invalid('invalid_text');

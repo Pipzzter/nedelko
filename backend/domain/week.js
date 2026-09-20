@@ -109,6 +109,7 @@ export function createWeek(input, curriculum, conditions, calendars) {
     generationError: curriculum.generationError ?? null, outdoorOrder,
     outdoorDecisionSource: curriculum.source === 'ai' && outdoorOrder ? 'ai' : 'conditions', createdAt: conditions.clock, revision: 0,
     days: dates.map((date, i) => ({ date, theme: date < today ? null : themes[i], baseTheme: date < today ? null : themes[i], timeline: date < today ? [] : createTimeline(settings, themes[i], conditions, date, (i + variant) % 5),
+      themePinned: !!curriculum.topicAssignments?.some(topic => topic.date === date),
       occasions: occasions[i], closed: false, outdoorPreference: 'auto', mode: date < today ? 'empty' : 'inside', reason: date < today ? 'past' : 'pending' })),
     holidayCalendars: calendars,
     checkedAt: null, checkedDate: null, approval: null, changes: [], mode: conditions.mode };

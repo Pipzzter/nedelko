@@ -41,7 +41,7 @@ async function fixture(t, overrides = {}) {
 test('kindergarten and teaching brief validate and keep one canonical location', () => {
   const settings = validateSettings({ ...DEFAULT_SETTINGS, locationId: 'bitola', gradinka: { name: 'Our kindergarten', locationId: 'centar' }, teacherPrompt: 'Autumn\nwith music' });
   assert.deepEqual(settings.gradinka, { name: 'Our kindergarten', locationId: 'bitola' });
-  assert.equal(settings.teacherPrompt, 'Autumn with music');
+  assert.equal(settings.teacherPrompt, 'Autumn\nwith music');
   for (const teacherPrompt of [123, '<script>', 'x'.repeat(2001)]) assert.throws(() => validateSettings({ ...DEFAULT_SETTINGS, teacherPrompt }), { code: 'invalid_instruction' });
 });
 
@@ -249,4 +249,14 @@ test('generation rejects missing required teacher details before contacting prov
   ]) {const result=await teacher('/api/week/generate',{settings});assert.equal(result.status,400);assert.equal(result.body.error,error);}
   assert.equal(calls,0);assert.equal(store.db.prepare('SELECT COUNT(*) AS n FROM weeks WHERE user_id = ?').get(user.id).n,0);
   const generated=await teacher('/api/week/generate',{settings:DEFAULT_SETTINGS});assert.equal(generated.status,201);assert.equal(calls,1);
+});
+
+test('explicit daily topics cannot silently save an unrelated library fallback', async t => {
+  const { client, store } = await fixture(t);
+  const teacher = client(); const user = (await teacher('/api/auth/register', account)).body.user;
+  const previous = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
+  const result = await teacher('/api/week/generate', { revision: previous.revision,
+    settings: { ...DEFAULT_SETTINGS, teacherPrompt: 'one day about healthy food\none day about saving electricity' } });
+  assert.equal(result.status, 503);
+  assert.deepEqual(store.week(user.id, previous.weekStart), previous);
 });
