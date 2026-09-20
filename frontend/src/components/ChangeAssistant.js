@@ -16,7 +16,7 @@ export function ChangeAssistant({ day, row, scope, lang, busy, demo, onSuggest, 
     try {
       const result = await onSuggest({ date: day.date, scope, ...(row ? { rowId: row.id } : {}), instruction });
       if (scope === 'activity') await apply(result); else setProposal(result);
-    } catch (err) { setError(err.generationIssue ? `${errorText('ai_day_failed', lang)} ${t(err.generationIssue, lang)}` : errorText(err.code, lang)); }
+    } catch (err) { setError(err.timing ? `${errorText(err.code, lang)} ${t('requestedMinutes', lang)}: ${err.timing.requestedMinutes}. ${t('availableMinutes', lang)}: ${err.timing.availableMinutes}.` : err.generationIssue ? `${errorText('ai_day_failed', lang)} ${t(err.generationIssue, lang)}` : errorText(err.code, lang)); }
     finally { setWorking(false); }
   };
   const confirm = async () => {
@@ -37,6 +37,7 @@ export function ChangeAssistant({ day, row, scope, lang, busy, demo, onSuggest, 
     </form>`}
     ${error && html`<p class="form-error" role="alert">${error}</p>`}
     ${open && proposal && html`<section class="schedule-proposal"><h3>${t('reviewSchedule', lang)}</h3><p>${t('scheduleLockedHelp', lang)}</p>
+      ${proposal.timingTargets?.length > 0 && html`<ul class="timing-requirements">${proposal.timingTargets.map(target => html`<li>${text(day.timeline.find(item => item.id === target.rowId)?.label, lang)}: ${target.durationMinutes !== null ? `${target.durationMinutes} ${t('minutes', lang)}` : ''} ${target.position !== 'any' ? t(target.position === 'end' ? 'atClosing' : 'atOpening', lang) : ''} ${target.start || ''}${target.end ? ` - ${target.end}` : ''}</li>`)}</ul>`}
       <ol>${proposal.timeline.map(item => {
         const old = day.timeline.find(before => before.id === item.id);
         const changed = !old || ['start', 'end', 'label', 'note'].some(key => JSON.stringify(old[key] || null) !== JSON.stringify(item[key] || null));

@@ -1,4 +1,6 @@
 export const featureCopy = {
+  requestedMinutes: ['Барани минути', 'Requested minutes'], availableMinutes: ['Достапни минути', 'Available minutes'],
+  atClosing: ['до крајот на денот', 'finishing at closing'], atOpening: ['од почетокот на денот', 'starting at opening'],
   readOnlyPlan: ['План само за читање', 'Read-only plan'],
   createKindergarten: ['Создај градинка', 'Create kindergarten'],
   kindergartenStart: ['Внесете ги групата, идеите и дневниот ритам за да го создадете планот.', 'Add your group, learning ideas and daily rhythm to create the plan.'],
@@ -60,6 +62,8 @@ export const featureCopy = {
 };
 
 export const featureErrors = {
+  timing_conflict: ['Бараното време не се вклопува со заштитените оброци, одморот, празниците и работното време. Побарајте пократко времетраење или друг термин.', 'The requested time does not fit around protected meals, rest, holidays and opening hours. Request a shorter duration or another time.'],
+  timing_not_satisfied: ['Предлогот не го исполни точно бараното време. Ништо не е променето. Наведете ја активноста, времетраењето и терминот повторно.', 'The suggestion did not meet the requested timing exactly. Nothing changed. Restate the activity, duration and time.'],
   daily_routines_required: ['Додајте оброк и одмор или спиење во дневниот ритам.', 'Add a meal and a rest or sleep period to the daily rhythm.'],
   protected_activity: ['Оброците, одморот, празниците и започнатите активности мора да останат непроменети.', 'Meals, rest, holidays and activities that have started must stay unchanged.'],
   schedule_gaps: ['Распоредот мора да го покрие целиот ден без празнини.', 'The schedule must cover the whole day without gaps.'],

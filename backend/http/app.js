@@ -222,14 +222,14 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
             limit(`ai-day:${owner}`, 12, 3600000);
             const result = await dayPlanProvider(day, week.settings, { scope: body.scope, rowId: body.rowId, instruction, clock, useAI: !demoId, weekDays: week.days });
             if (!result.change) return send(503, { error: 'ai_day_failed', generationIssue: result.generationIssue });
-            const preview = validateDayChange(day, week.settings, body, result.change, clock);
+            const preview = validateDayChange(day, week.settings, { ...body, timingTargets: result.timingTargets }, result.change, clock);
             for (const [id, proposal] of proposals) if (proposal.expiresAt <= Date.now() || proposals.size >= 100) proposals.delete(id);
             const proposalId = randomUUID();
             const proposal = { type: 'change', owner, revision: week.revision, date: day.date, scope: body.scope, rowId: body.rowId,
-              change: result.change, source: result.source, expiresAt: Date.now() + 10 * 60000 };
+              change: result.change, timingTargets: result.timingTargets || [], source: result.source, expiresAt: Date.now() + 10 * 60000 };
             proposals.set(proposalId, proposal);
             return send(200, { proposalId, scope: proposal.scope, rowId: proposal.rowId, date: day.date,
-              timeline: preview.timeline, theme: preview.theme, source: proposal.source, expiresAt: proposal.expiresAt });
+              timeline: preview.timeline, theme: preview.theme, timingTargets: proposal.timingTargets, source: proposal.source, expiresAt: proposal.expiresAt });
           }
           const proposal = proposals.get(body.proposalId);
           if (!proposal || proposal.type !== 'change' || proposal.owner !== owner || proposal.revision !== week.revision || proposal.expiresAt <= Date.now()) throw invalid('proposal_expired', 409);
@@ -306,7 +306,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
       }
       throw invalid('not_found', 404);
     } catch (error) {
-      if (!response.headersSent) send(error.status || 500, { error: error.code || 'unexpected_error' }); else response.end();
+      if (!response.headersSent) send(error.status || 500, { error: error.code || 'unexpected_error', ...(error.code === 'timing_conflict' && error.timing ? { timing: error.timing } : {}) }); else response.end();
     }
   });
   server.requestTimeout = 60000; server.headersTimeout = 15000;

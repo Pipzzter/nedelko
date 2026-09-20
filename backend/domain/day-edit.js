@@ -2,6 +2,7 @@ import { skopjeParts } from '../config/index.js';
 import { invalid, minutes, validateTimeline } from './settings.js';
 import { validateCurriculum } from './curriculum.js';
 import { learningText, titleKey } from './session-plan.js';
+import { enforceTiming } from './schedule-timing.js';
 
 export const protectedActivity = row => ['meal', 'rest', 'routine'].includes(row.kind) || !!row.occasionIds?.length;
 export const rowContent = row => structuredClone({ id: row.id, start: row.start, end: row.end, kind: row.kind, label: row.label, note: row.note || null });
@@ -34,6 +35,7 @@ export function validateDayChange(day, settings, request, change, clock) {
     }
   } else if (request.scope === 'schedule') {
     const rows = validateTimeline(change?.timeline, settings);
+    enforceTiming(request.timingTargets, rows, settings);
     if (!rows.length || rows[0].start !== settings.dayStart || rows.at(-1).end !== settings.dayEnd ||
         rows.some((row, i) => i && row.start !== rows[i - 1].end)) throw invalid('schedule_gaps');
     const [theme] = validateCurriculum([change?.theme], settings, { count: 1 });

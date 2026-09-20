@@ -85,6 +85,7 @@ test('AI schedule proposals receive locked context and reject tampering without 
   const { day, week, conditions } = fixture(); let sent; let change = movedSchedule(day);
   t.mock.method(globalThis, 'fetch', async (_url, options) => {
     sent = JSON.parse(options.body);
+    if (sent.text.format.name === 'kindergarten_schedule_intent') return Response.json({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ targets: [] }) }] }] });
     return Response.json({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify(change) }] }] });
   });
   const settings = { ...week.settings, gradinka: { name: 'PRIVATE-NAME' }, groupName: 'PRIVATE-GROUP' };
@@ -93,8 +94,7 @@ test('AI schedule proposals receive locked context and reject tampering without 
   assert.doesNotMatch(sent.input, /PRIVATE-NAME|PRIVATE-GROUP/);
   assert.ok(JSON.parse(sent.input).timeline.filter(row => ['meal', 'rest'].includes(row.kind)).every(row => row.locked));
   change.timeline.find(row => row.kind === 'meal').label.en = 'Changed lunch';
-  const failed = await suggestDayPlan(day, settings, options);
-  assert.equal(failed.change, null); assert.equal(failed.generationIssue, 'ai_invalid_output');
+  await assert.rejects(suggestDayPlan(day, settings, options), { code: 'protected_activity' });
 });
 
 test('new kindergarten generation requires daily meals and rest', () => {
