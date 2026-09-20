@@ -84,3 +84,9 @@ PM2.5-only screening omits other pollutants, pollen, UV, indoor air, individual 
 New plans require a kindergarten name, one group, location, age range, a teaching brief, materials and a valid timetable. The form asks the teacher to review meal and rest times. Group settings are saved per teacher; existing plans remain editable.
 
 AI previews affect one upcoming day only and require a separate apply. Previews are owner- and revision-bound, expire after ten minutes, preserve timetable times and other days, and invalidate notice approval when applied. Explicit failures leave existing lessons intact. The library fallback is labelled and does not interpret teaching instructions. Weather and air rules remain deterministic.
+
+## Parent URL access and automatic changes
+
+Parents open the shared weekly URL without an account. Responses contain only the public plan projection; private teaching briefs, account identifiers and provider diagnostics are excluded. Links expire after fourteen days, can be rotated or revoked, and expire with one-hour demos. Anyone holding a link can read its plan.
+
+The running server checks active weeks every five minutes. A parent read can refresh stale current-week conditions. Poor or uncertain air uses the existing indoor lesson and rebuilds the daily draft without an AI call. Approval remains a separate same-morning action; no external messages are sent.
