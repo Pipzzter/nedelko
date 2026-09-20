@@ -1,4 +1,4 @@
-import { html, render, useState, useEffect, useRef, dayName, localizedDate } from './lib/ui.js';
+import { html, render, useState, useEffect, useRef, localizedDate } from './lib/ui.js';
 import { api } from './lib/api.js';
 import { t, errorText } from './locales/index.js';
 import { Icon } from './components/Icon.js';
@@ -13,6 +13,7 @@ import { DemoControls } from './components/DemoControls.js';
 import { ParentShare } from './components/ParentShare.js';
 import { GenerationStatus } from './components/GenerationStatus.js';
 import { ParentWeek } from './pages/ParentWeek.js';
+import { PlanChanges } from './components/PlanChanges.js';
 const demoRoute = () => window.location.hash.match(/^#demo\/([a-f0-9-]{36})(?:\/(home|plan(?:\/new)?|edit|create|classroom|messages))?$/);
 const pages = ['home', 'plan', 'plan/new', 'create', 'edit'];
 // Keep existing bookmarks working within the single planning destination.
@@ -67,8 +68,10 @@ function App() {
   }, [demoId]);
   useEffect(() => {
     if (page !== 'home' || !data) return;
-    const interval = setInterval(() => { if (!document.hidden) refresh(); }, 5 * 60000);
-    return () => clearInterval(interval);
+    const resume = () => { if (!document.hidden) refresh(); };
+    const interval = setInterval(resume, 60000);
+    document.addEventListener('visibilitychange', resume);
+    return () => { clearInterval(interval); document.removeEventListener('visibilitychange', resume); };
   }, [page, demoId, data?.week?.revision]);
   useEffect(() => {
     const handler = () => { if (demoRoute() || pages.includes(window.location.hash.slice(1))) setPage(currentPage()); };
@@ -97,7 +100,7 @@ function App() {
         <button class="button primary" onClick=${() => navigate('create')}>${t(data.profile ? 'generate' : 'createKindergarten', lang)}<${Icon} name="arrow" size=${18}/></button></section>` : html`
       <${GenerationStatus} week=${data.week} lang=${lang}/>
       <div class="overview-grid"><${Calendar} data=${data} lang=${lang} selected=${selected} onSelect=${setSelected}/><${AirCard} environment=${data.environment} lang=${lang} busy=${busy} refresh=${refresh}/></div>
-      ${data.week.changes?.length ? html`<div class="adaptation-note" role="status"><${Icon} name="refresh" size=${18}/><p><b>${t('changedDay', lang)}.</b> ${data.week.changes.map(c => `${t('moved', lang)}: ${dayName(c.from, lang)} → ${c.to ? dayName(c.to, lang) : t('noReplacement', lang)}`).join(' ')}</p></div>` : null}
+      <${PlanChanges} changes=${data.week.changes} today=${data.today} lang=${lang} onSelect=${setSelected}/>
       ${day && html`<${DayPlan} day=${day} data=${data} lang=${lang} clock=${clock} materials=${config.materials} busy=${busy}
         demo=${!!demoId} onSuggest=${request => run(() => api('/week/change/suggest', { ...request, revision: data.week.revision, ...(demoId ? { demoId, scenario } : {}) }), true)}
         onApply=${proposalId => action('/week/change/apply', { proposalId }, true)}

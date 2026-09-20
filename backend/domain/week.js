@@ -173,8 +173,20 @@ export function adaptWeek(input, conditions) {
   }
   const removed = [...previous].filter(date => date >= today && date !== finishedToday?.date && !chosen.has(date));
   const added = [...chosen].filter(date => !previous.has(date));
-  const changes = removed.map((from, i) => ({ from, to: added[i] ?? null, reason: week.days.find(d => d.date === from)?.reason }));
-  if (changes.length) week.changes = changes;
+  const blockedReasons = new Set(['pollution', 'unknown_air', 'weather', 'air_forecast', 'unknown_weather']);
+  const changes = new Map((week.changes || []).map(change => [change.from, change]));
+  removed.forEach((from, i) => changes.set(from, { from, to: added[i] ?? null }));
+  const replacements = new Set();
+  week.changes = [...changes.values()].filter(change => {
+    const day = week.days.find(item => item.date === change.from);
+    return day && day.date >= today && day.mode === 'inside' && blockedReasons.has(day.reason);
+  }).map(change => {
+    const eligible = candidates.filter(item => item.eligible && item.date > change.from && item.date > today && !replacements.has(item.date));
+    const target = eligible.find(item => item.date === change.to) || eligible.filter(item => !previous.has(item.date)).sort((a, b) =>
+      modelOrder ? (modelOrder.get(a.date) ?? 99) - (modelOrder.get(b.date) ?? 99) || a.score - b.score : a.score - b.score || a.date.localeCompare(b.date))[0];
+    if (target) replacements.add(target.date);
+    return { from: change.from, to: target?.date || null, reason: week.days.find(item => item.date === change.from).reason };
+  });
   week.today = today; week.clock = conditions.clock; week.mode = conditions.mode;
   week.conditionsCheckedAt = conditions.clock;
   week.checkedAt = null; week.checkedDate = null; week.approval = null;

@@ -213,6 +213,38 @@ test('community holidays have a bilingual discussion in an existing slot without
   assert.ok(week.days.every(day => !day.closed));
 });
 
+test('indoor alerts persist only while relevant and never recommend an ineligible replacement', () => {
+  const normal = suitableConditions(); const week = makeWeek(normal);
+  const polluted = structuredClone(normal); polluted.assessment.aqi = 160;
+  const changed = adaptWeek(week, polluted);
+  const alert = changed.changes.find(change => change.from === week.today);
+  assert.ok(alert.to); assert.equal(alert.reason, 'pollution');
+  assert.match(changed.messages.daily[week.today].en, /Another provisional outdoor day/);
+  assert.deepEqual(adaptWeek(changed, polluted).changes, changed.changes, 'another check retains the relevant alert');
+  const missing = { ...polluted, weatherAvailable: false };
+  const unavailable = adaptWeek(changed, missing);
+  assert.ok(unavailable.changes.length);
+  assert.ok(unavailable.changes.every(change => change.to === null));
+  assert.match(unavailable.messages.daily[week.today].en, /No replacement outdoor day/);
+  assert.deepEqual(adaptWeek(changed, normal).changes, [], 'recovery clears an obsolete inside-day alert');
+  const closed = structuredClone(changed);
+  closed.days.filter(day => day.date > closed.today).forEach(day => { day.closed = true; });
+  assert.equal(adaptWeek(closed, polluted).changes.find(change => change.from === week.today).to, null);
+});
+
+test('pollution detected during an outdoor lesson switches its remaining plan indoors without moving routines', () => {
+  const c = suitableConditions(); const week = makeWeek(c);
+  const slot = week.days[0].timeline.find(row => row.kind === 'eco');
+  const inProgress = new Date(`${week.today}T${slot.start}:00+02:00`);
+  inProgress.setMinutes(inProgress.getMinutes() + 1);
+  c.clock = inProgress.toISOString(); c.assessment.aqi = 150;
+  const changed = adaptWeek(week, c);
+  assert.equal(changed.days[0].mode, 'inside');
+  assert.deepEqual(changed.days[0].activity, changed.days[0].theme.inside);
+  assert.deepEqual(changed.days[0].timeline.filter(row => ['meal', 'rest'].includes(row.kind)), week.days[0].timeline.filter(row => ['meal', 'rest'].includes(row.kind)));
+  assert.ok(changed.changes.some(change => change.from === week.today));
+});
+
 test('per-day outdoor choices outrank AI allocation, persist on refresh, and can be switched back indoors or to automatic', () => {
   const c = suitableConditions(); const dates = planningWeekDates(c.clock);
   const week = createWeek(DEFAULT_SETTINGS, { themes: localCurriculum(dates, DEFAULT_SETTINGS), source: 'ai', outdoorOrder: dates }, c);

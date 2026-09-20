@@ -12,3 +12,13 @@ Six local branches form a stack based on `feat/simplify-planning-navigation` at 
 | 6 | `fix/live-indoor-day-alerts` | Indoor changes and eligible replacement-day alerts |
 
 The existing untracked `findings.md` belongs to the working tree and is excluded from this stack.
+
+Each branch adds one focused implementation commit. The sixth branch contains the complete implementation and the final documentation updates. The first five commits are `3b55bfa`, `dc33ca2`, `dc49746`, `a4af9ee`, and `d033b06`; resolve the sixth by its branch tip.
+
+Review each branch against the preceding row, and the first against `a8b0704`. The stack includes the existing navigation/demo work below that base; it does not merge or publish anything automatically.
+
+Validation on the complete stack: `npm.cmd test` passed all 137 deterministic domain, API, security and rendered-DOM tests; `npm.cmd run check` passed for 80 JavaScript files. The tests include topic coverage, slot uniqueness, link stability/read-only access, selected-activity isolation, schedule times and locked rows, stale/cross-account proposals, and indoor replacement alerts. Visual browser verification was unavailable because the connected computer-use inventory returned no browsers.
+
+A live generation smoke check on 2026-09-20 used the configured AI provider with the requested five topics and a synthetic September 21–25 timetable. It completed in 64 seconds, passed the topic and slot validators, and supplied 30 supporting sessions. Its main titles covered good habits, healthy food, recycling, exercise and saving electricity while retaining the supplied holiday context. This single synthetic check is not a production reliability claim; no account plan was created or overwritten.
+
+Runtime limits: automatic evidence checks run once a minute while the server is awake, so changes apply when detected, not continuously between checks. Parent links remain loopback-only. AI remains dependent on the configured provider; failed or rejected suggestions preserve saved plans.

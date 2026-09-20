@@ -126,6 +126,8 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   Object.defineProperty(scenario, 'value', { value: 'polluted', configurable: true });
   scenario.dispatchEvent(new window.Event('change', { bubbles: true }));
   await wait(() => document.querySelector('.adaptation-note'));
+  assert.match(document.querySelector('.adaptation-note').textContent, /Today is an indoor day.*Suggested outdoor day, provisional/);
+  assert.equal(document.querySelector('.adaptation-note').getAttribute('role'), 'alert');
   assert.match(document.querySelector('.calendar-day').textContent, /Inside/);
   const leaveDemo = document.querySelector('.demo-switch input'); leaveDemo.checked = false;
   leaveDemo.dispatchEvent(new window.Event('change', { bubbles: true }));

@@ -8,6 +8,7 @@ export function parentView(week, expiresAt) {
     location: { mk: location.name, en: location.nameEn }, weekStart: week.weekStart,
     today: week.today, mode: week.mode, expiresAt,
     updatedAt: week.conditionsCheckedAt || week.clock, weeklyMessage: week.messages.weekly,
+    changes: (week.changes || []).map(({ from, to, reason }) => ({ from, to, reason })),
     days: week.days.map(day => ({
       date: day.date, mode: day.mode, reason: day.reason, closed: day.closed,
       title: day.theme?.title || null, goal: day.theme?.goal || null,
