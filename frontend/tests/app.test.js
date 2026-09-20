@@ -134,11 +134,14 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   await wait(() => !document.querySelector('.demo-banner') && document.querySelector('.share-url'));
   assert.equal(document.querySelector('.share-url').value, parentUrl);
   window.location.hash = new URL(parentUrl).hash; window.dispatchEvent(new window.Event('hashchange'));
-  await wait(() => document.querySelector('.parent-day-detail'));
-  assert.equal(document.querySelectorAll('.parent-day-tile').length, 5);
-  assert.equal(document.querySelector('.sidebar, form, textarea, input'), null);
+  await wait(() => document.querySelector('.parent-dashboard .day-plan'));
+  assert.equal(document.querySelectorAll('.calendar-day').length, 5);
+  assert.ok(document.querySelector('.air-card .source-details'));
+  assert.equal(document.querySelector('.change-assistant, .approval-actions, .parent-share, select'), null);
+  document.querySelector('.timeline li.kind-meal .timeline-activity').dispatchEvent(new window.Event('click', { bubbles: true }));
+  await wait(() => /Prepare for the meal/.test(document.querySelector('.activity-summary').textContent));
   assert.doesNotMatch(document.body.textContent, /PRIVATE-BRIEF/);
   window.location.hash = '#parents/invalid'; window.dispatchEvent(new window.Event('hashchange'));
   await wait(() => document.querySelector('.parent-empty'));
-  assert.equal(document.querySelector('.parent-day-detail'), null);
+  assert.equal(document.querySelector('.day-plan'), null);
 });

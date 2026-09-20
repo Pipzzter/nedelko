@@ -110,3 +110,7 @@ Generation requires kindergarten name, group name, location, age band, teaching 
 ## Planning navigation
 
 Home is the single teacher workspace in both modes. A new account first shows Create kindergarten. Setup opens in place and requires confirmation of the daily rhythm. Successful generation returns to the Home calendar and selected day's activities. Manage week contains regeneration and deletion; cancellation or failed regeneration preserves the saved plan. Older weekly-plan bookmarks open Home. Successful AI provenance and saved-change banners, and the former Home slogan, are omitted. Failures and unapplied-library-brief notices remain visible so fallback cannot be mistaken for a successful AI response. Parents retain their separate read-only view. Navigation never approves a parent notice.
+
+## Shared parent dashboard
+
+The parent link uses the same calendar, current-air card, selectable timetable, complete activity details and daily/weekly messages as Home. The public API explicitly projects learning content and public environmental evidence; teacher briefs, account identifiers, edit revisions and AI diagnostics remain private. Parent requests cannot edit plans, approve notices, change activity locations or alter sharing settings. Conditions retain measurement timestamps and source labels. Demo sharing remains isolated and visibly synthetic.

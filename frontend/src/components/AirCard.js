@@ -5,7 +5,7 @@ export function AirCard({ environment: e, lang, refresh, busy }) {
   if (!e) return null;
   const a = e.assessment; const valid = a.valid && !e.failedRefresh;
   const state = !valid ? 'unknown' : a.aqi > 100 ? 'elevated' : a.aqi > 50 ? 'moderate' : 'good';
-  return html`<section class=${`card air-card air-${state}`}><div class="card-heading"><h2>${t('airNow', lang)}</h2><button class="icon-button" disabled=${busy} onClick=${refresh} aria-label=${t('refresh', lang)}><${Icon} name="refresh" size=${18}/></button></div>
+  return html`<section class=${`card air-card air-${state}`}><div class="card-heading"><h2>${t('airNow', lang)}</h2>${refresh && html`<button class="icon-button" disabled=${busy} onClick=${refresh} aria-label=${t('refresh', lang)}><${Icon} name="refresh" size=${18}/></button>`}</div>
     <span class=${`air-state ${state}`}><span class="small-dot"></span>${t(state, lang)}</span>
     <div class="air-reading">${valid ? a.aqi : '··'}<span>AQI</span><div class="air-decoration"><${Icon} name="wind" size=${66}/></div></div>
     <p class="air-metric">${valid && Number.isFinite(a.pm25) ? `${a.pm25.toFixed(1)} µg/m³ · PM2.5` : t('airUnknown', lang)}</p>
