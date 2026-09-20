@@ -186,19 +186,18 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
         });
       }
       if (request.method === 'POST' && url.pathname === '/api/week/share') {
-        return await withLock(demoId || user.id, async () => {
+        // This synchronous access-setting change does not edit the plan. A
+        // background conditions refresh must not make its revision stale.
           const week = currentWeek();
           if (!week) throw invalid('no_plan', 404);
-          if (body.revision !== week.revision) throw invalid('plan_changed', 409);
-          if (!['enable', 'rotate', 'revoke'].includes(body.action)) throw invalid('invalid_plan');
+          if (!['enable', 'revoke'].includes(body.action)) throw invalid('invalid_plan');
           if (demoId) {
             const record = demoRecord(demoId);
             if (body.action === 'revoke') record.parentToken = null;
-            else if (!record.parentToken || body.action === 'rotate') record.parentToken = randomBytes(32).toString('hex');
+            else if (!record.parentToken) record.parentToken = randomBytes(32).toString('hex');
           } else if (body.action === 'revoke') store.revokeShare(user.id, week.weekStart);
-          else store.shareWeek(user.id, week.weekStart, body.action === 'rotate');
+          else store.shareWeek(user.id, week.weekStart);
           return send(200, { week, share: sharing(user, demoId, week) });
-        });
       }
       if (request.method === 'POST' && ['/api/week/day/suggest', '/api/week/day/apply'].includes(url.pathname)) {
         return await withLock(demoId || user.id, async () => {

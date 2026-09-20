@@ -1,5 +1,7 @@
 # Decision basis
 
+Parent-link creation is an idempotent access-setting operation scoped to the authenticated owner (or isolated demo). It does not require a plan revision and does not compete with background refresh locks, because it changes no lesson or timetable. Repeated creation, plan edits, refreshes, regeneration of the same week and renewal after expiry retain the URL. Rotation is rejected. Explicit disabling or deleting the week revokes access. The parent URL authorizes only the bounded read-only projection, never a teacher mutation.
+
 These are transparent prototype rules, not medical certification, official kindergarten policy or proof that outdoor conditions are safe.
 
 ## Observations

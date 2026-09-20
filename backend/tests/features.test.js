@@ -45,7 +45,7 @@ test('kindergarten and teaching brief validate and keep one canonical location',
   for (const teacherPrompt of [123, '<script>', 'x'.repeat(2001)]) assert.throws(() => validateSettings({ ...DEFAULT_SETTINGS, teacherPrompt }), { code: 'invalid_instruction' });
 });
 
-test('parent link gives a bounded read-only projection; rotation, revocation and ownership are enforced', async t => {
+test('parent link gives a stable read-only projection; revocation and ownership are enforced', async t => {
   const { client, store } = await fixture(t);
   const teacher = client(); const other = client(); const parent = client();
   const user = (await teacher('/api/auth/register', account)).body.user;
@@ -65,12 +65,11 @@ test('parent link gives a bounded read-only projection; rotation, revocation and
   assert.equal((await parent(`/api/parents/${token}`, {})).status, 405);
   assert.equal((await parent('/api/week/edit', { revision: week.revision, settings, days: week.days, token })).status, 401);
   assert.equal((await parent(`/api/parents/${'f'.repeat(64)}`)).status, 404);
-  const rotated = (await teacher('/api/week/share', { action: 'rotate', revision: week.revision })).body.share;
-  assert.notEqual(rotated.path, share.path);
-  assert.equal((await parent(`/api/parents/${token}`)).status, 404);
-  assert.equal((await parent(`/api/parents/${rotated.path.split('/').at(-1)}`)).status, 200);
+  assert.equal((await teacher('/api/week/share', { action: 'rotate', revision: week.revision })).status, 400);
+  const repeated = (await teacher('/api/week/share', { action: 'enable', revision: -1 })).body.share;
+  assert.equal(repeated.path, share.path);
   await teacher('/api/week/share', { action: 'revoke', revision: week.revision });
-  assert.equal((await parent(`/api/parents/${rotated.path.split('/').at(-1)}`)).status, 404);
+  assert.equal((await parent(`/api/parents/${token}`)).status, 404);
   const renewed = (await teacher('/api/week/share', { action: 'enable', revision: week.revision })).body.share;
   await teacher('/api/week/delete', { revision: week.revision });
   assert.equal((await parent(`/api/parents/${renewed.path.split('/').at(-1)}`)).status, 404);
@@ -91,6 +90,22 @@ test('demo links are isolated and immediately show adapted pollution messages', 
   assert.equal(polluted.mode, 'demo');
   assert.equal(store.db.prepare('SELECT count(*) AS n FROM parent_links').get().n, 0);
   assert.equal(store.db.prepare('SELECT count(*) AS n FROM weeks').get().n, 0);
+});
+
+test('sharing survives background revision changes and expiry renewal without changing the URL', async t => {
+  const { client, store } = await fixture(t); const teacher = client();
+  const user = (await teacher('/api/auth/register', account)).body.user;
+  const original = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
+  const refreshed = (await teacher('/api/dashboard?fresh=1')).body.week;
+  assert.ok(refreshed.revision > original.revision);
+  const created = await teacher('/api/week/share', { action: 'enable', revision: original.revision });
+  assert.equal(created.status, 200); const path = created.body.share.path;
+  store.db.prepare('UPDATE parent_links SET expires_at = ? WHERE user_id = ?').run(Date.now() - 1, user.id);
+  const renewed = await teacher('/api/week/share', { action: 'enable' });
+  assert.equal(renewed.body.share.path, path);
+  await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS, revision: refreshed.revision });
+  assert.equal((await teacher('/api/week/share', { action: 'enable' })).body.share.path, path);
+  assert.equal((await client()(`/api/parents/${path.split('/').at(-1)}`)).status, 200);
 });
 
 test('demo and account parent pages share a read-only contract; retired classroom routes cannot mutate either plan', async t => {
