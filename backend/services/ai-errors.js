@@ -14,7 +14,7 @@ export function aiFailure(error) {
   const requestId = typeof error?.providerRequestId === 'string' && /^req_[a-zA-Z0-9_-]{1,100}$/.test(error.providerRequestId) ? error.providerRequestId : null;
   let issue = 'ai_unavailable';
   if (['ai_incomplete', 'ai_refused', 'ai_invalid_output'].includes(error?.code)) issue = error.code;
-  if (['invalid_curriculum', 'invalid_materials', 'invalid_text', 'both_languages'].includes(error?.code) ||
+  if (['invalid_curriculum', 'invalid_materials', 'invalid_text', 'both_languages', 'duplicate_activity'].includes(error?.code) ||
       ['missing_day_activities', 'missing_holiday_context', 'invalid_outdoor_order', 'missing_teacher_topic'].includes(error?.message)) issue = 'ai_invalid_output';
   if (code === 'credit_balance_exhausted') issue = 'ai_credits';
   else if (['organization_spend_limit_exceeded', 'project_spend_limit_exceeded'].includes(code)) issue = 'ai_spend_limit';
