@@ -176,7 +176,7 @@ test('DOM integration: empty account, create week, editor, live step, bilingual 
   const demo = document.querySelector('.demo-switch input'); demo.checked = true; demo.dispatchEvent(new window.Event('change', { bubbles: true }));
   await wait(() => document.querySelector('.demo-banner'));
   assert.match(document.querySelector('.current-row').textContent, /Breakfast/);
-  assert.equal(document.querySelectorAll('.demo-week-select option').length, 4);
+  assert.equal(document.querySelectorAll('.demo-week-select option').length, 6);
   assert.equal(document.querySelectorAll('.demo-air-select option').length, 6);
   assert.match(document.querySelector('.day-plan').textContent, /8 September/);
   const holiday = document.querySelector('.calendar-day[data-date="2026-09-08"]');
