@@ -26,7 +26,7 @@ async function app(t, options = {}) {
   }; };
   return { store, base, client };
 }
-const account = { username: 'teacher.test', displayName: 'Test teacher', password: 'OnlyForAutomatedTests23' };
+const account = { email: 'teacher@test.mk', displayName: 'Test teacher', password: 'OnlyForAutomatedTests23', kindergarten: 'Test kindergarten', ageGroup: '4-5', locationId: 'centar' };
 const demoBody = result => ({ demoId: result.demoId, revision: result.week.revision });
 
 test('holiday endpoint needs a session or valid isolated demo, and cannot accept source URLs', async t => {
@@ -40,50 +40,53 @@ test('holiday endpoint needs a session or valid isolated demo, and cannot accept
   assert.equal((await request(`/api/holidays?year=-1&demoId=${demo.demoId}`)).status, 400);
 });
 
-test('registration, normalized usernames, hashed passwords, cookie session and logout', async t => {
+test('registration normalizes the kindergarten email, hashes passwords, stores the profile and manages sessions', async t => {
   const { client, store } = await app(t); const request = client();
   assert.equal((await request('/api/dashboard')).status, 401);
-  const signup = await request('/api/auth/register', { ...account, username: 'Teacher.Test' });
-  assert.equal(signup.status, 200); assert.equal(signup.body.user.username, 'teacher.test');
+  const signup = await request('/api/auth/register', { ...account, email: 'Teacher@Test.MK' });
+  assert.equal(signup.status, 200); assert.equal(signup.body.user.email, 'teacher@test.mk');
   assert.match(signup.headers.get('set-cookie'), /HttpOnly; SameSite=Strict/);
   assert.doesNotMatch(JSON.stringify(signup.body), /password|scrypt|token/);
-  const stored = store.userByName('teacher.test'); assert.match(stored.password_hash, /^scrypt-v1:/); assert.ok(!stored.password_hash.includes(account.password));
+  const stored = store.userByName('teacher@test.mk'); assert.match(stored.password_hash, /^scrypt-v1:/); assert.ok(!stored.password_hash.includes(account.password));
+  const profile = store.profile(signup.body.user.id);
+  assert.equal(profile.gradinka.name, 'Test kindergarten'); assert.equal(profile.groupName, 'Test kindergarten');
+  assert.equal(profile.ageGroup, '4-5'); assert.equal(profile.locationId, 'centar');
   const session = store.db.prepare('SELECT token_hash FROM sessions').get(); assert.ok(!signup.headers.get('set-cookie').includes(session.token_hash));
-  assert.equal((await request('/api/auth/me')).body.user.username, 'teacher.test');
+  assert.equal((await request('/api/auth/me')).body.user.email, 'teacher@test.mk');
   await request('/api/auth/logout', {}); assert.equal((await request('/api/auth/me')).body.user, null);
   assert.equal((await request('/api/auth/login', { ...account, password: 'bad' })).status, 401);
   assert.equal((await request('/api/auth/login', account)).status, 200);
   assert.equal((await request('/api/auth/register', account)).status, 409);
 });
 
-test('weak passwords, short new usernames and cross-origin writes are rejected', async t => {
+test('weak passwords, invalid emails, incomplete kindergarten details and cross-origin writes are rejected', async t => {
   const { client } = await app(t); const request = client();
   assert.equal((await request('/api/auth/register', { ...account, password: '12345' })).status, 400);
-  assert.equal((await request('/api/auth/register', { ...account, username: '1234567' })).status, 400);
+  assert.equal((await request('/api/auth/register', { ...account, email: 'not-an-email' })).status, 400);
+  assert.equal((await request('/api/auth/register', { ...account, kindergarten: '' })).status, 400);
+  assert.equal((await request('/api/auth/register', { ...account, kindergarten: '<script>' })).status, 400);
+  assert.equal((await request('/api/auth/register', { ...account, ageGroup: 'toddlers' })).status, 400);
+  assert.equal((await request('/api/auth/register', { ...account, locationId: 'nowhere' })).status, 400);
   assert.equal((await request('/api/auth/register', account, { Origin: 'https://evil.example' })).status, 403);
   assert.equal((await request('/api/demo', {}, { 'Sec-Fetch-Site': 'cross-site' })).status, 403);
   assert.equal((await request('/api/demo', {}, { 'Content-Type': 'text/plain' })).status, 415);
   assert.equal((await request('/api/demo', { huge: 'x'.repeat(128001) })).status, 413);
 });
 
-test('new usernames require eight characters without a character whitelist or thirty-character limit', async t => {
+test('legacy username accounts can still sign in through the email field', async t => {
   const { client, store } = await app(t); const request = client();
-  for (const username of ['teacher!', 'a classroom name longer than thirty characters', '<script>']) {
-    const signup = await request('/api/auth/register', { ...account, username });
-    assert.equal(signup.status, 200); assert.equal(signup.body.user.username, username);
-    await request('/api/auth/logout', {});
-    assert.equal((await request('/api/auth/login', { ...account, username })).status, 200);
-  }
-  // Simulate an account created under the previous three-character minimum.
-  store.addUser({ id: 'legacy-account', username: 'ana', displayName: 'Legacy test fixture', hash: store.userByName('teacher!').password_hash });
+  const signup = await request('/api/auth/register', account);
+  assert.equal(signup.status, 200);
+  store.addUser({ id: 'legacy-account', username: 'ana', displayName: 'Legacy test fixture', hash: store.userByName(account.email).password_hash });
   await request('/api/auth/logout', {});
-  assert.equal((await request('/api/auth/login', { ...account, username: 'ana' })).status, 200);
+  assert.equal((await request('/api/auth/login', { email: 'ana', password: account.password })).status, 200);
+  assert.equal((await request('/api/auth/me')).body.user.email, 'ana');
 });
 
 test('new accounts start empty; one-click generation persists only to the owner', async t => {
   const { client, store } = await app(t); const alice = client(); const bob = client();
   const auth = await alice('/api/auth/register', account);
-  await bob('/api/auth/register', { ...account, username: 'second.teacher' });
+  await bob('/api/auth/register', { ...account, email: 'second.teacher@test.mk' });
   assert.equal((await alice('/api/dashboard')).body.week, null);
   const generated = await alice('/api/week/generate', { settings: DEFAULT_SETTINGS });
   assert.equal(generated.status, 201); assert.equal(generated.body.week.days.length, 5);
@@ -101,7 +104,7 @@ test('AI retry preserves the saved week on failure and replaces it only after su
   } });
   const request = client(); const anon = client(); const other = client();
   const auth = (await request('/api/auth/register', account)).body;
-  await other('/api/auth/register', { ...account, username: 'other.teacher' });
+  await other('/api/auth/register', { ...account, email: 'other.teacher@test.mk' });
   const original = (await request('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
   const retry = { settings: { ...DEFAULT_SETTINGS, locationId: 'bitola' }, revision: original.revision, requireAI: true };
   assert.equal((await anon('/api/week/generate', retry)).status, 401);
@@ -226,7 +229,7 @@ test('saved day location choices update notices, invalidate approval and cannot 
 
 test('auth rate limits block repeated password attempts', async t => {
   const { client } = await app(t); const request = client();
-  for (let i = 0; i < 12; i++) await request('/api/auth/login', { username: 'bad user', password: 'bad' });
+  for (let i = 0; i < 12; i++) await request('/api/auth/login', { email: 'bad@user.example', password: 'bad' });
   assert.equal((await request('/api/auth/login', account)).status, 429);
 });
 
@@ -242,7 +245,7 @@ test('only frontend files are served and configuration never leaks secrets', asy
 
 test('deleting and regenerating a week is authenticated, revision checked, isolated and resistant to stale tabs', async t => {
   const { client } = await app(t); const alice = client(); const bob = client(); const anon = client();
-  await alice('/api/auth/register', account); await bob('/api/auth/register', { ...account, username: 'other.teacher' });
+  await alice('/api/auth/register', account); await bob('/api/auth/register', { ...account, email: 'other.teacher@test.mk' });
   let original = (await alice('/api/week/generate', { settings: DEFAULT_SETTINGS })).body;
   const revision = original.week.revision;
   assert.equal((await anon('/api/week/delete', { revision })).status, 401);

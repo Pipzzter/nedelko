@@ -15,7 +15,7 @@ import { LOCATIONS } from '../config/index.js';
 import { demoWeekById } from '../config/demo.js';
 import { rowContent, protectedActivity } from '../domain/day-edit.js';
 
-const account = { username: 'feature.teacher', displayName: 'Test teacher', password: 'TestsOnlyPassword42' };
+const account = { email: 'feature.teacher@test.mk', displayName: 'Test teacher', password: 'TestsOnlyPassword42', kindergarten: 'Test kindergarten', ageGroup: '4-5', locationId: 'centar' };
 
 const DEFAULT_SETTINGS = { ...EMPTY_SETTINGS, gradinka: { name: 'Test kindergarten', locationId: 'centar' }, groupName: 'Test group', teacherPrompt: 'Explore nature through music, movement and reused materials.' };
 
@@ -50,7 +50,7 @@ test('parent link gives a stable read-only projection; revocation and ownership 
   const { client, store } = await fixture(t);
   const teacher = client(); const other = client(); const parent = client();
   const user = (await teacher('/api/auth/register', account)).body.user;
-  await other('/api/auth/register', { ...account, username: 'other.teacher' });
+  await other('/api/auth/register', { ...account, email: 'other.teacher@test.mk' });
   const settings = { ...DEFAULT_SETTINGS, gradinka: { name: 'Sun Garden' }, groupName: 'Sunflowers', teacherPrompt: 'PRIVATE-TEACHER-BRIEF' };
   let week = (await teacher('/api/week/generate', { settings })).body.week;
   assert.equal(store.profile(user.id).gradinka.name, 'Sun Garden');
@@ -170,7 +170,7 @@ test('single-day suggestions require a separate apply and cannot overwrite other
   }) });
   const teacher = client(); const other = client();
   const user = (await teacher('/api/auth/register', account)).body.user;
-  await other('/api/auth/register', { ...account, username: 'other.teacher' });
+  await other('/api/auth/register', { ...account, email: 'other.teacher@test.mk' });
   const week = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
   const date = week.days.at(-1).date;
   const proposal = await teacher('/api/week/day/suggest', { date, instruction: 'More music', revision: week.revision });
@@ -295,7 +295,7 @@ test('targeted edit proposals enforce owner, revision, protected rows and single
   } });
   const teacher = client(); const other = client(); const parent = client();
   const user = (await teacher('/api/auth/register', account)).body.user;
-  await other('/api/auth/register', { ...account, username: 'other.teacher' });
+  await other('/api/auth/register', { ...account, email: 'other.teacher@test.mk' });
   let week = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
   await other('/api/week/generate', { settings: DEFAULT_SETTINGS });
   const day = week.days.at(-1); const row = day.timeline.find(item => item.kind === 'activity' && !protectedActivity(item));

@@ -38,7 +38,7 @@ export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuva
       db.prepare('DELETE FROM sessions WHERE expires_at <= ?').run(Date.now());
       db.prepare('INSERT INTO sessions VALUES (?, ?, ?)').run(hash, userId, expiresAt);
     },
-    session(hash, now = Date.now()) { return db.prepare(`SELECT u.id, u.username, u.display_name AS displayName
+    session(hash, now = Date.now()) { return db.prepare(`SELECT u.id, u.username AS email, u.display_name AS displayName
       FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`).get(hash, now); },
     deleteSession(hash) { db.prepare('DELETE FROM sessions WHERE token_hash = ?').run(hash); },
     profile(userId) {

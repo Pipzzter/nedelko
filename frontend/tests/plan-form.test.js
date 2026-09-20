@@ -6,10 +6,10 @@ import { LOCATIONS } from '../../backend/config/index.js';
 const config={locations:LOCATIONS};
 const ready=()=>structuredClone({...DEFAULT_SETTINGS,gradinka:{name:'Sun Garden'},groupName:'Sunflowers',teacherPrompt:'Autumn through music and movement.'});
 test('first-time planning identifies every missing essential and requires an explicit timetable review',()=>{
-  assert.deepEqual(planIssues(DEFAULT_SETTINGS,config,false).map(i=>i.field),['kindergarten','groupName','teacherPrompt','rhythmConfirmed']);
+  assert.deepEqual(planIssues(DEFAULT_SETTINGS,config,false).map(i=>i.field),['teacherPrompt','rhythmConfirmed']);
   assert.deepEqual(planIssues(ready(),config,true),[]);
-  const value=ready();value.groupName='  ';value.materials=[];value.teacherPrompt='\n';
-  assert.deepEqual(planIssues(value,config).map(i=>i.field),['groupName','teacherPrompt','materials']);
+  const value=ready();value.materials=[];value.teacherPrompt='\n';
+  assert.deepEqual(planIssues(value,config).map(i=>i.field),['teacherPrompt','materials']);
 });
 test('planning finds overlaps, missing translations and insufficient activity space before generation',()=>{
   const value=ready();value.blocks[1].start='08:45';value.blocks[0].label.en='';

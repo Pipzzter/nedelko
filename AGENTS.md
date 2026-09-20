@@ -18,7 +18,7 @@
 - Treat missing, suspect, stale, or conflicting evidence as unknown, not clean air.
 - Use measurement timestamps for freshness. A failed refresh cannot renew old evidence.
 - Keep API keys server-side. Never log secrets or raw private scheduling text.
-- Username/password accounts and SQLite persistence are explicitly requested. Use built-in node:sqlite and crypto; keep the server on loopback. No bundler.
+- Kindergarten email/password accounts and SQLite persistence are explicitly requested. Registration captures the kindergarten name, teacher name, age group and location; the kindergarten name doubles as the group name. Use built-in node:sqlite and crypto; keep the server on loopback. No bundler.
 - Private plans belong to the authenticated account. Demo data is isolated and must never overwrite real plans.
 - Keep the entire UI and generated parent messages in Macedonian and English. Do not use em dashes in parent messages.
 - Keep the Monday–Friday week visible; generating midweek leaves earlier days empty. Refreshes must invalidate notice approval.
