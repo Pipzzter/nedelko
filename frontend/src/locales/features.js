@@ -2,6 +2,17 @@ export const featureCopy = {
   createKindergarten: ['Создај градинка', 'Create kindergarten'],
   kindergartenStart: ['Внесете ги групата, идеите и дневниот ритам за да го создадете планот.', 'Add your group, learning ideas and daily rhythm to create the plan.'],
   manageWeek: ['Управувај со неделата', 'Manage week'],
+  dailyRoutinesRequired: ['Секој ден треба да има оброк и одмор или спиење.', 'Every day needs a meal and a rest or sleep period.'],
+  changeActivity: ['Промени активност', 'Change activity'], changeSchedule: ['Промени распоред', 'Change schedule'],
+  activityChangePrompt: ['Како да ја промениме оваа активност?', 'How should this activity change?'],
+  scheduleChangePrompt: ['Опишете ги активностите и времињата за овој ден.', 'Describe the activities and times for this day.'],
+  scheduleChangePlaceholder: ['Помести ја играта од 09:15 на 09:30 и скрати го цртањето. Задржи ги оброците и одморот.', 'Move the 09:15 game to 09:30 and shorten drawing. Keep meals and rest in place.'],
+  activityOnlyHelp: ['Се менува само избраната активност. Времето и другите активности остануваат исти.', 'Only the selected activity changes. Its time and the other activities stay the same.'],
+  scheduleLockedHelp: ['Оброците, спиењето, празниците и започнатите активности се заклучени. Прегледајте ги новите времиња пред примена.', 'Meals, sleep, holidays and activities that have started are locked. Review the new times before applying.'],
+  protectedActivity: ['Оброците, одморот и празничните активности се заклучени.', 'Meals, rest and holiday activities are locked.'],
+  activityAlreadyStarted: ['Започнатите активности не може да се менуваат.', 'Activities that have started cannot be changed.'],
+  submitChange: ['Испрати', 'Submit'], reviewSchedule: ['Прегледај го предложениот распоред', 'Review the proposed schedule'],
+  applySchedule: ['Потврди и примени распоред', 'Confirm and apply schedule'], proposedChange: ['Предложена промена', 'Proposed change'],
   parentReason_indoor_balance: ['Денес откриваме и создаваме внатре. Активностите надвор се планирани за други денови од неделата.', 'Today we’re exploring and creating indoors. Outdoor activities are planned for other days this week.'],
   parentReason_ai_plan: ['Денес е планирана активност внатре, како дел од разновидната недела на групата.', 'Today’s indoor activity is part of the group’s varied weekly plan.'],
   parentReason_teacher_inside: ['Воспитувачката ја избра активноста внатре за овој ден.', 'The teacher has chosen an indoor activity for this day.'],
@@ -44,6 +55,10 @@ export const featureCopy = {
 };
 
 export const featureErrors = {
+  daily_routines_required: ['Додајте оброк и одмор или спиење во дневниот ритам.', 'Add a meal and a rest or sleep period to the daily rhythm.'],
+  protected_activity: ['Оброците, одморот, празниците и започнатите активности мора да останат непроменети.', 'Meals, rest, holidays and activities that have started must stay unchanged.'],
+  schedule_gaps: ['Распоредот мора да го покрие целиот ден без празнини.', 'The schedule must cover the whole day without gaps.'],
+  duplicate_activity: ['Две активности имаат ист наслов. Побарајте различни активности.', 'Two activities have the same title. Request distinct activities.'],
   invalid_instruction: ['Внесете насоки до 2000 знаци, без HTML.', 'Enter instructions of up to 2,000 characters, without HTML.'],
   ai_day_failed: ['Не е создаден предлог. Вашиот ден е зачуван.', 'No suggestion was created. Your saved day is unchanged.'],
   proposal_expired: ['Предлогот истече или неделата се промени. Побарајте нов предлог.', 'The suggestion expired or the week changed. Request a new suggestion.'],

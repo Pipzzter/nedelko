@@ -13,6 +13,7 @@ import { localCurriculum } from '../domain/curriculum.js';
 import { planningWeekDates } from '../domain/planner.js';
 import { LOCATIONS } from '../config/index.js';
 import { demoWeekById } from '../config/demo.js';
+import { rowContent, protectedActivity } from '../domain/day-edit.js';
 
 const account = { username: 'feature.teacher', displayName: 'Test teacher', password: 'TestsOnlyPassword42' };
 
@@ -274,4 +275,45 @@ test('explicit daily topics cannot silently save an unrelated library fallback',
     settings: { ...DEFAULT_SETTINGS, teacherPrompt: 'one day about healthy food\none day about saving electricity' } });
   assert.equal(result.status, 503);
   assert.deepEqual(store.week(user.id, previous.weekStart), previous);
+});
+
+test('targeted edit proposals enforce owner, revision, protected rows and single-use application', async t => {
+  let malicious = false;
+  const { client, store } = await fixture(t, { dayPlanProvider: async (day, _settings, request) => {
+    if (request.scope === 'activity') return { source: 'ai', change: { label: { mk: 'Нов музички круг', en: 'A new music circle' }, note: { mk: 'Со воспитувачот создаваме ритам.', en: 'With the teacher, create a rhythm.' } } };
+    const timeline = day.timeline.map(rowContent);
+    if (malicious) timeline.find(row => row.kind === 'rest').label.en = 'Erase sleep';
+    else { timeline.at(-2).end = '15:00'; timeline.at(-1).start = '15:00'; }
+    return { source: 'ai', change: { timeline, theme: day.theme } };
+  } });
+  const teacher = client(); const other = client(); const parent = client();
+  const user = (await teacher('/api/auth/register', account)).body.user;
+  await other('/api/auth/register', { ...account, username: 'other.teacher' });
+  let week = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
+  await other('/api/week/generate', { settings: DEFAULT_SETTINGS });
+  const day = week.days.at(-1); const row = day.timeline.find(item => item.kind === 'activity' && !protectedActivity(item));
+  const request = { date: day.date, rowId: row.id, scope: 'activity', instruction: 'Use music', revision: week.revision };
+  assert.equal((await parent('/api/week/change/suggest', request)).status, 401);
+  assert.equal((await teacher('/api/week/change/suggest', { ...request, rowId: 'lunch' })).status, 400);
+  const preview = (await teacher('/api/week/change/suggest', request)).body;
+  assert.deepEqual(store.week(user.id, week.weekStart), week);
+  assert.equal((await other('/api/week/change/apply', { proposalId: preview.proposalId, revision: week.revision })).status, 409);
+  const result = await teacher('/api/week/change/apply', { proposalId: preview.proposalId, revision: week.revision });
+  assert.equal(result.status, 200); week = result.body.week;
+  assert.equal(week.days.at(-1).timeline.find(item => item.id === row.id).label.en, 'A new music circle');
+  assert.equal((await teacher('/api/week/change/apply', { proposalId: preview.proposalId, revision: week.revision })).status, 409);
+  const scheduleRequest = { date: day.date, scope: 'schedule', instruction: 'Change the afternoon times', revision: week.revision };
+  malicious = true;
+  assert.equal((await teacher('/api/week/change/suggest', scheduleRequest)).status, 400);
+  assert.deepEqual(store.week(user.id, week.weekStart), week);
+  malicious = false;
+  const schedule = (await teacher('/api/week/change/suggest', scheduleRequest)).body;
+  assert.equal(schedule.timeline.at(-1).start, '15:00');
+  const scheduled = await teacher('/api/week/change/apply', { proposalId: schedule.proposalId, revision: week.revision });
+  assert.equal(scheduled.status, 200); week = scheduled.body.week;
+  assert.equal(week.days.at(-1).timeline.at(-1).start, '15:00');
+  assert.equal(week.approval, null);
+  const stale = (await teacher('/api/week/change/suggest', { ...request, revision: week.revision })).body;
+  const refreshed = (await teacher('/api/dashboard')).body.week;
+  assert.equal((await teacher('/api/week/change/apply', { proposalId: stale.proposalId, revision: refreshed.revision })).status, 409);
 });

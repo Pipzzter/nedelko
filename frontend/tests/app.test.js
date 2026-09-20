@@ -9,6 +9,7 @@ import { demoConditions } from '../../backend/services/conditions.js';
 import { LOCATIONS } from '../../backend/config/index.js';
 import { createCurriculum } from '../../backend/services/curriculum.js';
 import { demoWeekById } from '../../backend/config/demo.js';
+import { rowContent } from '../../backend/domain/day-edit.js';
 
 test('DOM integration: empty account, create kindergarten, one-page management, live step, bilingual messages and isolated demo', async t => {
   let aiAvailable = false; let generatedSettings;
@@ -20,6 +21,10 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
       return options.useAI ? { ...curriculum, generationIssue: 'ai_quota', generationError: {
         httpStatus: 429, code: 'insufficient_quota', type: 'insufficient_quota', requestId: 'req_dom_fixture',
       } } : curriculum;
+    }, dayPlanProvider: async (day, _settings, request) => {
+      if (request.scope === 'activity') return { source: 'ai', change: { label: { mk: 'Музичка игра', en: 'A musical game' }, note: { mk: 'Со воспитувачот создаваме ритам.', en: 'With the teacher, create a rhythm.' } } };
+      const timeline = day.timeline.map(rowContent); timeline.at(-2).end = '15:00'; timeline.at(-1).start = '15:00';
+      return { source: 'ai', change: { timeline, theme: day.theme } };
     }, holidayProvider: async year => calendarSnapshot(year) });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const base = `http://127.0.0.1:${server.address().port}`; const nativeFetch = globalThis.fetch;
@@ -89,6 +94,23 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   clickText('МК'); await wait(() => document.documentElement.lang === 'mk');
   assert.match(document.querySelector('.activity-summary').textContent, /Подготовка за оброкот/);
   clickText('EN'); await wait(() => document.documentElement.lang === 'en');
+  assert.equal(document.querySelector('.change-activity'), null, 'meal details have no edit control');
+  const editable = document.querySelector('.timeline li.kind-activity:not(.holiday-lesson) .timeline-activity');
+  editable.dispatchEvent(new window.Event('click', { bubbles: true }));
+  await wait(() => document.querySelector('.change-activity'));
+  clickText('Change activity'); await wait(() => document.querySelector('.change-activity textarea'));
+  await enter('.change-activity textarea', 'Make this a musical game');
+  document.querySelector('.change-activity form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+  await wait(() => document.querySelector('#activity-title').textContent === 'A musical game');
+  assert.equal(document.querySelector('.change-activity textarea'), null);
+  clickText('Change schedule'); await wait(() => document.querySelector('.change-schedule textarea'));
+  await enter('.change-schedule textarea', 'Move the last game to 15:00');
+  document.querySelector('.change-schedule form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+  await wait(() => document.querySelector('.schedule-proposal'));
+  assert.doesNotMatch(document.querySelector('.timeline li:last-child .timeline-time').textContent, /^15:00/);
+  clickText('Confirm and apply schedule');
+  await wait(() => document.querySelector('.timeline li:last-child .timeline-time').textContent.startsWith('15:00'));
+  assert.equal(document.querySelector('.schedule-proposal'), null);
   clickText('Create parent link'); await wait(() => document.querySelector('.share-url'));
   const parentUrl = document.querySelector('.share-url').value;
   assert.ok(document.querySelector('.share-url').getAttributeNames().some(name => name.toLowerCase() === 'readonly'));

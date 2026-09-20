@@ -82,6 +82,17 @@
   }
 }
 @layer components {
+  .change-assistant { margin-top: 22px; }
+  .change-activity { padding-top: 20px; border-top: 1px solid var(--line); }
+  .change-form { display: grid; gap: 12px; margin-top: 14px; }
+  .change-form > button { justify-self: start; }
+  .change-schedule { padding-top: 20px; border-top: 1px solid var(--line); }
+  .locked-activity { display: flex; gap: 8px; margin-top: 22px; color: var(--muted); font-size: 12px; }
+  .schedule-proposal { margin-top: 20px; }
+  .schedule-proposal ol { list-style: none; padding: 0; margin: 16px 0; }
+  .schedule-proposal li { display: grid; grid-template-columns: 110px 1fr; gap: 15px; padding: 12px; border-bottom: 1px solid var(--line); }
+  .schedule-proposal small { display: block; }
+  .proposal-changed { background: var(--green); }
   .kindergarten-empty { padding: 48px; display: grid; gap: 20px; justify-items: start; }
   .kindergarten-empty p { max-width: 42em; color: var(--muted); }
   .week-actions { margin-top: 24px; padding: 20px 24px; }

@@ -7,6 +7,7 @@ import { compactTimeline } from './timeline.js';
 import { occasionsForWeek, calendarSnapshot } from './holidays.js';
 import { activityRole, activityText, adaptActivities, diversifyActivities } from './day-activities.js';
 import { adaptOccasionActivities } from './occasion-activities.js';
+import { protectedActivity, validateDayChange } from './day-edit.js';
 
 export const weatherKind = code => !Number.isFinite(code) ? 'unknown' : [71, 73, 75, 77, 85, 86].includes(code) ? 'snow' : code >= 95 ? 'storm' : code >= 51 ? 'rain' : code >= 45 ? 'fog' : code >= 2 ? 'cloud' : 'sun';
 const finite = values => values.filter(Number.isFinite);
@@ -185,6 +186,7 @@ export function replaceDayTheme(previous, date, theme, source, conditions) {
   const local = skopjeParts(new Date(conditions.clock));
   const original = previous.days.find(day => day.date === date);
   const slot = original?.timeline.find(row => row.kind === 'eco');
+  if (slot && protectedActivity(slot)) throw invalid('protected_activity');
   if (!original?.theme || original.closed || !slot || date < local.date ||
       date === local.date && minutes(slot.start) <= local.minutes) throw invalid('activity_finished', 409);
   const [validated] = validateCurriculum([theme], previous.settings, { count: 1 });
@@ -196,6 +198,13 @@ export function replaceDayTheme(previous, date, theme, source, conditions) {
   day.source = source;
   day.timeline = day.timeline.map(row => row.kind === 'eco' ? { ...row, label: validated.title } : row);
   return adaptWeek(next, conditions);
+}
+
+export function applyDayChange(previous, proposal, conditions) {
+  const original = previous.days.find(day => day.date === proposal.date);
+  const day = validateDayChange(original, previous.settings, proposal, proposal.change, conditions.clock);
+  day.source = proposal.source;
+  return adaptWeek({ ...previous, days: previous.days.map(item => item.date === day.date ? day : item) }, conditions);
 }
 
 export function editWeek(previous, input, conditions) {
@@ -212,7 +221,13 @@ export function editWeek(previous, input, conditions) {
     if (edit.outdoorPreference !== day.outdoorPreference && day.date === today && day.timeline.some(row => row.kind === 'eco' && minutes(row.end) <= local.minutes)) throw invalid('activity_finished');
     const theme = validateCurriculum(Array(5).fill(edit.theme), settings)[0];
     const themeChanged = JSON.stringify(theme) !== JSON.stringify(validateCurriculum(Array(5).fill(day.theme), settings)[0]);
-    const timeline = validateTimeline(edit.timeline, settings).map(row => {
+    const validatedRows = validateTimeline(edit.timeline, settings);
+    if (themeChanged && day.timeline.some(row => row.kind === 'eco' && protectedActivity(row))) throw invalid('protected_activity');
+    for (const original of day.timeline.filter(protectedActivity)) {
+      const proposed = edit.timeline?.find(row => row.id === original.id);
+      if (!proposed || ['start', 'end', 'kind', 'label'].some(key => JSON.stringify(proposed[key]) !== JSON.stringify(original[key]))) throw invalid('protected_activity');
+    }
+    const timeline = validatedRows.map(row => {
       const original = day.timeline.find(r => r.id === row.id);
       if (!original) {
         if (row.kind !== 'activity') throw invalid('invalid_timeline');
@@ -220,7 +235,7 @@ export function editWeek(previous, input, conditions) {
       }
       if (row.start !== original.start || row.end !== original.end || row.kind !== original.kind) throw invalid('fixed_times');
       const changed = JSON.stringify(row.label) !== JSON.stringify(original.label);
-      return { ...row, ...(original.activityRole ? { activityRole: original.activityRole } : {}),
+      return { ...original, ...row, ...(row.kind === 'eco' ? { label: theme.title } : {}), ...(original.activityRole ? { activityRole: original.activityRole } : {}),
         ...(original.note && !changed ? { note: original.note } : {}), customized: !!original.customized || changed };
     });
     return { ...day, closed: edit.closed, outdoorPreference: edit.outdoorPreference, theme, themePinned: day.themePinned || themeChanged, timeline };

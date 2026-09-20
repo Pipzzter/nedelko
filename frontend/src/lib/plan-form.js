@@ -14,6 +14,7 @@ export function planIssues(value, config, rhythmConfirmed = true) {
   const timesValid = timePattern.test(value.dayStart) && timePattern.test(value.dayEnd) && value.dayStart >= '06:00' && value.dayEnd <= '19:00' && minutes(value.dayEnd) - minutes(value.dayStart) >= 180;
   if (!timesValid) add('dayStart', 'checkDayTimes', 3);
   const rows = [...value.blocks].sort((a,b) => a.start.localeCompare(b.start));
+  if (!['meal', 'rest'].every(kind => rows.some(row => row.kind === kind))) add('routines', 'dailyRoutinesRequired', 3);
   for (const [i,row] of rows.entries()) {
     if (!row.label.mk?.trim() || !row.label.en?.trim()) add(`routine-${row.id}`, 'checkRoutineNames', 3);
     if (!timePattern.test(row.start) || !timePattern.test(row.end) || row.start >= row.end || row.start < value.dayStart || row.end > value.dayEnd || i > 0 && row.start < rows[i-1].end) add(`routine-${row.id}`, 'checkRoutineTimes', 3);

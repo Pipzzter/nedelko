@@ -38,11 +38,11 @@ function App() {
     if (result.demoId && result.demoScenario) setScenario(result.demoScenario);
     setSelected(old => result.calendar.some(d => d.date === old) ? old : result.calendar.some(d => d.date === result.today) ? result.today : result.calendar[0].date);
   }
-  const run = async operation => {
-    if (running.current) return;
+  const run = async (operation, propagate = false) => {
+    if (running.current) { if (propagate) throw Object.assign(new Error('operation_pending'), { code: 'operation_pending' }); return; }
     running.current = true; setBusy(true); setError('');
     try { return await operation(); }
-    catch (err) { setError(err.code || 'unexpected_error'); if (err.status === 401) { setUser(null); setDemoId(null); setData(null); } }
+    catch (err) { setError(err.code || 'unexpected_error'); if (err.status === 401) { setUser(null); setDemoId(null); setData(null); } if (propagate) throw err; }
     finally { running.current = false; setBusy(false); }
   };
   const load = async (id = demoId, selectedLocation = location, selectedScenario = scenario, fresh = false) => {
@@ -56,7 +56,7 @@ function App() {
   });
   const beginDemo = (demoWeek = config.defaultDemoWeek) => run(async () => { const result = await api('/demo', { locationId: location, demoWeek }); setDemoId(result.demoId); setResetSettings(null); setScenario('normal'); accept(result); setSelected(result.today); navigate('home'); locationHash(`demo/${result.demoId}/home`); });
   const toggleDemo = () => demoId ? run(async () => { setDemoId(null); setResetSettings(null); setData(null); setScenario('normal'); navigate('home'); locationHash('home'); if (user) await load(null, location, 'normal'); }) : beginDemo();
-  const action = (path, body = {}) => run(async () => { const result = await api(path, { ...body, ...(demoId ? { demoId, scenario } : {}), revision: data?.week?.revision }); if (result.environment) accept(result); else setData(previous => ({ ...previous, ...result })); return result; });
+  const action = (path, body = {}, propagate = false) => run(async () => { const result = await api(path, { ...body, ...(demoId ? { demoId, scenario } : {}), revision: data?.week?.revision }); if (result.environment) accept(result); else setData(previous => ({ ...previous, ...result })); return result; }, propagate);
   useEffect(() => { document.documentElement.lang = lang; document.title = `${t('brand', lang)} · ${t('yourWeek', lang)}`; try { localStorage.setItem('eko-language', lang); } catch {} }, [lang]);
   useEffect(() => {
     run(async () => { const [configuration, auth] = await Promise.all([api('/config'), api('/auth/me')]); setConfig(configuration); setUser(auth.user); setReady(true); if (demoId) await load(demoId, null, null); else if (auth.user) await load(null); });
@@ -99,6 +99,8 @@ function App() {
       <div class="overview-grid"><${Calendar} data=${data} lang=${lang} selected=${selected} onSelect=${setSelected}/><${AirCard} environment=${data.environment} lang=${lang} busy=${busy} refresh=${refresh}/></div>
       ${data.week.changes?.length ? html`<div class="adaptation-note" role="status"><${Icon} name="refresh" size=${18}/><p><b>${t('changedDay', lang)}.</b> ${data.week.changes.map(c => `${t('moved', lang)}: ${dayName(c.from, lang)} → ${c.to ? dayName(c.to, lang) : t('noReplacement', lang)}`).join(' ')}</p></div>` : null}
       ${day && html`<${DayPlan} day=${day} data=${data} lang=${lang} clock=${clock} materials=${config.materials} busy=${busy}
+        demo=${!!demoId} onSuggest=${request => run(() => api('/week/change/suggest', { ...request, revision: data.week.revision, ...(demoId ? { demoId, scenario } : {}) }), true)}
+        onApply=${proposalId => action('/week/change/apply', { proposalId }, true)}
         onPlace=${value => action('/week/edit', { settings: data.week.settings, days: data.week.days.map(item => item.date === day.date ? { ...item, outdoorPreference: value } : item) })}/>`}
       <${ParentShare} share=${data.share} lang=${lang} busy=${busy} onShare=${shareAction => action('/week/share', { action: shareAction })}/>
       <${Messages} share=${data.share} week=${data.week} selected=${selected} lang=${lang} busy=${busy} onRecheck=${() => action('/week/recheck')} onApprove=${() => action('/week/approve')}/>
