@@ -6,7 +6,6 @@ import { randomUUID, randomInt, randomBytes } from 'node:crypto';
 import { LOCATIONS, skopjeParts, POLICY, SCENARIOS } from '../config/index.js';
 import { demoWeekById, demoWeekOptions, DEFAULT_DEMO_WEEK } from '../config/demo.js';
 import { prepareDemoWeek } from '../domain/demo-week.js';
-import { createDemoClassroom, classroomView, familyView, editDemoClassroom } from '../domain/demo-classroom.js';
 import { DEFAULT_SETTINGS, MATERIALS, validateSettings, validateGenerationSettings, invalid, minutes, teacherInstruction } from '../domain/settings.js';
 import { planningWeekDates } from '../domain/planner.js';
 import { createWeek, adaptWeek, editWeek, dashboard, outdoorPlanningContext, replaceDayTheme } from '../domain/week.js';
@@ -57,10 +56,8 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
   function present(week, conditions, user, demoId) {
     return { ...dashboard(week, conditions), demoId, share: sharing(user, demoId, week),
       profile: !demoId && user ? store.profile(user.id) : null,
-      ...(demoId && week ? { demoClassroom: classroomView(demoRecord(demoId).classroom, week), demoScenario: demoRecord(demoId).scenario || 'normal' } : {}) };
+      ...(demoId ? { demoScenario: demoRecord(demoId).scenario || 'normal' } : {}) };
   }
-  const presentFamily = (id, record) => ({ ...parentView(record.week, sharing(null, id, record.week).expiresAt),
-    demoFamily: familyView(record.classroom, record.week) });
   async function refreshStoredWeek(userId, start) {
     return withLock(userId, async () => {
       let old = store.week(userId, start);
@@ -94,18 +91,6 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
       const cookie = readSessionCookie(request); const user = cookie ? store.session(tokenHash(cookie)) : null;
       if (request.method === 'GET' && url.pathname === '/api/auth/me') return send(200, { user });
       if (request.method === 'GET' && url.pathname === '/api/config') return send(200, { locations: LOCATIONS, defaults: DEFAULT_SETTINGS, materials: MATERIALS, ai: aiStatus(), demoWeeks: demoWeekOptions(), defaultDemoWeek: DEFAULT_DEMO_WEEK, demoScenarios: SCENARIOS, version: '1.0.0' });
-      if (request.method === 'POST' && /^\/api\/parents\/[a-f0-9]{64}\/demo$/.test(url.pathname)) {
-        const token = url.pathname.split('/')[3];
-        const match = [...demos].find(([, record]) => record.parentToken === token);
-        if (!match) throw invalid('parent_link_unavailable', 404);
-        const [id] = match; const body = await jsonBody(request);
-        return await withLock(id, async () => {
-          const record = demoRecord(id);
-          if (!record.week) throw invalid('parent_link_unavailable', 404);
-          record.classroom = editDemoClassroom(record.classroom, body, { role: 'parent', week: record.week });
-          return send(200, presentFamily(id, record));
-        });
-      }
       if (url.pathname.startsWith('/api/parents/')) {
         response.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
         if (request.method !== 'GET') throw invalid('method_not_allowed', 405);
@@ -114,7 +99,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
         for (const [id, record] of demos) {
           if (record.parentToken !== token) continue;
           if (Date.now() - record.at > 3600000 || !record.week) throw invalid('parent_link_unavailable', 404);
-          return send(200, presentFamily(id, record));
+          return send(200, parentView(record.week, sharing(null, id, record.week).expiresAt));
         }
         const owner = store.sharedWeek(token);
         if (!owner) throw invalid('parent_link_unavailable', 404);
@@ -144,7 +129,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
         const curriculum = await curriculumProvider(planningWeekDates(conditions.clock), settings, { useAI: false });
         const week = { ...prepareDemoWeek(createWeek(settings, curriculum, conditions), conditions, profile), revision: 1 }; const demoId = randomUUID();
         for (const [id, record] of demos) if (Date.now() - record.at > 3600000 || demos.size >= 50) demos.delete(id);
-        demos.set(demoId, { week, revision: 1, demoWeek: profile.id, at: Date.now(), classroom: createDemoClassroom(week), parentToken: randomBytes(32).toString('hex') });
+        demos.set(demoId, { week, revision: 1, demoWeek: profile.id, at: Date.now(), parentToken: null });
         return send(201, present(week, conditions, user, demoId));
       }
       const body = request.method === 'POST' ? await jsonBody(request) : {};
@@ -157,21 +142,6 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
       const scenario = demoId ? body.scenario || url.searchParams.get('scenario') || demoRecord(demoId).scenario || 'normal' : 'normal';
       if (!SCENARIOS.includes(scenario)) throw invalid('invalid_scenario');
       const demoWeek = demoId ? demoRecord(demoId).demoWeek : undefined;
-      if (request.method === 'POST' && url.pathname === '/api/demo/classroom') {
-        if (!demoId) throw invalid('not_found', 404);
-        return await withLock(demoId, async () => {
-          const record = demoRecord(demoId);
-          if (!record.week) throw invalid('no_plan', 404);
-          record.classroom = editDemoClassroom(record.classroom, body, { role: 'teacher', week: record.week });
-          return send(200, { demoClassroom: classroomView(record.classroom, record.week) });
-        });
-      }
-      if (request.method === 'GET' && url.pathname === '/api/demo/classroom') {
-        if (!demoId) throw invalid('not_found', 404);
-        const record = demoRecord(demoId);
-        if (!record.week) throw invalid('no_plan', 404);
-        return send(200, { demoClassroom: classroomView(record.classroom, record.week) });
-      }
       if (request.method === 'GET' && url.pathname === '/api/holidays') {
         if (demoId) demoRecord(demoId);
         const year = Number(url.searchParams.get('year'));

@@ -44,6 +44,7 @@ test('DOM integration: empty account, create week, editor, live step, bilingual 
   await wait(() => document.querySelector('.empty-week'));
   assert.equal(document.querySelectorAll('.calendar-day').length, 5);
   assert.equal(document.querySelectorAll('.sidebar nav a').length, 3);
+  const accountNavigation = [...document.querySelectorAll('.sidebar nav a')].map(link => link.textContent.trim());
   clickText('Генерирај план'); await wait(() => document.querySelector('.settings-layout'));
   assert.equal(document.querySelectorAll('.routine-editor').length, 5);
   const enter = async (selector, value) => {
@@ -175,6 +176,9 @@ test('DOM integration: empty account, create week, editor, live step, bilingual 
   assert.equal(document.querySelector('.message-note').getAttribute('lang'), 'en');
   const demo = document.querySelector('.demo-switch input'); demo.checked = true; demo.dispatchEvent(new window.Event('change', { bubbles: true }));
   await wait(() => document.querySelector('.demo-banner'));
+  clickText('МК'); await wait(() => document.documentElement.lang === 'mk');
+  assert.deepEqual([...document.querySelectorAll('.sidebar nav a')].map(link => link.textContent.trim()), accountNavigation);
+  clickText('EN'); await wait(() => document.documentElement.lang === 'en');
   assert.match(document.querySelector('.current-row').textContent, /Breakfast/);
   assert.equal(document.querySelectorAll('.demo-week-select option').length, 6);
   assert.equal(document.querySelectorAll('.demo-air-select option').length, 6);

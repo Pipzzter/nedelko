@@ -2,7 +2,6 @@ import { html, useState, useEffect, text, dayName, localizedDate } from '../lib/
 import { api } from '../lib/api.js';
 import { t, parentReason } from '../locales/index.js';
 import { Icon } from '../components/Icon.js';
-import { DemoFamily } from '../components/DemoFamily.js';
 
 export function ParentWeek({ token }) {
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('eko-language') === 'en' ? 'en' : 'mk'; } catch { return 'mk'; } });
@@ -21,27 +20,21 @@ export function ParentWeek({ token }) {
       loading = true; setBusy(true);
       try {
         const result = await api(`/parents/${token}`);
-        if (active) { setData(previous => previous?.demoFamily?.revision > result.demoFamily?.revision ? previous : result); setError(''); setSelected(previous => result.days.some(day => day.date === previous) ? previous : result.days.some(day => day.date === result.today) ? result.today : result.days[0].date); }
+        if (active) { setData(result); setError(''); setSelected(previous => result.days.some(day => day.date === previous) ? previous : result.days.some(day => day.date === result.today) ? result.today : result.days[0].date); }
       } catch (err) { if (active) { setData(null); setError(err.status === 404 ? 'parentUnavailable' : 'parentRefreshFailed'); } }
       finally { loading = false; if (active) setBusy(false); }
     };
-    load(); const timer = setInterval(load, data?.mode === 'demo' ? 10000 : 60000);
+    load(); const timer = setInterval(load, 60000);
     document.addEventListener('visibilitychange', load);
     return () => { active = false; clearInterval(timer); document.removeEventListener('visibilitychange', load); };
-  }, [token, data?.mode]);
+  }, [token]);
   const day = data?.days.find(item => item.date === selected);
-  const familyAction = async body => {
-    const result = await api(`/parents/${token}/demo`, body);
-    setData(previous => previous?.demoFamily?.revision > result.demoFamily?.revision ? previous : result);
-    return result;
-  };
   return html`<div class="parent-shell"><header class="parent-header"><span class="brand"><span class="brand-mark"><${Icon} name="leaf" size=${23}/></span>${t('brand', lang)}.</span>
     <button class="language-switch" onClick=${() => setLang(lang === 'mk' ? 'en' : 'mk')}>${lang === 'mk' ? 'EN' : 'МК'}</button></header>
-    <main class="parent-main"><div class="parent-access-note"><${Icon} name="leaf" size=${18}/><span>${t("sharedByTeacher",lang)}</span><small>${t("parentNoLogin",lang)}</small></div><div class=${`parent-hero ${data?.demoFamily?'family-hero':''}`}><span class="eyebrow">${data?.demoFamily ? text(data.demoFamily.kindergarten,lang) : t('parentView', lang)}</span><h1>${data?.demoFamily ? t('parentGreeting',lang) : data?.kindergarten || t('parentWeek', lang)}</h1>
-      ${data && html`<p class="parent-group">${data.demoFamily?text(data.demoFamily.group,lang):data.groupName} ${data.groupName ? '·' : ''} ${text(data.location, lang)}</p>`}<p>${t('parentIntro', lang)}</p>${data?.demoFamily&&html`<img class="family-hero-illustration" src="/assets/little-gardeners.svg" width="530" height="330" alt=""/>`}</div>
+    <main class="parent-main"><div class="parent-access-note"><${Icon} name="leaf" size=${18}/><span>${t("sharedByTeacher",lang)}</span><small>${t("parentNoLogin",lang)}</small></div><div class="parent-hero"><span class="eyebrow">${t('parentView', lang)}</span><h1>${data?.kindergarten || t('parentWeek', lang)}</h1>
+      ${data && html`<p class="parent-group">${data.groupName} ${data.groupName ? '·' : ''} ${text(data.location, lang)}</p>`}<p>${t('parentIntro', lang)}</p></div>
       ${error ? html`<section class="card parent-empty" role="alert"><h2>${t(error, lang)}</h2><button class="button secondary" onClick=${() => window.location.reload()}>${t('retry', lang)}</button></section>` : !data ? html`<p role="status">${t('loading', lang)}</p>` : html`
         ${data.mode === 'demo' && html`<p class="demo-banner">${t('demoSample', lang)}</p>`}
-        ${data.demoFamily && html`<${DemoFamily} family=${data.demoFamily} day=${data.days.find(item=>item.date===data.today)} lang=${lang} onAction=${familyAction}/>`}
         <div class="parent-meta" id="family-week"><span>${localizedDate(data.weekStart, lang, { day: 'numeric', month: 'long' })} – ${localizedDate(data.days.at(-1).date, lang, { day: 'numeric', month: 'long' })}</span><button class="button quiet" onClick=${() => window.print()}>${t('printWeek', lang)}</button></div>
         <p class="soft-note">${t('parentProvisional', lang)}</p>
         <nav class="parent-days" aria-label=${t('parentWeek', lang)}>${data.days.map(item => html`<button key=${item.date} class=${`parent-day-tile ${item.date === selected ? 'selected' : ''}`} aria-pressed=${item.date === selected} onClick=${() => setSelected(item.date)}>
