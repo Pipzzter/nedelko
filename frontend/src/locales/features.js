@@ -25,7 +25,7 @@ export const featureCopy = {
   applyDay: ['Примени за овој ден', 'Apply to this day'], discardSuggestion: ['Отфрли предлог', 'Discard suggestion'],
   dayPreview: ['Предлог за преглед', 'Suggestion to review'], saveBeforeAI: ['Прво зачувајте ги измените во неделата.', 'Save your week edits before requesting an AI suggestion.'],
   demoDayHelp: ['Во демото се прикажува пример од библиотеката. Текстуалното барање се применува со AI во вистински план.', 'Demo shows a library example. Written requests are interpreted by AI in a real plan.'],
-  parentLink: ['Линк за родителите', 'Parent link'], parentLinkHelp: ['Едно место за неделните активности и најновите дневни информации.', 'One place for the week’s activities and the latest daily updates.'],
+  parentLink: ['Линк за родителите', 'Parent link'], parentLinkHelp: ['Истиот линк ги прикажува најновите измени за неделата. Родителите може само да го читаат планот.', 'The same link shows this week’s latest updates. Parents can only read the plan.'],
   createParentLink: ['Создај линк за родителите', 'Create parent link'], copyParentLink: ['Копирај само линк', 'Copy link only'],
   openParentView: ['Преглед како родител', 'Preview as a parent'], revokeParentLink: ['Исклучи линк', 'Disable link'],
   parentLinkPrivacy: ['Секој што го има линкот може да ја прочита оваа недела. Споделете го само со семејствата од групата.', 'Anyone with the link can read this week. Share it only with your group’s families.'],

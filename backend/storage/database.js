@@ -51,10 +51,12 @@ export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuva
       const row = db.prepare('SELECT token, expires_at FROM parent_links WHERE user_id = ? AND week_start = ? AND expires_at > ?').get(userId, start, now);
       return row ? { path: `/#parents/${row.token}`, expiresAt: new Date(row.expires_at).toISOString() } : null;
     },
-    shareWeek(userId, start, rotate = false) {
+    shareWeek(userId, start) {
       const existing = this.sharing(userId, start);
-      if (existing && !rotate) return existing;
-      const token = randomBytes(32).toString('hex');
+      if (existing) return existing;
+      // Renewal retains the URL. Only explicit revocation/deletion retires a token.
+      const saved = db.prepare('SELECT token FROM parent_links WHERE user_id = ? AND week_start = ?').get(userId, start);
+      const token = saved?.token || randomBytes(32).toString('hex');
       db.prepare('INSERT INTO parent_links VALUES (?, ?, ?, ?) ON CONFLICT(user_id, week_start) DO UPDATE SET token = excluded.token, expires_at = excluded.expires_at')
         .run(token, userId, start, Date.now() + 14 * 86400000);
       return this.sharing(userId, start);
