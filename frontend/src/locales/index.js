@@ -92,7 +92,6 @@ const copy = {
   welcome: ['Вашата недела, со помалку грижи.', 'Your week, with a little less worry.'], authSubtitle: ['Повеќе време за малите истражувачи.', 'More time for your little explorers.'],
   signupHelp: ['Лозинка со најмалку 10 знаци.', 'Use a password with at least 10 characters.'],
   yourWeek: ['Вашата недела', 'Your week'], weekSubtitle: ['Мали навики. Големи откритија.', 'Little habits. Big discoveries.'],
-  createSubtitle: ['Поставете го ритамот. Ние ќе ги пополниме малите откритија.', 'Set the rhythm. We will fill in the little discoveries.'],
   demoNote: ['Понеделник, 08:45 · Примерни податоци', 'Monday, 08:45 · Sample data'], demoPrivate: ['Нов пример ја започнува демо-неделата одново. Вашиот вистински план останува зачуван.', 'Choosing another example restarts the demo week. Your real plan stays saved.'],
   normal: ['Вообичаено утро', 'Typical morning'], polluted: ['Загадено утро', 'Polluted morning'], stale: ['Застарени мерења', 'Stale readings'], offline: ['Сензори без податоци', 'Sensors offline'],
   forecast: ['Временска прогноза', 'Weather forecast'], draft: ['Приближен план', 'Provisional plan'], outside: ['Надвор', 'Outside'], inside: ['Внатре', 'Inside'], empty: ['Без план', 'No plan'], closed: ['Неработен ден', 'Closed'],

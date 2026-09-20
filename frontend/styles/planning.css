@@ -73,8 +73,6 @@
   .planning-progress nav button > span { width:27px; height:27px; border-radius:9px; border:1px solid #dae1ce; display:grid; place-items:center; font-size:10px; }
   .planning-progress nav button > .complete { color:#fff; background:#547645; border-color:#547645; }.planning-progress nav button > svg:last-child { margin-left:auto; color:#8a997b; }
   .planning-progress dl { margin:18px 0 0; border-top:1px solid var(--line); padding-top:15px; display:grid; gap:14px; }.planning-progress dt { font-size:10px; color:#7c856f; }.planning-progress dd { font-size:12px; margin:4px 0 0; font-weight:550; }
-  .planning-parent-note { padding:22px; border:1px solid #e7d8b7; background:#fbf2de; border-radius:18px; margin-top:18px; }.planning-parent-note > svg { color:#9a783a; margin-bottom:12px; }.planning-parent-note h3 { font-size:15px; margin-bottom:8px; }.planning-parent-note p { font-size:12px; color:#7a6e54; line-height:1.8; }
-  .planning-next { padding:23px 12px; }.planning-next h3 { font-size:13px; }.planning-next ol { padding-left:19px; display:grid; gap:10px; margin-top:12px; font-size:11px; color:#6d7964; line-height:1.75; }
   .planning-errors { background:#fff4ed; border:1px solid #edcbb9; border-radius:15px; padding:22px; margin-bottom:22px; color:#894f38; }.planning-errors h3 { font-size:16px; }.planning-errors ul { padding-left:19px; margin-bottom:0; }.planning-errors button { text-align:left; text-decoration:underline; text-underline-offset:3px; min-height:38px; font-size:12px; }
   .plan-save-bar { bottom:12px; padding:18px 22px; }.plan-save-bar > p { color:#597149; font-size:12px; }.plan-save-bar .button { min-height:48px; }
   .parent-access-note { display:flex; align-items:center; gap:9px; font-size:12px; color:#617455; padding:17px 0; border-bottom:1px solid var(--line); }
@@ -87,14 +85,14 @@
 }
 @layer responsive {
   .plan-builder .routines-card .routine-list { grid-template-columns:1fr; }
-  @media (max-width:1050px) { .planning-layout { grid-template-columns:minmax(0,1fr); }.planning-companion { position:static; display:grid; grid-template-columns:1fr 1fr; gap:20px; }.planning-progress { grid-row:span 2; }.planning-parent-note { margin-top:0; }.planning-next { padding:10px 12px; } }
+  @media (max-width:1050px) { .planning-layout { grid-template-columns:minmax(0,1fr); }.planning-companion { position:static; display:grid; grid-template-columns:1fr 1fr; gap:20px; }.planning-progress { grid-row:span 2; } }
   @media (max-width:600px) {
     .planning-welcome { padding:23px; gap:14px; }.welcome-symbol { width:42px; height:42px; border-radius:14px; }.planning-welcome h2 { font-size:22px; }.planning-welcome p { font-size:12px; }
     .planning-section { padding:22px 19px; }.planning-section-heading { gap:12px; }.planning-section-heading h2 { font-size:20px; }.plan-builder .form-grid { grid-template-columns:1fr; gap:21px; }.plan-builder .span-2 { grid-column:auto; }
     .plan-builder input:not([type=checkbox]),.plan-builder select,.plan-builder textarea { font-size:16px; }
     .plan-builder .material-options { grid-template-columns:1fr 1fr; gap:8px; }.plan-builder .material-options label { padding:13px 10px; font-size:12px; }.choice-tick { display:none !important; }
     .plan-builder .routine-editor summary { flex-wrap:wrap; padding:14px; gap:10px; }.routine-summary-name { flex-basis:60%; }.plan-builder .routine-editor time { margin-left:50px; }.plan-builder .routine-editor summary > svg { margin-left:auto; }.routine-edit-body { padding:16px; }
-    .planning-companion { grid-template-columns:1fr; }.planning-progress { grid-row:auto; }.planning-parent-note { margin:0; }
+    .planning-companion { grid-template-columns:1fr; }.planning-progress { grid-row:auto; }
     .plan-save-bar { flex-direction:column; align-items:stretch; gap:13px; padding:16px; bottom:8px; }.plan-save-bar > p { max-width:none; }.plan-save-bar > div { display:grid; grid-template-columns:auto 1fr; }.plan-save-bar .button { padding:11px 14px; }
     .parent-access-note { align-items:flex-start; flex-wrap:wrap; font-size:11px; }.parent-access-note small { width:100%; padding-left:27px; }
   }
