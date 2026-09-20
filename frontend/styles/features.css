@@ -81,3 +81,10 @@
     .print-all-days p { white-space: pre-line; }
   }
 }
+@layer components {
+  .kindergarten-empty { padding: 48px; display: grid; gap: 20px; justify-items: start; }
+  .kindergarten-empty p { max-width: 42em; color: var(--muted); }
+  .week-actions { margin-top: 24px; padding: 20px 24px; }
+  .week-actions > .share-actions { margin-top: 18px; }
+  .home-place { min-width: 130px; }
+}

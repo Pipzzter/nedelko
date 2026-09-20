@@ -3,7 +3,7 @@ import { t } from '../locales/index.js';
 import { Icon } from './Icon.js';
 import { Occasions } from './Holidays.js';
 
-export function DayPlan({ day, data, lang, clock, onEdit, materials }) {
+export function DayPlan({ day, data, lang, clock, materials, busy, onPlace }) {
   const [selection, setSelection] = useState(null);
   const detail = useRef(null);
   useEffect(() => {
@@ -16,7 +16,8 @@ export function DayPlan({ day, data, lang, clock, onEdit, materials }) {
   const description = isEco ? day.activity || day.theme?.inside : selected?.note;
   const title = row => text(row.kind === 'eco' ? day.theme.title : row.label, lang);
   const discussion = selected?.occasionDiscussion;
-  return html`<section class="card day-plan" id="day-plan"><div class="card-heading"><div class="day-heading"><span class="date-tile">${Number(day.date.slice(8))}</span><div><span class="eyebrow">${today ? t('today', lang) : t('dailyPlan', lang)}</span><h2>${dayName(day.date, lang)}</h2></div></div>${day.theme && html`<button class="button quiet" onClick=${onEdit}><${Icon} name="edit" size=${16}/>${t('edit', lang)}</button>`}</div>
+  return html`<section class="card day-plan" id="day-plan"><div class="card-heading"><div class="day-heading"><span class="date-tile">${Number(day.date.slice(8))}</span><div><span class="eyebrow">${today ? t('today', lang) : t('dailyPlan', lang)}</span><h2>${dayName(day.date, lang)}</h2></div></div>
+      ${day.theme && !day.closed && onPlace && html`<label class="home-place">${t('activityPlace', lang)}<select disabled=${busy || day.date < now.date || today && day.timeline.some(row => row.kind === 'eco' && row.end <= now.time)} value=${day.outdoorPreference || 'auto'} onChange=${e => onPlace(e.currentTarget.value)}>${['auto', 'inside', 'outside'].map(value => html`<option value=${value}>${t(value === 'auto' ? 'automatic' : value, lang)}</option>`)}</select></label>`}</div>
     <${Occasions} day=${day} lang=${lang}/>
     ${!day.theme || day.closed ? html`<p class="empty-day">${t(day.closed ? 'closed' : 'noDay', lang)} ${!day.theme && day.date < data.today ? t('pastEmpty', lang) : ''}</p>` : html`
     <p class="day-decision"><b>${t(day.mode, lang)}.</b> ${day.outdoorPreference === 'outside' && day.mode !== 'outside' ? `${t('outdoorChoiceBlocked', lang)} ` : ''}${t(`reason_${day.reason}`, lang)}${['ai_plan', 'indoor_balance'].includes(day.reason) ? ` ${t('outdoorDays', lang)}: ${data.week.settings.outdoorDays}.` : ''}</p>

@@ -8,7 +8,7 @@ import { DayPlan } from './components/DayPlan.js';
 import { Messages } from './components/Messages.js';
 import { Auth } from './pages/Auth.js';
 import { CreatePlan } from './pages/CreatePlan.js';
-import { EditWeek } from './pages/EditWeek.js';
+import { WeekActions } from './components/WeekActions.js';
 import { DemoControls } from './components/DemoControls.js';
 import { ParentShare } from './components/ParentShare.js';
 import { GenerationStatus } from './components/GenerationStatus.js';
@@ -18,7 +18,7 @@ const pages = ['home', 'plan', 'plan/new', 'create', 'edit'];
 // Keep existing bookmarks working within the single planning destination.
 const currentPage = () => {
   const next = demoRoute()?.[2] || window.location.hash.slice(1);
-  if (next === 'edit' || next === 'plan') return 'plan';
+  if (next === 'edit' || next === 'plan') return 'home';
   if (next === 'create' || next === 'plan/new') return 'create';
   return 'home';
 };
@@ -27,12 +27,12 @@ const initialLanguage = () => { try { return localStorage.getItem('eko-language'
 function App() {
   const [lang, setLang] = useState(initialLanguage); const [config, setConfig] = useState(null); const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false); const [data, setData] = useState(null); const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [page, setPage] = useState(currentPage);
+  const [error, setError] = useState(''); const [page, setPage] = useState(currentPage);
   const [resetSettings, setResetSettings] = useState(null);
   const [selected, setSelected] = useState(null); const [demoId, setDemoId] = useState(() => demoRoute()?.[1] || null); const [scenario, setScenario] = useState('normal');
   const [location, setLocation] = useState(null); const [clock, setClock] = useState(new Date().toISOString());
   const running = useRef(false);
-  const navigate = next => { const route = next === 'create' ? 'plan/new' : next; setPage(next); locationHash(demoId ? `demo/${demoId}/${route}` : route); setError(''); setNotice(''); window.scrollTo({ top: 0 }); };
+  const navigate = next => { setPage(next); locationHash(demoId ? `demo/${demoId}/home` : 'home'); setError(''); window.scrollTo({ top: 0 }); };
   function accept(result) {
     setData(result); setClock(result.clock); setLocation(result.environment.location.id);
     if (result.demoId && result.demoScenario) setScenario(result.demoScenario);
@@ -40,7 +40,7 @@ function App() {
   }
   const run = async operation => {
     if (running.current) return;
-    running.current = true; setBusy(true); setError(''); setNotice('');
+    running.current = true; setBusy(true); setError('');
     try { return await operation(); }
     catch (err) { setError(err.code || 'unexpected_error'); if (err.status === 401) { setUser(null); setDemoId(null); setData(null); } }
     finally { running.current = false; setBusy(false); }
@@ -77,16 +77,36 @@ function App() {
   if (!ready || !config) return html`<div class="boot">${t('brand', lang)}<span>${error ? errorText(error, lang) : t('loading', lang)}</span>${error && html`<button class="button primary" onClick=${() => window.location.reload()}>${t('retry', lang)}</button>`}</div>`;
   if (!user && !demoId) return html`<${Auth} lang=${lang} setLang=${setLang} busy=${busy} error=${error && errorText(error, lang)} onDemo=${() => beginDemo()} onAuth=${(kind, fields) => run(async () => { const auth = await api(`/auth/${kind}`, fields); setUser(auth.user); navigate('home'); await load(null); })}/>`;
   const day = data?.week?.days.find(d => d.date === selected);
-  const creating = page === 'create' || page === 'plan' && !data?.week;
-  const header = creating ? data?.week ? 'regenerateWeek' : 'createPlan' : page === 'plan' ? 'weeklyPlan' : 'yourWeek';
+  const creating = page === 'create';
+  const header = creating ? data?.week ? 'regenerateWeek' : 'createKindergarten' : data?.week ? 'yourWeek' : 'kindergarten';
   const changeLocation = value => run(async () => { if (data?.week) accept(await api('/week/location', { locationId: value, revision: data.week.revision, ...(demoId ? { demoId, scenario } : {}) })); else await load(demoId, value); });
-  return html`<div class="app-shell"><a class="skip-link" href="#main">${lang === 'mk' ? 'Прескокни до содржината' : 'Skip to content'}</a><aside class="sidebar"><a class="brand" href=${demoId ? `#demo/${demoId}/home` : "#home"} onClick=${e => { e.preventDefault(); navigate('home'); }}><span class="brand-mark"><${Icon} name="leaf" size=${23}/></span>${t('brand', lang)}<span class="brand-period">.</span></a><nav aria-label=${lang === 'mk' ? 'Главно мени' : 'Main navigation'}><a href=${demoId ? `#demo/${demoId}/home` : "#home"} class=${page === 'home' ? 'active' : ''} aria-current=${page === 'home' ? 'page' : undefined} onClick=${e => { e.preventDefault(); navigate('home'); }}><${Icon} name="home"/>${t('home', lang)}</a><a href=${demoId ? `#demo/${demoId}/plan` : "#plan"} class=${page !== 'home' ? 'active' : ''} aria-current=${page !== 'home' ? 'page' : undefined} onClick=${e => { e.preventDefault(); navigate('plan'); }}><${Icon} name="calendar"/>${t('weeklyPlan', lang)}</a></nav><div class="sidebar-bottom">${!demoId && user && html`<span class="account-name"><span class="account-initial">${user.displayName.slice(0, 1).toUpperCase()}</span><span>${user.displayName}<small>@${user.username}</small></span></span>`}<button class="logout-button" disabled=${busy} onClick=${() => demoId ? toggleDemo() : run(async () => { await api('/auth/logout', {}); setUser(null); setDemoId(null); setResetSettings(null); setData(null); navigate('home'); })}><${Icon} name="logout" size=${18}/>${t(demoId ? 'exitDemo' : user ? 'signOut' : 'signIn', lang)}</button></div></aside>
+  return html`<div class="app-shell"><a class="skip-link" href="#main">${lang === 'mk' ? 'Прескокни до содржината' : 'Skip to content'}</a><aside class="sidebar"><a class="brand" href=${demoId ? `#demo/${demoId}/home` : "#home"} onClick=${e => { e.preventDefault(); navigate('home'); }}><span class="brand-mark"><${Icon} name="leaf" size=${23}/></span>${t('brand', lang)}<span class="brand-period">.</span></a><nav aria-label=${lang === 'mk' ? 'Главно мени' : 'Main navigation'}><a href=${demoId ? `#demo/${demoId}/home` : "#home"} class="active" aria-current="page" onClick=${e => { e.preventDefault(); navigate('home'); }}><${Icon} name="home"/>${t('home', lang)}</a></nav><div class="sidebar-bottom">${!demoId && user && html`<span class="account-name"><span class="account-initial">${user.displayName.slice(0, 1).toUpperCase()}</span><span>${user.displayName}<small>@${user.username}</small></span></span>`}<button class="logout-button" disabled=${busy} onClick=${() => demoId ? toggleDemo() : run(async () => { await api('/auth/logout', {}); setUser(null); setDemoId(null); setResetSettings(null); setData(null); navigate('home'); })}><${Icon} name="logout" size=${18}/>${t(demoId ? 'exitDemo' : user ? 'signOut' : 'signIn', lang)}</button></div></aside>
     <div class="workspace"><header class="topbar"><div class="location-control"><${Icon} name="pin" size=${17}/><select aria-label=${t('city', lang)} value=${location} disabled=${busy || page !== 'home'} onChange=${e => changeLocation(e.currentTarget.value)}>${config.locations.map(l => html`<option key=${l.id} value=${l.id}>${lang === 'mk' ? l.name : l.nameEn}</option>`)}</select></div><div class="topbar-actions"><label class="demo-switch"><input type="checkbox" checked=${!!demoId} disabled=${busy} onChange=${toggleDemo}/><span class="switch-track"></span>${t('demo', lang)}</label><button class="language-switch" onClick=${() => setLang(lang === 'mk' ? 'en' : 'mk')} aria-label=${lang === 'mk' ? 'Switch to English' : 'Промени на македонски'}>${lang === 'mk' ? 'EN' : 'МК'}</button></div></header>
-    <main id="main"><div class="page-heading"><div><span class="eyebrow">${data ? localizedDate(data.clock, lang, { weekday: 'long', day: 'numeric', month: 'long' }) : t('loading', lang)}</span><h1>${t(header, lang)}<span class="heading-dot">.</span></h1><p class="group-heading">${`${data?.week?.settings.gradinka?.name || data?.profile?.gradinka?.name || ''}${data?.week?.settings.groupName ? ` · ${data.week.settings.groupName}` : ''}`}</p><p>${t(creating ? 'createSubtitle' : page === 'plan' ? 'editSubtitle' : 'weekSubtitle', lang)}</p></div><img class="heading-illustration" src="/assets/little-gardeners.svg" alt="" width="530" height="330"/></div>
+    <main id="main"><div class="page-heading"><div><span class="eyebrow">${data ? localizedDate(data.clock, lang, { weekday: 'long', day: 'numeric', month: 'long' }) : t('loading', lang)}</span><h1>${t(header, lang)}<span class="heading-dot">.</span></h1><p class="group-heading">${`${data?.week?.settings.gradinka?.name || data?.profile?.gradinka?.name || ''}${data?.week?.settings.groupName ? ` · ${data.week.settings.groupName}` : ''}`}</p>${creating && html`<p>${t('createSubtitle', lang)}</p>`}</div><img class="heading-illustration" src="/assets/little-gardeners.svg" alt="" width="530" height="330"/></div>
     ${demoId && !creating && html`<${DemoControls} week=${data?.week} clock=${data?.clock || clock} scenario=${scenario} config=${config} lang=${lang} busy=${busy} onWeek=${beginDemo} onScenario=${value => run(async () => { await load(demoId, location, value, true); setScenario(value); })}/>`}
-    ${error && html`<div class="alert error" role="alert"><span>${errorText(error, lang)}</span><button class="button quiet" onClick=${refresh} disabled=${busy}>${t('refresh', lang)}</button></div>`}${notice && html`<div class="alert success" role="status">${t(notice, lang)}</div>`}
+    ${error && html`<div class="alert error" role="alert"><span>${errorText(error, lang)}</span><button class="button quiet" onClick=${refresh} disabled=${busy}>${t('refresh', lang)}</button></div>`}
     ${busy && html`<div class="busy-status" role="status"><span class="spinner"></span>${t(creating ? 'generating' : 'loading', lang)}</div>`}
-    ${!data ? html`<div class="card loading-card"><${Icon} name="leaf" size=${36}/><p>${t('loading', lang)}</p></div>` : page === 'home' ? html`<${GenerationStatus} week=${data.week} lang=${lang}/><div class="overview-grid"><${Calendar} data=${data} lang=${lang} selected=${selected} onSelect=${setSelected} onGenerate=${() => navigate('plan')}/><${AirCard} environment=${data.environment} lang=${lang} busy=${busy} refresh=${refresh}/></div>${data.week?.changes?.length ? html`<div class="adaptation-note" role="status"><${Icon} name="refresh" size=${18}/><p><b>${t('changedDay', lang)}.</b> ${data.week.changes.map(c => `${t('moved', lang)}: ${dayName(c.from, lang)} → ${c.to ? dayName(c.to, lang) : t('noReplacement', lang)}`).join(' ')}</p></div>` : null}${day && html`<${DayPlan} day=${day} data=${data} lang=${lang} clock=${clock} onEdit=${() => navigate('plan')} materials=${config.materials}/><${ParentShare} share=${data.share} lang=${lang} busy=${busy} onShare=${shareAction => action('/week/share', { action: shareAction })}/><${Messages} share=${data.share} week=${data.week} selected=${selected} lang=${lang} busy=${busy} onRecheck=${() => action('/week/recheck')} onApprove=${() => action('/week/approve')}/>`}` : creating ? html`<${CreatePlan} demo=${!!demoId} replacing=${Boolean(data.week)} key=${demoId || 'real'} config=${config} lang=${lang} initial=${data.week?.settings || resetSettings || data.profile || { ...config.defaults, locationId: location }} busy=${busy} onCancel=${() => navigate(data.week ? 'plan' : 'home')} onGenerate=${settings => run(async () => { accept(await api('/week/generate', { settings, requireAI: Boolean(data.week) && !demoId, revision: data.week?.revision, ...(demoId ? { demoId, scenario } : {}) })); navigate('plan'); })}/>` : html`<${EditWeek} onRegenerate=${() => navigate('create')} onSuggestDay=${(date, instruction) => api('/week/day/suggest', { date, instruction, revision: data.week.revision, ...(demoId ? { demoId, scenario } : {}) })} onApplyDay=${proposalId => action('/week/day/apply', { proposalId })} error=${error ? errorText(error, lang) : ''} key=${`${demoId || 'real'}-${data.week.revision}`} data=${data} lang=${lang} busy=${busy} selected=${selected} onSelect=${setSelected} onCancel=${() => navigate('home')} onDelete=${() => run(async () => { const result = await api('/week/delete', { revision: data.week.revision, ...(demoId ? { demoId } : {}) }); setResetSettings(result.settings); setData(previous => ({ ...previous, week: null })); navigate('plan'); setNotice('weekDeleted'); })} onSave=${draft => run(async () => { accept(await api('/week/edit', { settings: draft.settings, days: draft.days, revision: data.week.revision, ...(demoId ? { demoId, scenario } : {}) })); navigate('home'); setNotice('saved'); })}/>`}
+    ${!data ? html`<div class="card loading-card"><${Icon} name="leaf" size=${36}/><p>${t('loading', lang)}</p></div>` : creating ? html`
+      <${CreatePlan} demo=${!!demoId} replacing=${Boolean(data.week)} key=${demoId || 'real'} config=${config} lang=${lang}
+        initial=${data.week?.settings || resetSettings || data.profile || { ...config.defaults, locationId: location }} busy=${busy}
+        onCancel=${() => navigate('home')} onGenerate=${settings => run(async () => {
+          accept(await api('/week/generate', { settings, requireAI: Boolean(data.week) && !demoId, revision: data.week?.revision, ...(demoId ? { demoId, scenario } : {}) })); navigate('home');
+        })}/>` : !data.week ? html`
+      <section class="card kindergarten-empty"><span class="empty-sprout"><${Icon} name="leaf" size=${32}/></span>
+        <h2>${t(data.profile ? 'weekEmpty' : 'createKindergarten', lang)}</h2><p>${t('kindergartenStart', lang)}</p>
+        <button class="button primary" onClick=${() => navigate('create')}>${t(data.profile ? 'generate' : 'createKindergarten', lang)}<${Icon} name="arrow" size=${18}/></button></section>` : html`
+      <${GenerationStatus} week=${data.week} lang=${lang}/>
+      <div class="overview-grid"><${Calendar} data=${data} lang=${lang} selected=${selected} onSelect=${setSelected}/><${AirCard} environment=${data.environment} lang=${lang} busy=${busy} refresh=${refresh}/></div>
+      ${data.week.changes?.length ? html`<div class="adaptation-note" role="status"><${Icon} name="refresh" size=${18}/><p><b>${t('changedDay', lang)}.</b> ${data.week.changes.map(c => `${t('moved', lang)}: ${dayName(c.from, lang)} → ${c.to ? dayName(c.to, lang) : t('noReplacement', lang)}`).join(' ')}</p></div>` : null}
+      ${day && html`<${DayPlan} day=${day} data=${data} lang=${lang} clock=${clock} materials=${config.materials} busy=${busy}
+        onPlace=${value => action('/week/edit', { settings: data.week.settings, days: data.week.days.map(item => item.date === day.date ? { ...item, outdoorPreference: value } : item) })}/>`}
+      <${ParentShare} share=${data.share} lang=${lang} busy=${busy} onShare=${shareAction => action('/week/share', { action: shareAction })}/>
+      <${Messages} share=${data.share} week=${data.week} selected=${selected} lang=${lang} busy=${busy} onRecheck=${() => action('/week/recheck')} onApprove=${() => action('/week/approve')}/>
+      <${WeekActions} lang=${lang} busy=${busy} onRegenerate=${() => navigate('create')} onDelete=${() => run(async () => {
+        const result = await api('/week/delete', { revision: data.week.revision, ...(demoId ? { demoId } : {}) });
+        setResetSettings(result.settings); setData(previous => ({ ...previous, week: null, share: null })); navigate('home');
+      })}/>
+    `}
     </main></div></div>`;
 }
 function locationHash(next) { if (window.location.hash !== `#${next}`) window.history.pushState(null, '', `#${next}`); }

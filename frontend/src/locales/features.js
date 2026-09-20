@@ -1,4 +1,7 @@
 export const featureCopy = {
+  createKindergarten: ['Создај градинка', 'Create kindergarten'],
+  kindergartenStart: ['Внесете ги групата, идеите и дневниот ритам за да го создадете планот.', 'Add your group, learning ideas and daily rhythm to create the plan.'],
+  manageWeek: ['Управувај со неделата', 'Manage week'],
   parentReason_indoor_balance: ['Денес откриваме и создаваме внатре. Активностите надвор се планирани за други денови од неделата.', 'Today we’re exploring and creating indoors. Outdoor activities are planned for other days this week.'],
   parentReason_ai_plan: ['Денес е планирана активност внатре, како дел од разновидната недела на групата.', 'Today’s indoor activity is part of the group’s varied weekly plan.'],
   parentReason_teacher_inside: ['Воспитувачката ја избра активноста внатре за овој ден.', 'The teacher has chosen an indoor activity for this day.'],
