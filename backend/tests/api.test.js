@@ -142,7 +142,7 @@ test('demo is isolated, editable and cannot bypass fresh recheck before approvin
 test('core dated demo weeks and six air scenarios keep fixed dates, closures and account isolation', async t => {
   const { client, store } = await app(t); const request = client();
   const configuration = (await request('/api/config')).body;
-  assert.equal(configuration.demoWeeks.length, 4); assert.equal(configuration.demoScenarios.length, 6);
+  assert.equal(configuration.demoWeeks.length, 6); assert.equal(configuration.demoScenarios.length, 6);
   for (const id of ['independence', 'easter', 'halloween', 'winter']) {
     let state = (await request('/api/demo', { demoWeek: id })).body;
     const monday = state.week.weekStart;

@@ -13,6 +13,12 @@ export const DEMO_WEEKS = [
   { id: 'winter', label: { mk: 'Јануари · Снег и зимски еко-игри', en: 'January · Snow and winter eco play' },
     clock: '2026-01-12T07:45:00Z', closed: [],
     temperatures: [3, 4, -4, 2, 5, 3, 2], rainy: [], snowy: [2], windy: [3] },
+  { id: 'autumn-afternoon', label: { mk: 'Октомври · Попладне со мали откритија', en: 'October · A day of little discoveries' },
+    clock: '2026-10-05T12:30:00Z', closed: [],
+    temperatures: [16, 17, 13, 15, 18, 17, 16], rainy: [2], snowy: [], windy: [3] },
+  { id: 'spring-garden', label: { mk: 'Мај · Нашата пролетна градина', en: 'May · Our spring garden' },
+    clock: '2026-05-11T06:45:00Z', closed: [],
+    temperatures: [19, 20, 16, 18, 22, 21, 19], rainy: [2], snowy: [], windy: [] },
 ];
 export function demoWeekById(id = DEFAULT_DEMO_WEEK) {
   const profile = DEMO_WEEKS.find(week => week.id === id);

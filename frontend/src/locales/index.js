@@ -1,8 +1,10 @@
 import { planningCopy, planningErrors } from './planning.js';
 import { featureCopy, featureErrors } from './features.js';
+import { demoCopy, demoErrors } from './demo.js';
 const copy = {
   ...planningCopy,
   ...featureCopy,
+  ...demoCopy,
   demoSample: ['ДЕМО · Примерни услови', 'DEMO · Sample conditions'],
   demoForecast: ['Примерна прогноза', 'Sample forecast'],
   demoWeek: ['Пример-недела', 'Example week'], demoAir: ['Воздух во понеделник', 'Monday air conditions'],
@@ -117,6 +119,7 @@ const copy = {
 };
 const errors = {
   ...planningErrors,
+  ...demoErrors,
   ...featureErrors,
   activity_finished: ['Терминот веќе помина. Местото може да се смени за претстоен термин.', 'The activity time has passed. You can change the location of an upcoming activity.'],
   fixed_times: ['Времињата во зачуваниот распоред се фиксни. Освежете го планот и уредете го текстот на активностите.', 'Saved timetable times are fixed. Refresh the plan and edit the activity text.'],
