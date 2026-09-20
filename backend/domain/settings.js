@@ -84,6 +84,7 @@ export function validateGenerationSettings(input) {
   if (typeof input.gradinka?.name !== 'string' || !input.gradinka.name.trim()) throw invalid('kindergarten_required');
   if (typeof input.groupName !== 'string' || !input.groupName.trim()) throw invalid('group_required');
   if (typeof input.teacherPrompt !== 'string' || !input.teacherPrompt.trim()) throw invalid('brief_required');
+  if (!['meal', 'rest'].every(kind => input.blocks?.some(row => row.kind === kind))) throw invalid('daily_routines_required');
   return validateSettings(input);
 }
 export { minutes, timeLabel };

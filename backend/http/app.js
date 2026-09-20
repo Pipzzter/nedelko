@@ -8,9 +8,11 @@ import { demoWeekById, demoWeekOptions, DEFAULT_DEMO_WEEK } from '../config/demo
 import { prepareDemoWeek } from '../domain/demo-week.js';
 import { DEFAULT_SETTINGS, MATERIALS, validateSettings, validateGenerationSettings, invalid, minutes, teacherInstruction } from '../domain/settings.js';
 import { planningWeekDates } from '../domain/planner.js';
-import { createWeek, adaptWeek, editWeek, dashboard, outdoorPlanningContext, dailyPlanningContext, replaceDayTheme } from '../domain/week.js';
+import { createWeek, adaptWeek, editWeek, dashboard, outdoorPlanningContext, dailyPlanningContext, replaceDayTheme, applyDayChange } from '../domain/week.js';
 import { getConditions } from '../services/conditions.js';
 import { createCurriculum, createDayCurriculum } from '../services/curriculum.js';
+import { suggestDayPlan } from '../services/day-plan.js';
+import { assertUpcoming, validateDayChange } from '../domain/day-edit.js';
 import { aiStatus } from '../services/ai.js';
 import { parentView } from '../domain/parent-view.js';
 import { dailyTopics } from '../domain/teaching-brief.js';
@@ -25,7 +27,7 @@ const FRONTEND = fileURLToPath(new URL('../../frontend/', import.meta.url));
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 
 export function createApp({ store = openStore(), conditionsProvider = getConditions, curriculumProvider = createCurriculum,
-  dayCurriculumProvider = createDayCurriculum, holidayProvider = getHolidayCalendar, autoRefreshMs = 0 } = {}) {
+  dayCurriculumProvider = createDayCurriculum, dayPlanProvider = suggestDayPlan, holidayProvider = getHolidayCalendar, autoRefreshMs = 0 } = {}) {
   const limit = rateLimiter(); const demos = new Map(); const locks = new Map(); const proposals = new Map();
   const withLock = async (key, operation) => {
     if (locks.has(key)) throw invalid('operation_pending', 409);
@@ -199,6 +201,41 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
           else store.shareWeek(user.id, week.weekStart);
           return send(200, { week, share: sharing(user, demoId, week) });
       }
+      if (request.method === 'POST' && ['/api/week/change/suggest', '/api/week/change/apply'].includes(url.pathname)) {
+        return await withLock(demoId || user.id, async () => {
+          const week = currentWeek();
+          if (!week) throw invalid('no_plan', 404);
+          if (body.revision !== week.revision) throw invalid('plan_changed', 409);
+          const owner = demoId || user.id;
+          if (url.pathname.endsWith('/suggest')) {
+            if (!['activity', 'schedule'].includes(body.scope)) throw invalid('invalid_plan');
+            const day = week.days.find(item => item.date === body.date);
+            const clock = demoId ? week.clock : new Date().toISOString();
+            const row = day?.timeline.find(item => item.id === body.rowId);
+            if (body.scope === 'activity' && !row) throw invalid('invalid_timeline');
+            assertUpcoming(day, clock, body.scope === 'activity' ? row : undefined);
+            const instruction = teacherInstruction(body.instruction);
+            if (!instruction) throw invalid('invalid_instruction');
+            limit(`ai-day:${owner}`, 12, 3600000);
+            const result = await dayPlanProvider(day, week.settings, { scope: body.scope, rowId: body.rowId, instruction, clock, useAI: !demoId, weekDays: week.days });
+            if (!result.change) return send(503, { error: 'ai_day_failed', generationIssue: result.generationIssue });
+            const preview = validateDayChange(day, week.settings, body, result.change, clock);
+            for (const [id, proposal] of proposals) if (proposal.expiresAt <= Date.now() || proposals.size >= 100) proposals.delete(id);
+            const proposalId = randomUUID();
+            const proposal = { type: 'change', owner, revision: week.revision, date: day.date, scope: body.scope, rowId: body.rowId,
+              change: result.change, source: result.source, expiresAt: Date.now() + 10 * 60000 };
+            proposals.set(proposalId, proposal);
+            return send(200, { proposalId, scope: proposal.scope, rowId: proposal.rowId, date: day.date,
+              timeline: preview.timeline, theme: preview.theme, source: proposal.source, expiresAt: proposal.expiresAt });
+          }
+          const proposal = proposals.get(body.proposalId);
+          if (!proposal || proposal.type !== 'change' || proposal.owner !== owner || proposal.revision !== week.revision || proposal.expiresAt <= Date.now()) throw invalid('proposal_expired', 409);
+          const conditions = await conditionsProvider({ locationId: week.settings.locationId, mode, scenario, demoWeek, fresh: true });
+          const next = save(user, demoId, applyDayChange(week, proposal, conditions), week.revision);
+          proposals.delete(body.proposalId);
+          return send(200, present(next, conditions, user, demoId));
+        });
+      }
       if (request.method === 'POST' && ['/api/week/day/suggest', '/api/week/day/apply'].includes(url.pathname)) {
         return await withLock(demoId || user.id, async () => {
           const week = currentWeek();
@@ -209,6 +246,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
             const day = week.days.find(day => day.date === body.date);
             const local = skopjeParts(new Date(demoId ? week.clock : new Date().toISOString()));
             const slot = day?.timeline.find(row => row.kind === 'eco');
+            if (slot) assertUpcoming(day, demoId ? week.clock : new Date().toISOString(), slot);
             if (!day?.theme || day.closed || !slot || day.date < local.date || day.date === local.date && minutes(slot.start) <= local.minutes) throw invalid('activity_finished', 409);
             const instruction = teacherInstruction(body.instruction);
             if (!instruction) throw invalid('invalid_instruction');
@@ -222,7 +260,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
             return send(200, { proposalId, date: day.date, theme: result.theme, source: result.source, expiresAt: proposal.expiresAt });
           }
           const proposal = proposals.get(body.proposalId);
-          if (!proposal || proposal.owner !== owner || proposal.expiresAt <= Date.now() || proposal.revision !== week.revision) throw invalid('proposal_expired', 409);
+          if (!proposal || proposal.type === 'change' || proposal.owner !== owner || proposal.expiresAt <= Date.now() || proposal.revision !== week.revision) throw invalid('proposal_expired', 409);
           const conditions = await conditionsProvider({ locationId: week.settings.locationId, mode, scenario, demoWeek, fresh: true });
           const next = save(user, demoId, replaceDayTheme(week, proposal.date, proposal.theme, proposal.source, conditions), week.revision);
           proposals.delete(body.proposalId);

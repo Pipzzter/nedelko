@@ -191,10 +191,13 @@ test('overlapping edits fail without corrupting the saved plan; stale revisions 
   const moved = structuredClone(state.week.days); moved[0].timeline[0].end = '08:15';
   const fixed = await request('/api/week/edit', { ...demoBody(state), settings: state.week.settings, days: moved });
   assert.equal(fixed.status, 400); assert.equal(fixed.body.error, 'fixed_times');
-  const valid = structuredClone(state.week.days); valid[0].theme.title = { mk: 'Нова еко-приказна', en: 'A new eco story' };
+  const holidayEdit = structuredClone(state.week.days); holidayEdit[0].theme.title = { mk: 'Нова еко-приказна', en: 'A new eco story' };
+  const locked = await request('/api/week/edit', { ...demoBody(state), settings: state.week.settings, days: holidayEdit });
+  assert.equal(locked.status, 400); assert.equal(locked.body.error, 'protected_activity');
+  const valid = structuredClone(state.week.days); valid[2].theme.title = { mk: 'Нова еко-приказна', en: 'A new eco story' };
   const saved = await request('/api/week/edit', { ...demoBody(state), settings: state.week.settings, days: valid });
-  assert.equal(saved.status, 200); assert.equal(saved.body.week.days[0].theme.title.en, 'A new eco story');
-  assert.match(saved.body.week.messages.daily[valid[0].date].en, /A new eco story/);
+  assert.equal(saved.status, 200); assert.equal(saved.body.week.days[2].theme.title.en, 'A new eco story');
+  assert.match(saved.body.week.messages.daily[valid[2].date].en, /A new eco story/);
   assert.equal((await request('/api/week/edit', { ...demoBody(state), settings: state.week.settings, days: valid })).status, 409);
 });
 
