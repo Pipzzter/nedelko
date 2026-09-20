@@ -1,4 +1,8 @@
+import { beginRequest } from './request-progress.js';
+
 export async function api(path, body) {
+  const finish = beginRequest(path, Boolean(body?.demoId));
+  try {
   let response;
   try { response = await fetch(`/api${path}`, { method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin',
     headers: body === undefined ? {} : { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body),
@@ -12,4 +16,5 @@ export async function api(path, body) {
   if (!response.ok) throw Object.assign(new Error(result.error), { code: result.error, status: response.status,
     generationIssue: result.generationIssue, generationError: result.generationError, timing: result.timing });
   return result;
+  } finally { finish(); }
 }

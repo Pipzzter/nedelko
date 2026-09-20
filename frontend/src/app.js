@@ -15,6 +15,7 @@ import { GenerationStatus } from './components/GenerationStatus.js';
 import { ParentWeek } from './pages/ParentWeek.js';
 import { PlanChanges } from './components/PlanChanges.js';
 import { ParentNotes } from './components/ParentNotes.js';
+import { RequestProgress } from './components/RequestProgress.js';
 const demoRoute = () => window.location.hash.match(/^#demo\/([a-f0-9-]{36})(?:\/(home|plan(?:\/new)?|edit|create|classroom|messages))?$/);
 const pages = ['home', 'plan', 'plan/new', 'create', 'edit'];
 // Keep existing bookmarks working within the single planning destination.
@@ -122,6 +123,6 @@ function locationHash(next) { if (window.location.hash !== `#${next}`) window.hi
 function Root() {
   const [hash, setHash] = useState(window.location.hash);
   useEffect(() => { const update = () => setHash(window.location.hash); window.addEventListener('hashchange', update); return () => window.removeEventListener('hashchange', update); }, []);
-  return hash.startsWith('#parents/') ? html`<${ParentWeek} token=${/^[a-f0-9]{64}$/.test(hash.slice(9)) ? hash.slice(9) : 'invalid'}/>` : html`<${App} key=${hash.match(/^#demo\/([a-f0-9-]{36})/)?.[1] || 'real'}/>`;
+  return html`<div class="application-root"><div id="app-screen">${hash.startsWith('#parents/') ? html`<${ParentWeek} token=${/^[a-f0-9]{64}$/.test(hash.slice(9)) ? hash.slice(9) : 'invalid'}/>` : html`<${App} key=${hash.match(/^#demo\/([a-f0-9-]{36})/)?.[1] || 'real'}/>`}</div><${RequestProgress}/></div>`;
 }
 render(html`<${Root}/>`, document.getElementById('app'));

@@ -1,10 +1,12 @@
 import { planningCopy, planningErrors } from './planning.js';
 import { featureCopy, featureErrors } from './features.js';
 import { notesCopy, notesErrors } from './notes.js';
+import { loadingCopy } from './loading.js';
 const copy = {
   ...planningCopy,
   ...featureCopy,
   ...notesCopy,
+  ...loadingCopy,
   exitDemo: ['Излези од демото', 'Leave demo'],
   demoSample: ['ДЕМО · Примерни услови', 'DEMO · Sample conditions'],
   demoForecast: ['Примерна прогноза', 'Sample forecast'],
