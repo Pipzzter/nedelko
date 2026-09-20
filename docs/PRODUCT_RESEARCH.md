@@ -30,7 +30,7 @@ These sources support design principles and comparisons. They do not establish d
 - A server worker that revisits active plans every five minutes, selecting indoor alternatives and rebuilding parent drafts when conditions change.
 - Responsive parent and teacher improvements while retaining EkoCuvar’s identity.
 
-Current boundaries: the app runs on localhost; family links work on this computer. A link grants access to anyone holding it, without verifying parent identity. There is no email, push or SMS delivery. Real accounts do not yet offer parent replies, child rosters or individual learning records. The connected fictional demo now prototypes those experiences with a 30-child classroom and a two-child family, including attendance, daily records, in-app messages, packing lists and acknowledgements. These in-memory examples are not production child records or authenticated parent accounts. Automatic checks require the server and computer to be running. These boundaries shape the priorities below.
+Current boundaries: the app runs on localhost; family links work on this computer. A link grants access to anyone holding it, without verifying parent identity. There is no email, push or SMS delivery. Both account and demo modes focus on planning, editing and read-only parent sharing. The earlier classroom simulation has been removed: neither mode offers parent replies, child rosters, attendance, individual learning records or packing acknowledgements. Demo examples remain synthetic and isolated from account data. Automatic checks require the server and computer to be running. The opportunities below are proposals, not implemented features or evidence of demand.
 
 ## Prioritized opportunities
 

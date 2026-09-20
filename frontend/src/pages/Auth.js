@@ -14,6 +14,6 @@ export function Auth({ lang, setLang, onAuth, onDemo, busy, error }) {
           ${error && html`<p class="form-error" role="alert">${error}</p>`}
           <button type="submit" class="button primary wide" disabled=${busy}>${busy ? t('loading', lang) : t(signup ? 'signUp' : 'signIn', lang)}<${Icon} name="arrow" size=${18}/></button>
         </form><aside class="teacher-auth-help"><b>${t("parentEntry",lang)}</b><p>${t("parentLinkOnly",lang)}</p></aside><div class="auth-divider"><span>${lang === 'mk' ? 'или прво разгледајте' : 'or have a look around first'}</span></div>
-        <div class="demo-entry"><p>${t('demoClassSize',lang)}</p><button class="button secondary wide" disabled=${busy} onClick=${()=>onDemo('teacher')}>${t('exploreTeacher',lang)}<${Icon} name="people" size=${18}/></button><button class="button secondary wide" disabled=${busy} onClick=${()=>onDemo('parent')}>${t('exploreParent',lang)}<${Icon} name="home" size=${18}/></button></div>
+        <button class="button secondary wide" disabled=${busy} onClick=${onDemo}>${t('tryDemo',lang)}<${Icon} name="arrow" size=${18}/></button>
       </section></div></main>`;
 }

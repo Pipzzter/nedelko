@@ -89,11 +89,11 @@ Teacher briefs and one-day change requests guide educational content only. They 
 Family links present the provisional plan, not a claim that activities happened or that the morning notice was approved. Public responses contain only the explicitly projected family view. Bearer access is limited by expiry/revocation; there is no parent-identity verification. A production parent invitation and delivery system is outside this local prototype.
 
 
-## Fictional classroom and family records
+## Shared demo and account workflows
 
-The connected demo uses 30 explicitly fictional children and one two-child family. The family response is restricted to those two children; it cannot modify staff attendance, curriculum or another child's records. Teacher arrival/departure events update derived counts. Parent absence reports apply only to expected/absent children; cancelling makes a child expected rather than asserting arrival. Meal/rest records require presence or a recorded departure and the appropriate simulated time. Unknown future records stay “not recorded yet.” Morning fixtures do not claim that later meals, rest or activities already occurred. The afternoon fixture demonstrates completed records. This is product simulation, not real care evidence or a production child-record system.
+The demo demonstrates the feature set available to real accounts: plan creation, editing, deterministic condition changes, morning rechecks and read-only parent sharing. Classroom rosters, attendance, child records, family chat, packing acknowledgements and their mutation APIs have been removed. Both modes use the same parent projection and require the teacher to enable sharing explicitly. This keeps the demonstration aligned with the implemented product.
 
-Classroom revisions reject stale changes. Parent acknowledgements bind to the current date, indoor/outdoor mode and reason; a pollution change invalidates an earlier acknowledgement. Text is bounded and escaped, and demo messages remain local. Locale-independent Macedonian date labels avoid English fallback in embedded browsers while using the actual Europe/Skopje date and time.
+Parity applies to features, not evidence provenance. Demo forecasts, sensor inputs and clocks remain explicitly synthetic, library suggestions are labelled and no demo operation calls AI or changes an account plan. Existing week revisions, notice-approval invalidation and account ownership remain enforced. The afternoon sample represents an elapsed timetable, not proof that an activity, meal or rest took place.
 
 ## Required first-plan details
 

@@ -52,3 +52,7 @@ Additional automated coverage for the readable editor and generation changes:
 - The holiday importer successfully fetched official HTML on 2026-09-20. After adding explicit support for observed-day pairs and dated-listing year inference, all seven discovered/seeded announcements imported without a partial result: Catholic Easter Monday (6 April), Orthodox Good Friday (10 April), Orthodox Easter Monday (13 April), Republic Day observed (3 August), Dormition (28 August), Independence Day (8 September) and Yom Kippur (21 September). The remaining events retain the verified annual snapshot. This is not a claim that every historical announcement is crawled.
 
 No real teacher/parent trial, accessibility audit, penetration test, production deployment, actual message delivery or measured environmental impact has been performed. Do not present synthetic demo users or automated test accounts as real adoption.
+
+## Demo parity follow-up, 2026-09-20
+
+`npm.cmd test` passes 122 tests; `npm.cmd run check` checks 71 JavaScript files. The removed classroom simulation's tests have been replaced by coverage of the current shared workflows. HTTP tests verify matching demo/account parent response shapes, read-only parent endpoints, retired classroom routes, opt-in sharing, revocation and isolation from saved account plans. DOM flows verify identical teacher navigation, the sample-week entry, bilingual parent pages, revoked-link recovery and switching between isolated demo URLs. These are automated fixtures, not real family use or a live AI result.

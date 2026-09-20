@@ -36,7 +36,7 @@ Generation creates this week’s remaining weekdays, or next Monday–Friday whe
 
 ## Ready-to-show examples
 
-Choose **Explore as teacher / Explore as parent** from the sign-in page, or turn on Demo in an account, then use **Example week**. Switching examples creates a fresh isolated demo and resets its air scenario. Your real plan is retained when you turn Demo off. All weather, sensor readings and schedules in these examples are synthetic, including the past dates; no historical measurements or teacher use are claimed.
+Choose **Explore a sample week** from the sign-in page, or turn on Demo in an account, then use **Example week**. Demo and account modes have the same planning features and parent page. Switching examples creates a fresh isolated demo and resets its air scenario. Your real plan is retained when you turn Demo off. All weather, sensor readings and schedules in these examples are synthetic, including the past dates; no historical measurements or teacher use are claimed.
 
 | Example | Fixed Monday, Skopje time | What to show |
 | --- | --- | --- |
@@ -44,10 +44,10 @@ Choose **Explore as teacher / Explore as parent** from the sign-in page, or turn
 | Easter | 6 April 2026, 08:45 | Spring conditions, Easter reuse decorations, Thursday preparation and a preset Good Friday closure for this example group. |
 | Halloween | 26 October 2026, 08:45 | Friday preparation for Saturday 31 October, reuse activities and an explicitly optional classroom-occasion label. |
 | Winter | 12 January 2026, 08:45 | Cold conditions, Wednesday snow learning and an indoor alternative. |
-| Autumn afternoon | 5 October 2026, 14:30 | Twenty-eight present, two absent. Completed meals, rest and individual learning observations; edit a record and view it as the parent. |
-| Spring garden | 11 May 2026, 08:45 | Mild weather, plant discovery and arrival-time workflows. |
+| Autumn afternoon | 5 October 2026, 14:30 | Elapsed morning activities and the remaining afternoon timetable; show how edits preserve past activities. |
+| Spring garden | 11 May 2026, 08:45 | Mild weather, plant discovery and the morning timetable. |
 
-The teacher has a searchable roster of 30 fictional children. Ana Petrovska sees only her twins Mila and Luka in the same group. In morning examples, 26 children are present, two expected and two absent. Report Luka absent from the parent view, return to the teacher tab to see updated counts, or cancel the absence and check him in. Lunch/rest recording stays disabled until the corresponding time; use the afternoon example to try those controls. Record learning observations, exchange demo messages, check packing items and acknowledge a changed plan. Records synchronize while the views are visible, normally within ten seconds, and survive reloads until the example expires. These controls simulate the product, without sending external messages, saving real child data or calling AI. Typed notes/messages retain the language in which they were entered.
+Use the same end-to-end flow as an account: review the sample week, edit an activity, save, then choose **Create parent link** and **Open parent view** on Home. Keep the parent page in another tab and change the demo air scenario to show an updated indoor/outdoor plan. Parent pages refresh every minute while visible, or immediately after reloading. Neither mode includes child rosters, attendance records, family chat or packing acknowledgements. Demo sessions expire after an hour or a server restart and never call AI.
 
 All six air scenarios are available for every example. Refreshing, changing location, editing, regenerating or rechecking retains the demo's selected date. Profiles live in `backend/config/demo.js`; preset closures and preparation lessons live in `backend/domain/demo-week.js`. They do not change real-account closure rules.
 
@@ -60,7 +60,7 @@ All six air scenarios are available for every example. Refreshing, changing loca
 
 On Home, choose **Create parent link**, then **Copy link only**. Weekly message copying also uses only the URL once sharing is enabled. Daily copying includes the selected-language notice and its link, so a pollution change can be shared with context. **Disable link** revokes future access. Links expire after fourteen days; a demo link expires with its one-hour example and on restart. Revocation cannot erase information a recipient already copied.
 
-For real accounts, the link opens a weekly activity view with no editing controls. Fictional demo links additionally expose the connected family simulation. Parent pages have no login, registration or teacher-navigation controls; open the teacher and parent views in separate tabs for the showcase. It is accessible to anyone holding the URL, so share it only with the intended group. Do not put child-specific or private staff information in shared activity descriptions. An HTTPS hosted deployment and family-specific revocable links are separate work; the current localhost links work only on this computer.
+Both account and demo links open the same read-only weekly activity view. Parent pages have no login, registration or teacher-navigation controls; open the teacher and parent views in separate tabs for the showcase. The page is accessible to anyone holding the URL, so share it only with the intended group. Do not put child-specific or private staff information in shared activity descriptions. An HTTPS hosted deployment and family-specific revocable links are separate work; the current localhost links work only on this computer.
 
 In Create plan, complete the three guided sections. Kindergarten name, location, group, age range, teaching brief, at least one material and a valid day/routine schedule are required. Confirm the suggested opening hours, meals and rest; changing their times or names resets that confirmation. Validation runs before generation and the server independently requires the essential details. Existing saved plans remain editable even when older profiles lack the new fields. The brief is limited to 2,000 characters and sent to the configured AI provider during generation. It is omitted from parent responses. Library fallback is visibly identified and does not interpret the brief.
 

@@ -80,6 +80,7 @@ test('parent link gives a bounded read-only projection; rotation, revocation and
 test('demo links are isolated and immediately show adapted pollution messages', async t => {
   const { client, store } = await fixture(t); const teacher = client(); const parent = client();
   const demo = (await teacher('/api/demo', {})).body;
+  assert.equal(demo.share, null, 'demo sharing starts disabled, like a new account week');
   const share = (await teacher('/api/week/share', { demoId: demo.demoId, revision: demo.week.revision, action: 'enable' })).body.share;
   const endpoint = `/api/parents/${share.path.split('/').at(-1)}`;
   assert.equal((await parent(endpoint)).body.days[0].mode, 'outside');
@@ -90,6 +91,39 @@ test('demo links are isolated and immediately show adapted pollution messages', 
   assert.equal(polluted.mode, 'demo');
   assert.equal(store.db.prepare('SELECT count(*) AS n FROM parent_links').get().n, 0);
   assert.equal(store.db.prepare('SELECT count(*) AS n FROM weeks').get().n, 0);
+});
+
+test('demo and account parent pages share a read-only contract; retired classroom routes cannot mutate either plan', async t => {
+  const { client, store } = await fixture(t);
+  const teacher = client(); const parent = client();
+  const user = (await teacher('/api/auth/register', account)).body.user;
+  const real = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body;
+  const realShare = (await teacher('/api/week/share', { revision: real.week.revision, action: 'enable' })).body.share;
+  const realPath = `/api/parents/${realShare.path.split('/').at(-1)}`;
+  const realView = (await parent(realPath)).body;
+  const saved = store.week(user.id, real.week.weekStart);
+  const demo = (await teacher('/api/demo', {})).body;
+  assert.equal(demo.demoClassroom, undefined);
+  const share = (await teacher('/api/week/share', { demoId: demo.demoId, revision: demo.week.revision, action: 'enable' })).body.share;
+  const path = `/api/parents/${share.path.split('/').at(-1)}`;
+  const view = (await parent(path)).body;
+  assert.deepEqual(Object.keys(view).sort(), Object.keys(realView).sort());
+  assert.deepEqual(Object.keys(view.days[0]).sort(), Object.keys(realView.days[0]).sort());
+  assert.equal(view.days.length, 5);
+  assert.doesNotMatch(JSON.stringify(view), /"(?:demoFamily|children|classroomRevision|teacherPrompt|generationError)":/);
+  for (const target of [path, realPath]) {
+    assert.equal((await parent(target, { action: 'message', content: 'Test' })).status, 405);
+    assert.equal((await parent(`${target}/demo`, { action: 'message', content: 'Test' })).status, 405);
+  }
+  assert.equal((await teacher(`/api/demo/classroom?demoId=${demo.demoId}`)).status, 404);
+  assert.equal((await teacher('/api/demo/classroom', { demoId: demo.demoId, action: 'check-in-expected' })).status, 404);
+  assert.deepEqual(store.week(user.id, real.week.weekStart), saved);
+  const adapted = (await teacher(`/api/dashboard?demoId=${demo.demoId}&scenario=polluted`)).body;
+  assert.equal((await parent(path)).body.days[0].mode, 'inside');
+  assert.deepEqual(store.week(user.id, real.week.weekStart), saved);
+  await teacher('/api/week/share', { demoId: demo.demoId, revision: adapted.week.revision, action: 'revoke' });
+  assert.equal((await parent(path)).status, 404);
+  assert.equal((await parent(realPath)).status, 200);
 });
 
 test('refreshing a week preserves newer group preferences and an empty dashboard restores their location', async t => {

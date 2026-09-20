@@ -1,6 +1,8 @@
 # Feature branches and merge guide
 
-All work is committed locally in a linear stack based on `main` at `495c3b8` (`initial commit`). `main` is unchanged. Nothing has been pushed or merged. The completed app is on `feat/connected-classroom-demo`.
+This document records the original feature stack based on `495c3b8` (`initial commit`). Those features are now reachable from local `main` through merge commits `0bed381`, `5f57669` and `938697a`. The original descriptions and commands below are historical, not instructions for the current branches. Remote freshness is not asserted.
+
+The follow-up `refactor/align-demo-with-live` removes the classroom simulation from the current product and aligns the demo with account planning and read-only parent sharing. Its review base is `main` at `938697a`. Review the new change separately from the original feature history.
 
 ## Branches
 
