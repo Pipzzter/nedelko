@@ -1,4 +1,5 @@
 import { pair, minutes } from './settings.js';
+import { titleKey } from './session-plan.js';
 
 // Learning choices only. Outdoor permissions are owned by week.js, never this library.
 const labels = values => values.map(value => pair(...value));
@@ -62,8 +63,27 @@ export function activityText(role, index, summary, theme) {
 export function adaptActivities(day, index, today, clockMinutes) {
   day.learningWeather = weatherContext(day.summary);
   day.timeline = day.timeline.map(row => {
-    if (!row.activityRole || row.customized || day.date < today || day.date === today && minutes(row.start) < clockMinutes) return row;
+    if (!row.activityRole || row.customized || row.plannedSession || day.date < today || day.date === today && minutes(row.start) < clockMinutes) return row;
     const { note: _oldNote, ...rest } = row;
     return { ...rest, ...activityText(row.activityRole, index, day.summary, day.theme) };
   });
+}
+
+// Older and library plans have no per-slot AI content. Give repeated generated
+// blocks a different complete activity rather than numbering the same title.
+export function diversifyActivities(day, index, today, clockMinutes) {
+  const seen = { mk: new Set(), en: new Set() };
+  const remember = row => { for (const lang of ['mk', 'en']) seen[lang].add(titleKey(row.label[lang])); };
+  const canChange = row => row.kind === 'activity' && !row.customized && !row.plannedSession && !row.occasionIds?.length &&
+    day.date >= today && (day.date !== today || minutes(row.start) >= clockMinutes);
+  day.timeline.filter(row => !canChange(row)).forEach(remember);
+  for (const row of day.timeline.filter(canChange)) {
+    if (['mk', 'en'].some(lang => seen[lang].has(titleKey(row.label[lang])))) {
+      const choices = [...(BANK[row.activityRole] || []), ...Object.values(BANK).flat()];
+      const selected = Array.from({ length: choices.length }, (_, i) => choices[(i + index) % choices.length])
+        .find(label => ['mk', 'en'].every(lang => !seen[lang].has(titleKey(label[lang]))));
+      if (selected) { row.label = structuredClone(selected); row.note = structuredClone(DESCRIPTIONS[row.activityRole] || DESCRIPTIONS.creative); }
+    }
+    remember(row);
+  }
 }

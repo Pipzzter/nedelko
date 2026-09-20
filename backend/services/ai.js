@@ -40,7 +40,7 @@ export async function structuredResponse({ instructions, input, schema, name, fe
   }
   const output = result.output?.filter((item) => item.type === 'message').flatMap((item) => item.content ?? [])
     .filter((item) => item.type === 'output_text').map((item) => item.text).join('');
-  if (!output || output.length > 40000) throw Object.assign(new Error('invalid-output'), { code: 'ai_invalid_output' });
+  if (!output || output.length > 120000) throw Object.assign(new Error('invalid-output'), { code: 'ai_invalid_output' });
   let value;
   try { value = JSON.parse(output); } catch { throw Object.assign(new Error('invalid-json'), { code: 'ai_invalid_output' }); }
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw Object.assign(new Error('invalid-object'), { code: 'ai_invalid_output' });

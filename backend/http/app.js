@@ -8,7 +8,7 @@ import { demoWeekById, demoWeekOptions, DEFAULT_DEMO_WEEK } from '../config/demo
 import { prepareDemoWeek } from '../domain/demo-week.js';
 import { DEFAULT_SETTINGS, MATERIALS, validateSettings, validateGenerationSettings, invalid, minutes, teacherInstruction } from '../domain/settings.js';
 import { planningWeekDates } from '../domain/planner.js';
-import { createWeek, adaptWeek, editWeek, dashboard, outdoorPlanningContext, replaceDayTheme } from '../domain/week.js';
+import { createWeek, adaptWeek, editWeek, dashboard, outdoorPlanningContext, dailyPlanningContext, replaceDayTheme } from '../domain/week.js';
 import { getConditions } from '../services/conditions.js';
 import { createCurriculum, createDayCurriculum } from '../services/curriculum.js';
 import { aiStatus } from '../services/ai.js';
@@ -173,7 +173,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
           const years = [...new Set(dates.map(date => Number(date.slice(0, 4))))];
           const calendars = await Promise.all(years.map(year => demoId ? calendarSnapshot(year) : holidayProvider(year)));
           const curriculum = await curriculumProvider(dates, settings, { useAI: !demoId, calendars, variant: demoId ? 0 : randomInt(1000000),
-            outdoorContext: outdoorPlanningContext(dates, settings, conditions), today: skopjeParts(new Date(conditions.clock)).date });
+            planningDays: dailyPlanningContext(dates, settings, conditions), outdoorContext: outdoorPlanningContext(dates, settings, conditions), today: skopjeParts(new Date(conditions.clock)).date });
           // An explicit AI retry must never replace the saved week with another fallback.
           if (!demoId && (body.requireAI === true || dailyTopics(settings.teacherPrompt).length) && curriculum.source !== 'ai') return send(503, {
             error: 'ai_retry_failed', generationIssue: curriculum.generationIssue || 'ai_unavailable',

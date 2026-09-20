@@ -1,11 +1,11 @@
 import { skopjeParts } from '../config/index.js';
 import { planningWeekDates, findOpenActivityWindow } from './planner.js';
-import { validateSettings, validateTimeline, minutes, timeLabel, invalid } from './settings.js';
+import { validateSettings, validateTimeline, minutes, timeLabel, invalid, pair } from './settings.js';
 import { validateCurriculum, SNOW_LESSON, holidayLesson, lessonCoversOccasion } from './curriculum.js';
 import { parentMessages } from './messages.js';
 import { compactTimeline } from './timeline.js';
 import { occasionsForWeek, calendarSnapshot } from './holidays.js';
-import { activityRole, activityText, adaptActivities } from './day-activities.js';
+import { activityRole, activityText, adaptActivities, diversifyActivities } from './day-activities.js';
 import { adaptOccasionActivities } from './occasion-activities.js';
 
 export const weatherKind = code => !Number.isFinite(code) ? 'unknown' : [71, 73, 75, 77, 85, 86].includes(code) ? 'snow' : code >= 95 ? 'storm' : code >= 51 ? 'rain' : code >= 45 ? 'fog' : code >= 2 ? 'cloud' : 'sun';
@@ -97,6 +97,13 @@ function createTimeline(settings, theme, conditions, date, index) {
   return compactTimeline(all);
 }
 
+export function dailyPlanningContext(dates, settings, conditions) {
+  const today = skopjeParts(new Date(conditions.clock)).date;
+  return dates.map((date, index) => ({ date, slots: date < today ? [] : createTimeline(settings,
+    { title: pair('Главна активност', 'Main lesson') }, conditions, date, index)
+    .map(({ id, start, end, kind, label }) => ({ id, start, end, kind, ...(kind !== 'activity' ? { label } : {}) })) }));
+}
+
 export function createWeek(input, curriculum, conditions, calendars) {
   const settings = validateSettings(input); const themes = validateCurriculum(curriculum.themes, settings);
   const dates = planningWeekDates(conditions.clock); const today = skopjeParts(new Date(conditions.clock)).date;
@@ -108,7 +115,10 @@ export function createWeek(input, curriculum, conditions, calendars) {
   const week = { weekStart: dates[0], settings, source: curriculum.source, variant, generationIssue: curriculum.generationIssue || null,
     generationError: curriculum.generationError ?? null, outdoorOrder,
     outdoorDecisionSource: curriculum.source === 'ai' && outdoorOrder ? 'ai' : 'conditions', createdAt: conditions.clock, revision: 0,
-    days: dates.map((date, i) => ({ date, theme: date < today ? null : themes[i], baseTheme: date < today ? null : themes[i], timeline: date < today ? [] : createTimeline(settings, themes[i], conditions, date, (i + variant) % 5),
+    days: dates.map((date, i) => ({ date, theme: date < today ? null : themes[i], baseTheme: date < today ? null : themes[i], timeline: date < today ? [] : createTimeline(settings, themes[i], conditions, date, (i + variant) % 5).map(row => {
+      const session = curriculum.sessions?.find(item => item.date === date && item.slotId === row.id);
+      return session && row.kind === 'activity' ? { ...row, label: session.title, note: session.description, plannedSession: true } : row;
+    }),
       themePinned: !!curriculum.topicAssignments?.some(topic => topic.date === date),
       occasions: occasions[i], closed: false, outdoorPreference: 'auto', mode: date < today ? 'empty' : 'inside', reason: date < today ? 'past' : 'pending' })),
     holidayCalendars: calendars,
@@ -158,6 +168,7 @@ export function adaptWeek(input, conditions) {
     day.activity = day.timeline.some(row => row.kind === 'eco') ? day.mode === 'outside' ? day.theme.outside : day.theme.inside : null;
     adaptActivities(day, (week.days.indexOf(day) + (week.variant || 0)) % 5, today, local.minutes);
     adaptOccasionActivities(day, week.settings, today, local.minutes);
+    diversifyActivities(day, (week.days.indexOf(day) + (week.variant || 0)) % 5, today, local.minutes);
   }
   const removed = [...previous].filter(date => date >= today && date !== finishedToday?.date && !chosen.has(date));
   const added = [...chosen].filter(date => !previous.has(date));
