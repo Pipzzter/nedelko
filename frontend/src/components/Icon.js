@@ -1,5 +1,7 @@
 import { html } from '../lib/ui.js';
 const paths = {
+  people: ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0', 'M20 21v-2a4 4 0 0 0-3-3.9M16 3a4 4 0 0 1 0 8'],
+  message: ['M21 11a8 8 0 0 1-8 8H5l-3 3V5a3 3 0 0 1 3-3h8a8 8 0 0 1 8 9Z','M7 8h9M7 12h6'],
   leaf: ['M20 4C9 2 3 7 5 14c2 7 13 6 15-10Z', 'M5 20 15 10'],
   home: ['m3 10 9-7 9 7', 'M5 9v12h5v-7h4v7h5V9'], calendar: ['M4 5h16v16H4z', 'M7 3v4m10-4v4M4 10h16m-12 4h2m4 0h2m-8 4h2'],
   edit: ['m15 4 5 5-11 11H4v-5Z', 'm13 6 5 5'], arrow: ['M4 12h16m-6-6 6 6-6 6'], plus: ['M12 5v14M5 12h14'],

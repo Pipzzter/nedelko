@@ -11,9 +11,10 @@ import { createCurriculum } from '../../backend/services/curriculum.js';
 import { demoWeekById } from '../../backend/config/demo.js';
 
 test('DOM integration: empty account, create week, editor, live step, bilingual messages and isolated demo', async t => {
-  let aiAvailable = false;
+  let aiAvailable = false; let generatedSettings;
   const server = createApp({ store: openStore(':memory:'), conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', mode, demoWeek } = {}) => demoConditions(LOCATIONS.find(l => l.id === locationId) || LOCATIONS[0], scenario, Date.now(), mode === 'demo' ? demoWeekById(demoWeek) : null),
     curriculumProvider: async (dates, settings, options) => {
+      if (options.useAI) generatedSettings = settings;
       const curriculum = await createCurriculum(dates, settings, { ...options, useAI: false });
       if (options.useAI && aiAvailable) return { ...curriculum, source: 'ai', outdoorOrder: dates, outdoorDecisionSource: 'ai' };
       return options.useAI ? { ...curriculum, generationIssue: 'ai_quota', generationError: {
@@ -25,7 +26,7 @@ test('DOM integration: empty account, create week, editor, live step, bilingual 
   const signup = await nativeFetch(`${base}/api/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'dom.teacher', password: 'OnlyForAutomatedTests23', displayName: 'Test teacher' }) });
   let cookie = signup.headers.get('set-cookie').split(';')[0];
   const { window } = parseHTML('<html><body><div id="app"></div></body></html>');
-  const saved = new Map(); window.location = { hash: '#home' }; window.history = { pushState: (_s, _unused, hash) => { window.location.hash = hash; } }; window.scrollTo = () => {};
+  const saved = new Map(); window.location = { hash: '#home', href: base + '/#home', hostname: '127.0.0.1' }; window.history = { pushState: (_s, _unused, hash) => { window.location.hash = hash; } }; window.scrollTo = () => {};
   globalThis.window = window; globalThis.document = window.document; globalThis.localStorage = { getItem: k => saved.get(k), setItem: (k, v) => saved.set(k, v) };
   globalThis.requestAnimationFrame = fn => setTimeout(fn, 0); globalThis.cancelAnimationFrame = clearTimeout;
   let clipboard = '';
@@ -42,9 +43,20 @@ test('DOM integration: empty account, create week, editor, live step, bilingual 
   await import('../../frontend/src/app.js');
   await wait(() => document.querySelector('.empty-week'));
   assert.equal(document.querySelectorAll('.calendar-day').length, 5);
-  assert.equal(document.querySelectorAll('.sidebar nav a').length, 2);
+  assert.equal(document.querySelectorAll('.sidebar nav a').length, 3);
   clickText('Генерирај план'); await wait(() => document.querySelector('.settings-layout'));
   assert.equal(document.querySelectorAll('.routine-editor').length, 5);
+  const enter = async (selector, value) => {
+    const field = document.querySelector(selector);
+    field.value = value; field.dispatchEvent(new window.Event('input', { bubbles: true }));
+    await new Promise(resolve => setTimeout(resolve, 0));
+  };
+  await enter('.teacher-brief textarea', 'PRIVATE-BRIEF: Autumn through music');
+  await enter('.settings-group .span-2 input', 'Our test kindergarten');
+  await enter('#plan-groupName', 'Sunflowers');
+  const confirmation = document.querySelector('#plan-rhythmConfirmed');
+  confirmation.checked = true; confirmation.dispatchEvent(new window.Event('change', {bubbles:true}));
+  await new Promise(resolve=>setTimeout(resolve,0));
   document.querySelector('#main form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   await wait(() => document.querySelector('.editor-days'));
   assert.equal(document.querySelectorAll('.editor-day').length, 5);
@@ -52,6 +64,9 @@ test('DOM integration: empty account, create week, editor, live step, bilingual 
   assert.equal(document.querySelector('.editor-intro'), null);
   assert.doesNotMatch(document.querySelector('.week-editor').textContent, /Кликнете на текст за да го смените|Генерирај нов AI план|Прво зачувајте ги измените/);
   assert.match(document.querySelector('.week-preferences').textContent, /API квотата/);
+  assert.match(document.querySelector('.generation-status').textContent, /не го толкуваат/);
+  assert.equal(generatedSettings.teacherPrompt, 'PRIVATE-BRIEF: Autumn through music');
+  assert.equal(generatedSettings.gradinka.name, 'Our test kindergarten');
   const diagnostic = document.querySelector('.week-preferences details.soft-note');
   assert.equal(diagnostic.hasAttribute('open'), false);
   assert.match(diagnostic.textContent, /HTTP 429.*insufficient_quota.*req_dom_fixture/);
@@ -241,8 +256,11 @@ test('DOM integration: empty account, create week, editor, live step, bilingual 
   clickText('Откажи'); await wait(() => document.querySelector('.empty-week'));
   aiAvailable = true;
   clickText('Генерирај план'); await wait(() => document.querySelector('.settings-layout'));
+  document.querySelector('#plan-rhythmConfirmed').checked = true;
+  document.querySelector('#plan-rhythmConfirmed').dispatchEvent(new window.Event('change', {bubbles:true}));
+  await new Promise(resolve=>setTimeout(resolve,0));
   document.querySelector('#main form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   await wait(() => document.querySelector('.editor-days'));
   assert.equal(document.querySelector('.editor-intro'), null);
-  assert.doesNotMatch(document.querySelector('.week-editor').textContent, /Дневните рутини и другите игри се од распоредот и библиотеката|AI ги подреди|Генерирај нов AI план/);
+  assert.doesNotMatch(document.querySelector('.week-editor').textContent, /AI ги подреди|Генерирај нов AI план/);
 });

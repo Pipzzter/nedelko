@@ -1,4 +1,8 @@
+import { planningCopy, planningErrors } from './planning.js';
+import { featureCopy, featureErrors } from './features.js';
 const copy = {
+  ...planningCopy,
+  ...featureCopy,
   demoSample: ['ДЕМО · Примерни услови', 'DEMO · Sample conditions'],
   demoForecast: ['Примерна прогноза', 'Sample forecast'],
   demoWeek: ['Пример-недела', 'Example week'], demoAir: ['Воздух во понеделник', 'Monday air conditions'],
@@ -27,16 +31,16 @@ const copy = {
   indoorBackup: ['Резервен план внатре', 'Indoor backup'], indoorBackupReady: ['Има и план внатре', 'Indoor backup ready'],
   holidayIdea: ['Идеја за овој датум', 'An idea for this date'], applyLesson: ['Примени ја оваа активност', 'Apply this activity'],
   holidayPreviewHelp: ['Се менува еко-активноста. Времињата и изборот дали градинката работи остануваат ваши.', 'This replaces the eco activity. It does not change the timetable or whether your kindergarten is open.'],
-  ai_credits: ['OpenAI пријави потрошени кредити за користениот API клуч. Проверете дали клучот е од организацијата со достапните кредити. Планот е од библиотеката.', 'OpenAI reported exhausted credits for the API key in use. Check that the key belongs to the organization with available credits. This plan uses the library.'],
-  ai_quota: ['OpenAI пријави ограничување на API квотата. Проверете ги проектот, организацијата и лимитите за овој клуч. Планот е од библиотеката.', 'OpenAI reported an API quota restriction. Check the project, organization and limits for this key. This plan uses the library.'],
-  ai_spend_limit: ['OpenAI пријави достигнат лимит на трошење. Проверете ги лимитите на проектот и организацијата. Планот е од библиотеката.', 'OpenAI reported a spending limit. Check the project and organization limits. This plan uses the library.'],
-  ai_auth: ['OpenAI не го прифати API клучот. Проверете го клучот и рестартирајте го серверот. Планот е од библиотеката.', 'OpenAI did not accept the API key. Check the key and restart the server. This plan uses the library.'],
-  ai_access: ['OpenAI го одби пристапот за ова барање. Проверете ги дозволите на API проектот. Планот е од библиотеката.', 'OpenAI denied access to this request. Check the API project permissions. This plan uses the library.'],
-  ai_model: ['Избраниот AI модел не е достапен за овој API проект. Проверете го OPENAI_MODEL. Планот е од библиотеката.', 'The selected AI model is unavailable for this API project. Check OPENAI_MODEL. This plan uses the library.'],
-  ai_rate_limit: ['OpenAI моментално ги ограничува барањата. Обидете се подоцна. Планот е од библиотеката.', 'OpenAI is currently rate limiting requests. Try again later. This plan uses the library.'],
-  ai_timeout: ['OpenAI не одговори навреме. Планот е од библиотеката.', 'OpenAI did not respond in time. This plan uses the library.'],
+  ai_credits: ['OpenAI пријави потрошени кредити за користениот API клуч. Проверете дали клучот е од организацијата со достапните кредити.', 'OpenAI reported exhausted credits for the API key in use. Check that the key belongs to the organization with available credits.'],
+  ai_quota: ['OpenAI пријави ограничување на API квотата. Проверете ги проектот, организацијата и лимитите за овој клуч.', 'OpenAI reported an API quota restriction. Check the project, organization and limits for this key.'],
+  ai_spend_limit: ['OpenAI пријави достигнат лимит на трошење. Проверете ги лимитите на проектот и организацијата.', 'OpenAI reported a spending limit. Check the project and organization limits.'],
+  ai_auth: ['OpenAI не го прифати API клучот. Проверете го клучот и рестартирајте го серверот.', 'OpenAI did not accept the API key. Check the key and restart the server.'],
+  ai_access: ['OpenAI го одби пристапот за ова барање. Проверете ги дозволите на API проектот.', 'OpenAI denied access to this request. Check the API project permissions.'],
+  ai_model: ['Избраниот AI модел не е достапен за овој API проект. Проверете го OPENAI_MODEL.', 'The selected AI model is unavailable for this API project. Check OPENAI_MODEL.'],
+  ai_rate_limit: ['OpenAI моментално ги ограничува барањата. Обидете се подоцна.', 'OpenAI is currently rate limiting requests. Try again later.'],
+  ai_timeout: ['OpenAI не одговори навреме.', 'OpenAI did not respond in time.'],
   aiErrorDetails: ['Детали за AI грешката', 'AI error details'],
-  ai_unavailable: ['AI не врати употреблив план. Прикажани се активности од библиотеката.', 'AI did not return a usable plan. Library activities are shown.'],
+  ai_unavailable: ['AI не врати употреблив план.', 'AI did not return a usable plan.'],
   windLabel: ['Ветер', 'Wind'],
   reason_forecast: ['Планирано надвор, со проверка пред излегување.', 'Planned outdoors, subject to a check before going out.'],
   reason_weather_only: ['Временскиот план е приближен. Сè уште нема целосна прогноза за воздухот.', 'The weather plan is provisional. A complete air forecast is not available yet.'],
@@ -112,6 +116,8 @@ const copy = {
   loading: ['Се вчитува…', 'Loading…'], working: ['Се зачувува…', 'Saving…'], retry: ['Обиди се повторно', 'Try again'], back: ['Назад', 'Back'],
 };
 const errors = {
+  ...planningErrors,
+  ...featureErrors,
   activity_finished: ['Терминот веќе помина. Местото може да се смени за претстоен термин.', 'The activity time has passed. You can change the location of an upcoming activity.'],
   fixed_times: ['Времињата во зачуваниот распоред се фиксни. Освежете го планот и уредете го текстот на активностите.', 'Saved timetable times are fixed. Refresh the plan and edit the activity text.'],
   time_range: ['Внесете време како 7:30 - 8:30, во 24-часовен формат.', 'Enter a time range like 7:30 - 8:30, using 24-hour time.'],
@@ -134,4 +140,5 @@ const errors = {
   invalid_text: ['Внесете краток, непразен текст без HTML.', 'Enter a short, non-empty text without HTML.'],
 };
 export const t = (key, lang = 'mk') => copy[key]?.[lang === 'mk' ? 0 : 1] ?? key;
+export const parentReason = (reason, lang) => t(copy[`parentReason_${reason}`] ? `parentReason_${reason}` : `reason_${reason}`, lang);
 export const errorText = (code, lang = 'mk') => errors[code]?.[lang === 'mk' ? 0 : 1] || (lang === 'mk' ? 'Проверете ги внесените податоци и обидете се повторно.' : 'Check the entered details and try again.');

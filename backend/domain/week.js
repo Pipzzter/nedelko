@@ -163,9 +163,27 @@ export function adaptWeek(input, conditions) {
   const changes = removed.map((from, i) => ({ from, to: added[i] ?? null, reason: week.days.find(d => d.date === from)?.reason }));
   if (changes.length) week.changes = changes;
   week.today = today; week.clock = conditions.clock; week.mode = conditions.mode;
+  week.conditionsCheckedAt = conditions.clock;
   week.checkedAt = null; week.checkedDate = null; week.approval = null;
   week.messages = parentMessages(week);
   return week;
+}
+
+export function replaceDayTheme(previous, date, theme, source, conditions) {
+  const local = skopjeParts(new Date(conditions.clock));
+  const original = previous.days.find(day => day.date === date);
+  const slot = original?.timeline.find(row => row.kind === 'eco');
+  if (!original?.theme || original.closed || !slot || date < local.date ||
+      date === local.date && minutes(slot.start) <= local.minutes) throw invalid('activity_finished', 409);
+  const [validated] = validateCurriculum([theme], previous.settings, { count: 1 });
+  const next = structuredClone(previous);
+  const day = next.days.find(item => item.date === date);
+  day.theme = validated;
+  day.baseTheme = validated;
+  day.themePinned = true;
+  day.source = source;
+  day.timeline = day.timeline.map(row => row.kind === 'eco' ? { ...row, label: validated.title } : row);
+  return adaptWeek(next, conditions);
 }
 
 export function editWeek(previous, input, conditions) {

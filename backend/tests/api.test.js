@@ -6,9 +6,11 @@ import { calendarSnapshot } from '../domain/holidays.js';
 import { openStore } from '../storage/database.js';
 import { demoConditions } from '../services/conditions.js';
 import { LOCATIONS } from '../config/index.js';
-import { DEFAULT_SETTINGS } from '../domain/settings.js';
+import { DEFAULT_SETTINGS as EMPTY_SETTINGS } from '../domain/settings.js';
 import { createCurriculum } from '../services/curriculum.js';
 import { demoWeekById } from '../config/demo.js';
+
+const DEFAULT_SETTINGS = { ...EMPTY_SETTINGS, gradinka: { name: 'Test kindergarten', locationId: 'centar' }, groupName: 'Test group', teacherPrompt: 'Explore nature through music, movement and reused materials.' };
 
 async function app(t, options = {}) {
   const store = openStore(':memory:');
@@ -137,7 +139,7 @@ test('demo is isolated, editable and cannot bypass fresh recheck before approvin
   assert.equal(store.db.prepare('SELECT COUNT(*) AS n FROM weeks').get().n, 0);
 });
 
-test('all four demo weeks and six air scenarios keep fixed dates, closures and account isolation', async t => {
+test('core dated demo weeks and six air scenarios keep fixed dates, closures and account isolation', async t => {
   const { client, store } = await app(t); const request = client();
   const configuration = (await request('/api/config')).body;
   assert.equal(configuration.demoWeeks.length, 4); assert.equal(configuration.demoScenarios.length, 6);

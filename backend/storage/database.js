@@ -19,7 +19,11 @@ export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuva
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       week_start TEXT NOT NULL, payload TEXT NOT NULL, revision INTEGER NOT NULL,
       PRIMARY KEY(user_id, week_start)
-    );`);
+    );
+    CREATE TABLE IF NOT EXISTS group_profiles (
+      user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, settings TEXT NOT NULL
+    );
+`);
   return {
     db,
     userByName: username => db.prepare('SELECT * FROM users WHERE username = ?').get(username),
@@ -31,6 +35,14 @@ export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuva
     session(hash, now = Date.now()) { return db.prepare(`SELECT u.id, u.username, u.display_name AS displayName
       FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`).get(hash, now); },
     deleteSession(hash) { db.prepare('DELETE FROM sessions WHERE token_hash = ?').run(hash); },
+    profile(userId) {
+      const row = db.prepare('SELECT settings FROM group_profiles WHERE user_id = ?').get(userId);
+      return row ? JSON.parse(row.settings) : null;
+    },
+    saveProfile(userId, settings) {
+      db.prepare('INSERT INTO group_profiles VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET settings = excluded.settings')
+        .run(userId, JSON.stringify(settings));
+    },
     week(userId, start) {
       const row = db.prepare('SELECT payload, revision FROM weeks WHERE user_id = ? AND week_start = ?').get(userId, start);
       return row && row.payload !== 'null' ? { ...JSON.parse(row.payload), revision: row.revision } : null;
@@ -49,8 +61,9 @@ export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuva
     },
     deleteWeek(userId, start, expectedRevision) {
       // Keep only the revision as a tombstone, so stale tabs cannot edit a regenerated week.
-      return !!db.prepare("UPDATE weeks SET payload = 'null', revision = revision + 1 WHERE user_id = ? AND week_start = ? AND revision = ? AND payload != 'null'")
+      const removed = !!db.prepare("UPDATE weeks SET payload = 'null', revision = revision + 1 WHERE user_id = ? AND week_start = ? AND revision = ? AND payload != 'null'")
         .run(userId, start, expectedRevision).changes;
+      return removed;
     },
     close() { db.close(); },
   };

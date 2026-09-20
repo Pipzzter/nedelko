@@ -81,7 +81,7 @@ test('missing holiday content cannot be accepted as an AI plan in either languag
   for (const [field, lang] of [['title', 'en'], ['inside', 'en'], ['outside', 'mk']]) {
     themes = modelThemes(); themes[4][field][lang] = lang === 'en' ? 'A generic paper activity' : 'Општа игра со хартија';
     const result = await createCurriculum(dates, DEFAULT_SETTINGS);
-    assert.equal(result.source, 'library'); assert.equal(result.generationIssue, 'ai_unavailable');
+    assert.equal(result.source, 'library'); assert.equal(result.generationIssue, 'ai_invalid_output');
   }
   themes = localCurriculum(dates, DEFAULT_SETTINGS);
   assert.equal((await createCurriculum(dates, DEFAULT_SETTINGS)).source, 'library');
@@ -91,7 +91,7 @@ test('invalid or duplicated model outdoor dates reject the whole model result', 
   key(t);
   t.mock.method(globalThis, 'fetch', async () => reply(modelThemes(), [dates[0], dates[0], dates[2], dates[3], dates[4]]));
   const result = await createCurriculum(dates, DEFAULT_SETTINGS);
-  assert.equal(result.source, 'library'); assert.equal(result.outdoorOrder, null); assert.equal(result.generationIssue, 'ai_unavailable');
+  assert.equal(result.source, 'library'); assert.equal(result.outdoorOrder, null); assert.equal(result.generationIssue, 'ai_invalid_output');
 });
 test('an invalid bilingual model lesson becomes an explicit local-library week', async t => {
   key(t); const themes = modelThemes(); themes[0].materials = ['not-selected'];

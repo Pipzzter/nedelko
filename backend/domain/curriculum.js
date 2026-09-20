@@ -104,9 +104,10 @@ export function localCurriculum(dates, settings, calendars = [], variant = 0) {
   }
   return themes.map((theme, i) => ({ ...theme, dayActivities: defaultDayActivities((i + variant) % 5), materials: settings.materials.slice(0, 3) }));
 }
-export function validateCurriculum(value, settings) {
-  if (!Array.isArray(value) || value.length !== 5) throw invalid('invalid_curriculum');
+export function validateCurriculum(value, settings, { count = 5 } = {}) {
+  if (!Array.isArray(value) || value.length !== count) throw invalid('invalid_curriculum');
   return value.map(t => {
+    if (!t || typeof t !== 'object' || Array.isArray(t)) throw invalid('invalid_curriculum');
     const result = {};
     for (const [key, length] of [['title', 100], ['goal', 220], ['inside', 400], ['outside', 400], ['habit', 180]]) {
       result[key] = textPair(t[key], length);
@@ -114,6 +115,7 @@ export function validateCurriculum(value, settings) {
     }
     if (!Array.isArray(t.materials) || !t.materials.length || t.materials.length > 6 || t.materials.some(id => !settings.materials.includes(id) || !MATERIALS.some(m => m.id === id))) throw invalid('invalid_materials');
     if (t.dayActivities !== undefined) {
+      if (!t.dayActivities || typeof t.dayActivities !== 'object') throw invalid('invalid_curriculum');
       result.dayActivities = {};
       for (const role of ['circle', 'creative', 'movement', 'reflection']) {
         const value = textPair(t.dayActivities[role], 100);
