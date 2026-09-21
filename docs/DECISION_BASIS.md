@@ -75,7 +75,7 @@ Calendar refreshes preserve saved eco lessons and teacher edits while adding mis
 
 ## Messages and approval
 
-Generation creates both Macedonian and English weekly/daily drafts in one operation. Weekly clothing advice groups common conditions and calls out exceptional days. Daily content follows the current indoor/outdoor version. No em dashes are used. Closed days are marked by the teacher, never inferred from a model’s knowledge of holidays.
+Generation creates both Macedonian and English weekly/daily drafts in one operation. The weekly note opens with the week's date range, then the grouped clothing advice with any exceptional days, then the week's activity titles, and a homework line drawn from the days' home habits. Weekly clothing advice groups common conditions and calls out exceptional days. Daily content follows the current indoor/outdoor version and states the day's place. A day moved indoors by air pollution names the pollution plainly while keeping the PM2.5 wording, and points to the replacement outdoor day when one is available. No em dashes are used. Closed days are marked by the teacher, never inferred from a model’s knowledge of holidays.
 
 The parent-message panel displays only the selected interface language. When a parent link exists, weekly Copy copies only that link; daily Copy adds the link after the visible notice. The dedicated Copy link only control always copies just the URL. Without an enabled link, message copying retains the visible text. Both translations remain stored so switching languages does not need a new model request or discard the other version.
 

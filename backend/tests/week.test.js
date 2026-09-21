@@ -38,6 +38,9 @@ test('pollution moves today indoors and reallocates an outdoor day without chang
   const adapted = adaptWeek(week, c); assert.equal(adapted.days[0].mode, 'inside');
   assert.equal(adapted.days.filter(d => d.mode === 'outside').length, 2);
   assert.ok(adapted.changes.some(change => change.from === week.days[0].date && change.to));
+  assert.match(adapted.messages.daily[week.days[0].date].en, /air pollution/i);
+  assert.match(adapted.messages.daily[week.days[0].date].mk, /загаден воздух/);
+  assert.match(adapted.messages.daily[week.days[0].date].en, /Another provisional outdoor day/);
   for (let i = 0; i < 5; i++) assert.deepEqual(adapted.days[i].timeline, week.days[i].timeline);
 });
 test('AI outdoor ranking chooses among eligible days while deterministic gates retain final authority', () => {
@@ -95,6 +98,9 @@ test('parent messages have both languages, no em dash, and only call out clothin
   const week = makeWeek(); const common = { min: 15, max: 22, rain: 10, wind: 8, kind: 'sun' };
   week.days.forEach(day => { day.summary = common; });
   let messages = parentMessages(week);
+  assert.match(messages.weekly.en, /Days: \d+\.\d+ - \d+\.\d+\./); assert.match(messages.weekly.mk, /Денови: /);
+  assert.match(messages.weekly.en, /Week activities: .+/); assert.match(messages.weekly.en, /Homework: .+/);
+  assert.match(messages.weekly.mk, /Активности во неделата: /); assert.match(messages.weekly.mk, /Домашно: /);
   assert.doesNotMatch(messages.weekly.en, /Monday:|Tuesday:|Wednesday:|Thursday:|Friday:/);
   week.days[1].summary = { ...common, rain: 80, kind: 'rain' }; messages = parentMessages(week);
   assert.match(messages.weekly.en, /Tuesday:.*raincoat/); assert.doesNotMatch(messages.weekly.en, /Monday:/);

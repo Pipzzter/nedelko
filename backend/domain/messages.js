@@ -29,20 +29,29 @@ export function parentMessages(week) {
   const messages = { weekly: {}, daily: {} };
   for (const lang of ['mk', 'en']) {
     const active = week.days.filter(d => d.theme && !d.closed && d.date >= week.today);
-    const titles = active.slice(0, 3).map(d => d.theme.title[lang]);
-    const demo = week.mode === 'demo' ? lang === 'mk' ? 'ДЕМО ПРИМЕР\n' : 'DEMO EXAMPLE\n' : '';
-    const activity = lang === 'mk' ? `Ќе учиме преку: ${titles.join(', ')}${active.length > 3 ? ' и други мали еко-игри' : ''}.` : `We will learn through ${titles.join(', ')}${active.length > 3 ? ' and other little eco games' : ''}.`;
+    const label = (mk, en) => lang === 'mk' ? mk : en;
+    const titles = active.map(d => d.theme.title[lang]);
+    const homework = [...new Set(active.map(d => d.theme.habit[lang]))].join(' ');
+    const demo = week.mode === 'demo' ? label('ДЕМО ПРИМЕР\n', 'DEMO EXAMPLE\n') : '';
     const count = active.filter(d => d.mode === 'outside').length;
     const planning = lang === 'mk' ? `Приближно ${count} ден${count === 1 ? '' : 'а'} со активност надвор. Местото го проверуваме секое утро според воздухот и времето.` : `About ${count} outdoor activity day${count === 1 ? '' : 's'}. We check the air and weather each morning before deciding.`;
     const closed = week.days.filter(d => d.closed && d.date >= week.today).map(d => shortDate(d.date));
-    messages.weekly[lang] = `${demo}${lang === 'mk' ? 'Почитувани родители,' : 'Dear parents,'}\n\n${clothingWeek(active, lang)}\n\n${active.length ? activity + ' ' + planning : lang === 'mk' ? 'Нема планирани активности за преостанатите денови.' : 'No activities are planned for the remaining days.'}${closed.length ? '\n' + (lang === 'mk' ? 'Нема настава: ' : 'No kindergarten: ') + closed.join(', ') + '.' : ''}`.replace(/\u2014/g, ',');
+    const range = `${shortDate(week.days[0].date)} - ${shortDate(week.days.at(-1).date)}`;
+    messages.weekly[lang] = [
+      `${demo}${label('Почитувани родители,', 'Dear parents,')}`,
+      `${label('Денови', 'Days')}: ${range}.`,
+      clothingWeek(active, lang),
+      active.length ? `${label('Активности во неделата', 'Week activities')}: ${titles.join(', ')}. ${planning}` : label('Нема планирани активности за преостанатите денови.', 'No activities are planned for the remaining days.'),
+      active.length && homework ? `${label('Домашно', 'Homework')}: ${homework}` : '',
+      closed.length ? `${label('Нема настава', 'No kindergarten')}: ${closed.join(', ')}.` : '',
+    ].filter(Boolean).join('\n\n').replace(/\u2014/g, ',');
     for (const day of week.days) {
       if (!day.theme) continue;
       messages.daily[day.date] ??= {};
       if (day.closed) { messages.daily[day.date][lang] = `${demo}${lang === 'mk' ? 'Почитувани родители, на' : 'Dear parents, on'} ${shortDate(day.date)} ${lang === 'mk' ? 'нема планиран престој во градинка.' : 'there is no kindergarten session planned.'}`; continue; }
       const outdoors = day.mode === 'outside';
       const place = lang === 'mk' ? outdoors ? 'надвор' : 'внатре' : outdoors ? 'outside' : 'indoors';
-      const reasons = { pollution: ['Поради покачената PM2.5 процена, денес остануваме внатре.', 'With elevated PM2.5 readings, today’s activity is indoors.'], unknown_air: ['Нема доволно свежи локални мерења за да потврдиме излегување.', 'There are not enough fresh local readings to confirm outdoor play.'], weather: ['Планот е приспособен на временските услови.', 'The plan has been adjusted for the weather.'], air_forecast: ['Прогнозата за воздухот го насочува планот внатре.', 'The air forecast points to an indoor plan.'], unknown_weather: ['Временската прогноза е недостапна, па подготвуваме активност внатре.', 'The weather forecast is unavailable, so an indoor activity is prepared.'] };
+      const reasons = { pollution: ['Поради загаден воздух (покачена PM2.5 процена), денешните активности остануваат внатре.', 'Because of air pollution (elevated PM2.5 readings), today’s activities stay inside.'], unknown_air: ['Нема доволно свежи локални мерења за да потврдиме излегување.', 'There are not enough fresh local readings to confirm outdoor play.'], weather: ['Планот е приспособен на временските услови.', 'The plan has been adjusted for the weather.'], air_forecast: ['Прогнозата за воздухот го насочува планот внатре.', 'The air forecast points to an indoor plan.'], unknown_weather: ['Временската прогноза е недостапна, па подготвуваме активност внатре.', 'The weather forecast is unavailable, so an indoor activity is prepared.'] };
       let reason = reasons[day.reason]?.[lang === 'mk' ? 0 : 1] ?? '';
       const change = week.changes?.find(item => item.from === day.date);
       if (change) {
