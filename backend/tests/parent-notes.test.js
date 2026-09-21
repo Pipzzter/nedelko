@@ -30,8 +30,8 @@ async function fixture(t, extra = {}) {
     };
   };
   const teacher = client(); const other = client(); const parent = client();
-  const account = { username: 'notes.teacher', password: 'OnlyForTests123', displayName: 'Test teacher' };
-  await teacher('/api/auth/register', account); await other('/api/auth/register', { ...account, username: 'notes.other' });
+  const account = { email: 'notes.teacher@test.mk', password: 'OnlyForTests123', displayName: 'Test teacher', kindergarten: 'Notes kindergarten', ageGroup: '4-5', locationId: 'centar' };
+  await teacher('/api/auth/register', account); await other('/api/auth/register', { ...account, email: 'notes.other@test.mk' });
   const settings = { ...DEFAULT_SETTINGS, gradinka: { name: 'Test garden' }, groupName: 'Test group', teacherPrompt: 'Music, movement and building games' };
   const data = (await teacher('/api/week/generate', { settings })).body;
   const share = (await teacher('/api/week/share', { action: 'enable' })).body.share;
@@ -124,7 +124,7 @@ test('the sidebar retains unread older notes and a model cannot edit protected r
     noteAdviceProvider: async note => ({ kind: 'actionable', date: note.date, scope: 'activity', rowId: 'lunch', instruction: 'Replace lunch', explanation: pair('Предлог.', 'Suggestion.') }),
     dayPlanProvider: async () => { throw new Error('protected rows must stop before generation'); },
   });
-  const userId = store.db.prepare('SELECT id FROM users WHERE username = ?').get('notes.teacher').id;
+  const userId = store.db.prepare('SELECT id FROM users WHERE username = ?').get('notes.teacher@test.mk').id;
   const oldId = store.addParentNote(userId, '2026-09-14', { date: '2026-09-15', text: 'A note from the previous week.', nonce: randomUUID() });
   assert.ok((await teacher('/api/parent-notes')).body.notes.some(note => note.id === oldId));
   const previous = await teacher('/api/parent-notes/suggest', { noteId: oldId, revision: data.week.revision });

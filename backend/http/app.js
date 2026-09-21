@@ -162,7 +162,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
       }
       if (request.method === 'POST' && url.pathname === '/api/demo') {
         const body = await jsonBody(request); const settings = validateSettings({ ...DEFAULT_SETTINGS, locationId: body.locationId || 'centar',
-          gradinka: { name: 'Сончева градина' }, groupName: 'Сончогледи', ageGroup: 'mixed', teacherPrompt: 'Eco activities with movement, shared creations and care for nature.' });
+          gradinka: { name: 'Сончева градина' }, groupName: 'Сончева градина', ageGroup: 'mixed', teacherPrompt: 'Eco activities with movement, shared creations and care for nature.' });
         const profile = demoWeekById(body.demoWeek);
         const conditions = await conditionsProvider({ locationId: settings.locationId, mode: 'demo', scenario: 'normal', demoWeek: profile.id });
         const curriculum = await curriculumProvider(planningWeekDates(conditions.clock), settings, { useAI: false });

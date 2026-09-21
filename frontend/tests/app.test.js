@@ -28,7 +28,7 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
     }, holidayProvider: async year => calendarSnapshot(year) });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const base = `http://127.0.0.1:${server.address().port}`; const nativeFetch = globalThis.fetch;
-  const signup = await nativeFetch(`${base}/api/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'dom.teacher', password: 'OnlyForAutomatedTests23', displayName: 'Test teacher' }) });
+  const signup = await nativeFetch(`${base}/api/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'dom.teacher@test.mk', password: 'OnlyForAutomatedTests23', displayName: 'Test teacher', kindergarten: 'Our test kindergarten', ageGroup: '4-5', locationId: 'centar' }) });
   let cookie = signup.headers.get('set-cookie').split(';')[0];
   const { window } = parseHTML('<html><body><div id="app"></div></body></html>');
   const saved = new Map(); window.location = { hash: '#home', href: base + '/#home', hostname: '127.0.0.1' }; window.history = { pushState: (_s, _unused, hash) => { window.location.hash = hash; } }; window.scrollTo = () => {};
@@ -50,8 +50,11 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   assert.equal(document.querySelector('.calendar-day'), null);
   assert.equal(document.querySelectorAll('.sidebar nav a').length, 1);
   clickText('EN'); await wait(() => document.documentElement.lang === 'en');
-  clickText('Create kindergarten'); await wait(() => document.querySelector('.plan-builder'));
+  clickText('Generate plan'); await wait(() => document.querySelector('.plan-builder'));
   assert.equal(window.location.hash, '#home');
+  assert.equal(document.querySelector('#plan-kindergarten'), null);
+  assert.equal(document.querySelector('#plan-groupName'), null);
+  assert.match(document.querySelector('.planning-progress h2').textContent, /Our test kindergarten/);
   const enter = async (selector, value) => {
     const field = document.querySelector(selector); field.value = value;
     field.dispatchEvent(new window.Event('input', { bubbles: true }));
@@ -64,8 +67,6 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
     document.querySelector('.plan-builder').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   };
   await enter('.teacher-brief textarea', 'PRIVATE-BRIEF: Autumn through music');
-  await enter('#plan-kindergarten', 'Our test kindergarten');
-  await enter('#plan-groupName', 'Sunflowers');
   await submit(); await wait(() => document.querySelector('.day-plan'));
   assert.equal(document.querySelectorAll('.calendar-day').length, 5);
   assert.ok(document.querySelector('.air-card'));

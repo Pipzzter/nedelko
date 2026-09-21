@@ -16,13 +16,14 @@ test('accounts, session hashes and private plans persist after closing and reope
     for (const suffix of ['', '-wal', '-shm']) await rm(filename + suffix, { force: true });
     await rmdir(directory);
   });
-  const user = await register(store, { username: 'persistence.test', password: 'OnlyForAutomatedTests23', displayName: 'Test fixture' });
+  const user = await register(store, { email: 'persistence@test.mk', password: 'OnlyForAutomatedTests23', displayName: 'Test fixture', kindergarten: 'Persistence kindergarten', ageGroup: '4-5', locationId: 'centar' });
   const cookie = createSession(store, user); const token = cookie.match(/eko_session=([a-f0-9]+)/)[1];
   store.saveWeek(user.id, { weekStart: '2026-09-21', days: [], marker: 'private-fixture' }, 0);
   const noteId = store.addParentNote(user.id, '2026-09-21', { date: null, text: 'A synthetic persistent note.', nonce: randomUUID() });
   store.close(); store = openStore(filename);
-  assert.equal(store.userByName(user.username).id, user.id);
-  assert.equal(store.session(tokenHash(token)).username, user.username);
+  assert.equal(store.userByName(user.email).id, user.id);
+  assert.equal(store.session(tokenHash(token)).email, user.email);
+  assert.equal(store.profile(user.id).groupName, 'Persistence kindergarten');
   assert.equal(store.week(user.id, '2026-09-21').marker, 'private-fixture');
   assert.equal(store.week('another-account', '2026-09-21'), null);
   assert.equal(store.parentNotes(user.id, '2026-09-21')[0].id, noteId);

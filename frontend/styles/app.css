@@ -151,6 +151,9 @@
   .kind-activity, .kind-eco { --schedule-bg: var(--activity-bg); --schedule-border: var(--activity-border); --schedule-ink: var(--activity-ink); }
   .kind-meal { --schedule-bg: var(--meal-bg); --schedule-border: var(--meal-border); --schedule-ink: var(--meal-ink); }
   .kind-rest { --schedule-bg: var(--rest-bg); --schedule-border: var(--rest-border); --schedule-ink: var(--rest-ink); }
+  .kind-transition { --schedule-bg: #f4f2ea; --schedule-border: #e2ddcd; --schedule-ink: #8a8571; }
+  .kind-transition .timeline-activity { min-height: 56px; }
+  .kind-transition .timeline-description { font-weight: 450; font-style: italic; }
   .holiday-lesson { --schedule-bg: var(--holiday-bg); --schedule-border: var(--holiday-border); --schedule-ink: var(--holiday-ink); }
   .timeline { list-style: none; padding: 0; display: grid; gap: 8px; }
   .timeline li { border-radius: 11px; position: relative; border: 1px solid var(--schedule-border); background: var(--schedule-bg); }

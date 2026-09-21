@@ -85,8 +85,8 @@ function createTimeline(settings, theme, conditions, date, index) {
   const gap = end => {
     while (cursor < end) {
       const remaining = end - cursor;
-      const count = Math.ceil(remaining / 60);
-      const length = count === 1 ? remaining : Math.min(60, Math.ceil(remaining / count / 15) * 15, remaining - 30 * (count - 1));
+      const count = Math.ceil(remaining / 90);
+      const length = count === 1 ? remaining : Math.min(90, Math.ceil(remaining / count / 15) * 15, remaining - 30 * (count - 1));
       const role = activityRole(timeLabel(cursor));
       all.push({ id: `play-${serial++}`, start: timeLabel(cursor), end: timeLabel(cursor + length), kind: 'activity', activityRole: role,
         ...activityText(role, index, summary, theme) }); cursor += length;
