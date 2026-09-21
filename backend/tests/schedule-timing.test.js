@@ -27,6 +27,19 @@ test('English and Macedonian duration requests keep their exact minute value', (
   assert.deepEqual(explicitDurations('1,5 часа'), [90]);
   assert.deepEqual(explicitDurations('Move it to 15:00'), []);
 });
+test('duration parsing separates unrelated quantities and handles long text without a matching unit', () => {
+  for (const [instruction, expected] of [
+    ['half an hour', []],
+    ['half hour and 15 minutes', [45]],
+    ['1 час и 30 минути, потоа 20 минути игра', [90, 20]],
+    ['1 hour of drawing, then 30 minutes outside', [60, 30]],
+    ['2 hours and 5 minutes; 1,5 часа', [125, 90]],
+    ['1 hour and 1.5 minutes', [60, 5]],
+    ['15:30, 2 groups, 6 books, 45 min', [45]],
+    ['9'.repeat(2000) + ' children', []],
+    ['1 hour' + ' '.repeat(2000) + 'later', [60]]
+  ]) assert.deepEqual(explicitDurations(instruction), expected, instruction.slice(0, 80));
+});
 test('two hours at closing explains the 105-minute limit instead of returning 45 minutes', () => {
   const { day, row, week, conditions } = fixture();
   assert.throws(() => validateTimingIntent([target(row)], day, week.settings, 'put the cheetas at the end for 2 hours', conditions.clock), error => {
