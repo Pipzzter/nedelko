@@ -10,7 +10,7 @@ export async function api(path, body) {
         credentials: 'same-origin',
         headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
         body: body === undefined ? undefined : JSON.stringify(body),
-        // Generation includes environmental requests and up to three minutes for OpenAI.
+        // Generation allows 270 seconds for environmental requests and OpenAI together.
         signal: AbortSignal.timeout(requestTimeout({ path }))
       });
     } catch (error) {
@@ -21,15 +21,15 @@ export async function api(path, body) {
     try {
       result = await response.json();
     } catch {
-      throw Object.assign(new Error('unexpected_error'), { code: 'unexpected_error' });
+      throw Object.assign(new Error('unexpected_error'), { code: 'unexpected_error', status: response.status });
     }
     if (!response.ok)
-      throw Object.assign(new Error(result.error), {
-        code: result.error,
+      throw Object.assign(new Error(result?.error || 'unexpected_error'), {
+        code: result?.error || 'unexpected_error',
         status: response.status,
-        generationIssue: result.generationIssue,
-        generationError: result.generationError,
-        timing: result.timing
+        generationIssue: result?.generationIssue,
+        generationError: result?.generationError,
+        timing: result?.timing
       });
     return result;
   } finally {

@@ -196,7 +196,7 @@
   .ai-loading-content .elapsed-time { font-size: 12px; font-variant-numeric: tabular-nums; }
   .elapsed-time time { font-weight: 650; margin-left: 7px; }
   .ai-loading-content .loading-patience { font-size: 12px; margin-top: 26px; }
-  .network-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; overflow: hidden; background: #e0e7d6; z-index: 999; }
+  .network-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; overflow: hidden; background: #e0e7d6; z-index: 999; pointer-events: none; }
   @keyframes request-travel { 0% { transform: translateX(-105%); } 100% { transform: translateX(370%); } }
   @media (prefers-reduced-motion: reduce) { .ai-progress-track > span, .network-progress > span { animation: none; width: 100%; opacity: .55; } }
 }

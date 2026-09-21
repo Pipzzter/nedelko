@@ -1,5 +1,5 @@
 import { html, useState, useEffect, useRef } from '../lib/ui.js';
-import { requestProgress, watchRequests } from '../lib/request-progress.js';
+import { requestProgress, watchRequests, blockingCount, backgroundActive } from '../lib/request-progress.js';
 import { t } from '../locales/index.js';
 import { Icon } from './Icon.js';
 
@@ -31,10 +31,10 @@ export function RequestProgress() {
       if (previous?.isConnected) previous.focus?.();
     };
   }, [request?.id]);
-  if (!progress.count) return null;
+  if (!blockingCount(progress)) return backgroundActive(progress) ? html`<div class="network-progress" aria-hidden="true"><span /></div>` : null;
   const duration = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
   const title =
-    { applying: 'applyingChange', generation: 'generating', loading: 'loading' }[request.phase] || 'suggestingDay';
+    { applying: 'applyingChange', generation: 'generating' }[request.phase] || 'suggestingDay';
   return html`
     <section
       ref=${panel}
@@ -71,9 +71,6 @@ function progressIcon({ request }) {
 function progressHelp({ request }) {
   if (request.phase === 'applying') {
     return 'applyingChangeHelp';
-  }
-  if (request.phase === 'loading') {
-    return 'requestLoadingHelp';
   }
   if (request.demo) {
     return 'demoLoadingHelp';
