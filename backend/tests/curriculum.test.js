@@ -161,3 +161,51 @@ test('generated whole-day activities are validated, and regeneration can vary th
   assert.notDeepEqual(a.themes.map(theme => theme.title), b.themes.map(theme => theme.title));
   assert.notDeepEqual(a.themes.map(theme => theme.dayActivities), b.themes.map(theme => theme.dayActivities));
 });
+
+test('whole-week output requires every server-owned session key and validates content independently of the model schema', async t => {
+  key(t);
+  const planningDays = dates.map((date, index) => ({ date, slots: index < 2 ? [] : [
+    { id: 'play-0', kind: 'activity', start: '07:30', end: '08:30' },
+    { id: 'breakfast', kind: 'meal', start: '08:30', end: '09:00' },
+    { id: 'play-1', kind: 'activity', start: '09:00', end: '10:00' },
+  ] }));
+  const expectedKeys = dates.slice(2).flatMap(date => [`${date}/play-0`, `${date}/play-1`]);
+  let corrupt = value => value;
+  t.mock.method(globalThis, 'fetch', async (_url, options) => {
+    const sent = JSON.parse(options.body); const sessionSchema = sent.text.format.schema.properties.sessions;
+    assert.equal(sessionSchema.type, 'object'); assert.equal(sessionSchema.additionalProperties, false);
+    assert.deepEqual(sessionSchema.required, expectedKeys); assert.deepEqual(Object.keys(sessionSchema.properties), expectedKeys);
+    assert.deepEqual(JSON.parse(sent.input).planningDays, planningDays);
+    const sessions = Object.fromEntries(expectedKeys.map((key, index) => [key, {
+      title: pair(`Тест игра ${index}`, `Synthetic game ${index}`), description: {
+        mk: ['Со воспитувачот замислете дека картонската кутија е мала работилница.',
+          'Поделете улоги и смислете како да изградите мост од користена хартија.',
+          'Испробајте две различни превиткувања и споредете која градба стои подобро.',
+          'На крај секој тим нека покаже едно откритие и нека ги зачува материјалите.'],
+        en: ['With adult supervision, imagine the cardboard box is a tiny workshop.',
+          'Choose team roles and build a small bridge from the available used paper.',
+          'Try two different folds and compare which design can stand by itself.',
+          'Finish with each team sharing a discovery and keeping the materials for another game.'],
+      },
+    }]));
+    return Response.json({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text',
+      text: JSON.stringify({ themes: modelThemes(), outdoorOrder: dates, sessions: corrupt(sessions) }) }] }] });
+  });
+  const result = await createCurriculum(dates, DEFAULT_SETTINGS, { planningDays, today: dates[2] });
+  assert.equal(result.source, 'ai');
+  assert.deepEqual(result.sessions.map(item => `${item.date}/${item.slotId}`), expectedKeys);
+  assert.ok(result.sessions.every(item => typeof item.description.en === 'string' && item.description.en.includes('Try two different folds')));
+  for (const mutation of [
+    sessions => { delete sessions[expectedKeys[0]]; return sessions; },
+    sessions => ({ ...sessions, [`${dates[2]}/breakfast`]: sessions[expectedKeys[0]] }),
+    sessions => { sessions[`${dates[0]}/play-0`] = sessions[expectedKeys[0]]; delete sessions[expectedKeys[0]]; return sessions; },
+    sessions => Object.values(sessions),
+    sessions => { sessions[expectedKeys[1]].title = sessions[expectedKeys[0]].title; return sessions; },
+    sessions => { sessions[expectedKeys[0]].description = pair('Краток текст.', 'A short summary.'); return sessions; },
+  ]) {
+    corrupt = mutation;
+    const rejected = await createCurriculum(dates, DEFAULT_SETTINGS, { planningDays, today: dates[2] });
+    assert.equal(rejected.source, 'library'); assert.equal(rejected.generationIssue, 'ai_invalid_output');
+    assert.equal(rejected.sessions, undefined);
+  }
+});
