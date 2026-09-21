@@ -146,7 +146,7 @@ function welcomeHeading({ signup, lang }) {
     if (lang === 'mk') {
       return 'Добредојдовте во Неделко.';
     }
-    return 'Welcome to nedelko.';
+    return 'Welcome to Nedelko.';
   }
   if (lang === 'mk') {
     return 'Убаво е што сте тука.';
