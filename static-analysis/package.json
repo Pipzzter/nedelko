@@ -1,0 +1,17 @@
+{
+  "name": "static-analysis",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local SonarQube configuration, scanner and quality policy for Nedelko.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "docker compose up -d --wait sonarqube",
+    "stop": "docker compose down",
+    "configure": "node --env-file-if-exists=.env configure.js",
+    "scan": "node --env-file-if-exists=.env sonar.js",
+    "test": "node --test tests/*.test.js"
+  }
+}

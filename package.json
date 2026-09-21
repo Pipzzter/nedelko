@@ -10,8 +10,14 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env backend/server.js",
     "dev": "node --watch --env-file-if-exists=.env backend/server.js",
-    "test": "node --test backend/tests/*.test.js frontend/tests/*.test.js",
-    "check": "node scripts/check.js",
+    "test": "node scripts/test.js",
+    "test:coverage": "node scripts/test.js --coverage",
+    "check": "node scripts/check.js && node scripts/check-docs.js",
+    "verify": "npm run check && npm run test:coverage",
+    "hooks:install": "node scripts/install-hooks.js",
+    "gate": "node --env-file-if-exists=static-analysis/.env scripts/gate.js",
+    "sonar:scan": "npm --prefix static-analysis run scan",
+    "sonar:configure": "npm --prefix static-analysis run configure",
     "docker:up": "docker compose up --build -d --wait",
     "docker:down": "docker compose down"
   },
