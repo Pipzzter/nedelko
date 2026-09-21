@@ -31,6 +31,8 @@ export async function api(path, body, { background = false } = {}) {
         generationError: result?.generationError,
         timing: result?.timing
       });
+    if (!result || typeof result !== 'object' || Array.isArray(result))
+      throw Object.assign(new Error('unexpected_error'), { code: 'unexpected_error', status: response.status });
     return result;
   } finally {
     finish();

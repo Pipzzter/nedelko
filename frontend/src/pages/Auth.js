@@ -89,10 +89,10 @@ export function Auth({ lang, setLang, onAuth, onDemo, busy, error, config }) {
 `
             }
             <label
-              >${t('email', lang)}<input
+              >${t(signup ? 'email' : 'loginIdentity', lang)}<input
                 name="email"
-                type="email"
-                autocomplete="email"
+                type=${signup ? 'email' : 'text'}
+                autocomplete=${signup ? 'email' : 'username'}
                 autocapitalize="none"
                 required
                 maxlength="254"

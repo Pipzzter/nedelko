@@ -1,6 +1,7 @@
 import { BrandMark } from '../components/BrandMark.js';
 import { html, useState, useEffect, localizedDate } from '../lib/ui.js';
 import { api } from '../lib/api.js';
+import { validateView } from '../lib/view-data.js';
 import { t } from '../locales/index.js';
 import { PlanChanges } from '../components/PlanChanges.js';
 import { Calendar } from '../components/Calendar.js';
@@ -38,7 +39,7 @@ export function ParentWeek({ token }) {
       loading = true;
       setBusy(true);
       try {
-        const result = await api(`/parents/${token}`, undefined, { background: true });
+        const result = validateView(await api(`/parents/${token}`, undefined, { background: true }), true);
         if (active) {
           setData(result);
           setError('');

@@ -99,6 +99,8 @@ const copy = {
   saveBeforeRegenerate: ['Зачувајте ги измените пред повторно да ја генерирате неделата.', 'Save your changes before regenerating the week.'],
   brand: ['Неделко', 'Nedelko'], signIn: ['Најави се', 'Sign in'], signUp: ['Регистрирај градинка', 'Register kindergarten'], signOut: ['Одјави се', 'Sign out'],
   email: ['Е-пошта на градинката', 'Kindergarten email'], password: ['Лозинка', 'Password'], teacherName: ['Име на воспитувачот', 'Teacher name'],
+  loginIdentity: ['Е-пошта или постојно корисничко име', 'Email or existing username'],
+  provisionalWeek: ['Привремен неделен план.', 'Provisional weekly plan.'],
   demo: ['Демо', 'Demo'], tryDemo: ['Разгледај пример-недела', 'Explore a sample week'],
   demoIntroTitle: ['Ова е демо верзија', 'This is the demo version'],
   demoIntroBody: ['Разгледувате примерна недела со измислени податоци, за да видите како работи Неделко: планот, распоредот, условите за воздух и пораките за родителите.', 'You are exploring a sample week with made-up data, so you can see how Nedelko works: the plan, the timetable, the air conditions and the parent messages.'],

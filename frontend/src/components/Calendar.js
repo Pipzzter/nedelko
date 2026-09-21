@@ -81,7 +81,7 @@ export function Calendar({ data, lang, selected, onSelect }) {
 function renderCalendarFooter({ data, lang }) {
   return html`
     <div class="calendar-caption">
-      <span class="small-dot"></span>${t('morningCheck', lang)}${
+      <span class="small-dot"></span>${t('provisionalWeek', lang)} ${t('morningCheck', lang)}${
         data.mode === 'demo'
           ? html`
  <span class="caption-source">${t('demoForecast', lang)}</span>

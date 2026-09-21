@@ -16,6 +16,9 @@ import { ParentWeek } from './pages/ParentWeek.js';
 import { PlanChanges } from './components/PlanChanges.js';
 import { ParentNotes } from './components/ParentNotes.js';
 import { RequestProgress } from './components/RequestProgress.js';
+import { DemoIntro } from './components/DemoIntro.js';
+import { AppBoundary } from './components/AppBoundary.js';
+import { validateView } from './lib/view-data.js';
 const demoRoute = () =>
   /^#demo\/([a-f0-9-]{36})(?:\/(home|plan(?:\/new)?|edit|create|classroom|messages|notes))?$/.exec(window.location.hash);
 const pages = new Set(['home', 'plan', 'plan/new', 'create', 'edit', 'notes']);
@@ -71,6 +74,7 @@ function App() {
     window.scrollTo({ top: 0 });
   };
   function accept(result) {
+    validateView(result);
     setData(result);
     setClock(result.clock);
     setLocation(result.environment.location.id);
@@ -117,7 +121,15 @@ function App() {
       ...(id ? { demoId: id } : {}),
       ...(fresh ? { fresh: '1' } : {})
     });
-    accept(await api(`/dashboard?${query}`, undefined, { background }));
+    try {
+      accept(await api(`/dashboard?${query}`, undefined, { background }));
+    } catch (err) {
+      setData(current => current ? { ...current,
+        environment: { ...current.environment, failedRefresh: true, historical: true },
+        week: current.week ? { ...current.week, approval: null, checkedAt: null } : null
+      } : current);
+      throw err;
+    }
   };
   const refreshDashboard = (background = false) =>
     run(async () => {
@@ -295,7 +307,7 @@ function Root() {
   }, []);
   return html`
     <div class="application-root">
-      <div id="app-screen">${renderRoute({ hash })}</div>
+      <div id="app-screen"><${AppBoundary}>${renderRoute({ hash })}</${AppBoundary}></div>
       <${RequestProgress} />
     </div>
 
@@ -748,36 +760,8 @@ function renderApplicationShell({
         demoIntro &&
         demoId &&
         html`
-          <div
-            class="modal-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="demo-intro-title"
-            onClick=${(e) => {
-              if (e.target === e.currentTarget) setDemoIntro(false);
-            }}
-          >
-            <div class="modal-card">
-              <span class="modal-mascot"><${BrandMark} size=${88} /></span>
-              <h2 id="demo-intro-title">${t('demoIntroTitle', lang)}</h2>
-              <p>${t('demoIntroBody', lang)}</p>
-              <p class="soft-note">${t('demoIntroToggle', lang)}</p>
-              <div class="modal-actions">
-                <button class="button primary" onClick=${() => setDemoIntro(false)}>
-                  ${t('demoIntroExplore', lang)}<${Icon} name="arrow" size=${18} />
-                </button>
-                <button
-                  class="button secondary"
-                  onClick=${() => {
-                    setDemoIntro(false);
-                    toggleDemo();
-                  }}
-                >
-                  ${t('demoIntroLeave', lang)}
-                </button>
-              </div>
-            </div>
-          </div>
+          <${DemoIntro} lang=${lang} onClose=${() => setDemoIntro(false)}
+            onLeave=${() => { setDemoIntro(false); toggleDemo(); }} />
 
 `
       }

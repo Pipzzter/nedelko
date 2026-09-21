@@ -12,6 +12,7 @@ import { demoWeekById } from '../../backend/config/demo.js';
 import { rowContent } from '../../backend/domain/day-edit.js';
 
 test('DOM integration: empty account, create kindergarten, one-page management, live step, bilingual messages and isolated demo', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-21T06:45:00Z') });
   let aiAvailable = false; let generatedSettings; let demoClockOffset = 0;
   const server = createApp({ store: openStore(':memory:'), conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', mode, demoWeek } = {}) => {
       const profile = mode === 'demo' ? demoWeekById(demoWeek) : null;
@@ -45,7 +46,7 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
     return timer;
   });
   t.mock.method(globalThis, 'clearInterval', timer => { refreshTimers.delete(timer); nativeClearInterval(timer); });
-  let holdDashboard = false; let releaseDashboard; let dashboardRequests = 0; let editRequests = 0; let shareRequests = 0;
+  let holdDashboard = false; let releaseDashboard; let dashboardRequests = 0; let editRequests = 0; let shareRequests = 0; let failDashboard = false;
   const dashboardQueries = []; let latestDashboard;
   t.after(() => releaseDashboard?.());
   let clipboard = '';
@@ -55,6 +56,7 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   globalThis.fetch = async (path, options = {}) => {
     if (typeof path === 'string' && path.startsWith('/api/dashboard?')) {
       dashboardRequests++;
+      if (failDashboard) throw new TypeError('Synthetic offline failure');
       dashboardQueries.push(new URL(path, base).searchParams);
       if (holdDashboard) {
         holdDashboard = false;
@@ -68,7 +70,7 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
     if (response.headers.get('set-cookie')) cookie = response.headers.get('set-cookie').split(';')[0]; return response;
   };
   t.after(async () => { const { render } = await import('../../frontend/vendor/preact.js'); render(null, document.getElementById('app')); globalThis.fetch = nativeFetch; await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }); });
-  const wait = async predicate => { const until = Date.now() + 5000; while (!predicate()) { if (Date.now() >= until) throw new Error('DOM expectation timed out: ' + document.body.textContent.slice(0, 700)); await new Promise(resolve => setTimeout(resolve, 10)); } };
+  const wait = async predicate => { const until = performance.now() + 5000; while (!predicate()) { if (performance.now() >= until) throw new Error('DOM expectation timed out: ' + document.body.textContent.slice(0, 700)); await new Promise(resolve => setTimeout(resolve, 10)); } };
   const clickText = label => { const node = [...document.querySelectorAll('button,a')].find(n => n.textContent.trim() === label); assert.ok(node, `control ${label}`); node.dispatchEvent(new window.Event('click', { bubbles: true })); };
   await import('../../frontend/src/app.js');
   await wait(() => document.querySelector('.kindergarten-empty'));
@@ -156,6 +158,14 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   [...refreshTimers.values()][0]();
   assert.equal(dashboardRequests, manualRequests, 'automatic polling yields to an explicit refresh');
   releaseDashboard(); await wait(() => !draft.disabled);
+  const measurementLabel = document.querySelector('.air-bottom .data-label').textContent;
+  failDashboard = true;
+  document.querySelector('.air-card .icon-button').dispatchEvent(new window.Event('click', { bubbles: true }));
+  await wait(() => document.querySelector('.air-card.air-unknown'));
+  assert.equal(document.querySelector('.air-bottom .data-label').textContent, measurementLabel);
+  failDashboard = false;
+  document.querySelector('.air-card .icon-button').dispatchEvent(new window.Event('click', { bubbles: true }));
+  await wait(() => !document.querySelector('.air-card.air-unknown'));
   document.querySelector('.activity-editor .quiet').dispatchEvent(new window.Event('click', { bubbles: true }));
   await wait(() => !document.querySelector('.activity-editor'));
   const editable = document.querySelector('.timeline li.kind-activity:not(.holiday-lesson) .timeline-activity');

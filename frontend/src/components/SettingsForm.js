@@ -5,7 +5,13 @@ import { Icon } from './Icon.js';
 const preferenceLabels = { minApparentC: 'minTemp', maxApparentC: 'maxTemp', maxPrecipProbability: 'maxRain', maxPrecipitationMm: 'maxRainMm', maxWindKmh: 'maxWind' };
 
 export function PairInput({ value, onChange, label, multiline = false, maxLength = 100 }) {
-  return html`<div class="pair-input"><span class="field-label">${label}</span><div>${['mk', 'en'].map(lang => html`<label key=${lang}><span class="language-mini">${lang === 'mk' ? 'МК' : 'EN'}</span>${multiline ? html`<textarea aria-label=${label + ' (' + lang + ')'} value=${value[lang]} required maxLength=${maxLength} rows="3" onInput=${e => onChange({ ...value, [lang]: e.currentTarget.value })}/>` : html`<input aria-label=${label + ' (' + lang + ')'} value=${value[lang]} required maxLength=${maxLength} onInput=${e => onChange({ ...value, [lang]: e.currentTarget.value })}/>`}</label>`)}</div></div>`;
+  const fields = ['mk', 'en'].map(lang => {
+    const attrs = { 'aria-label': label + ' (' + lang + ')', value: value[lang], required: true, maxLength,
+      onInput: event => onChange({ ...value, [lang]: event.currentTarget.value }) };
+    const field = multiline ? html`<textarea ...${attrs} rows="3"/>` : html`<input ...${attrs}/>`;
+    return html`<label key=${lang}><span class="language-mini">${lang === 'mk' ? 'МК' : 'EN'}</span>${field}</label>`;
+  });
+  return html`<div class="pair-input"><span class="field-label">${label}</span><div>${fields}</div></div>`;
 }
 export function SettingsForm({ value, onChange, config, lang, issues = [], rhythmConfirmed, onConfirm }) {
   const set = (key, val) => onChange({ ...value, [key]: val });

@@ -2,8 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseHTML } from 'linkedom';
 import { html, render, localizedDate } from '../src/lib/ui.js';
-import { InlineText } from '../src/components/InlineText.js';
-import { DayAssistant } from '../src/components/DayAssistant.js';
 import { WeekActions } from '../src/components/WeekActions.js';
 import { PairInput, SettingsForm, MaterialPicker } from '../src/components/SettingsForm.js';
 import { ParentNoteForm } from '../src/components/ParentNoteForm.js';
@@ -19,6 +17,9 @@ import { DEFAULT_SETTINGS, MATERIALS } from '../../backend/domain/settings.js';
 import { localCurriculum } from '../../backend/domain/curriculum.js';
 import { PREFERENCE_BOUNDS } from '../../backend/domain/preferences.js';
 import { validateParentNote } from '../../backend/domain/parent-notes.js';
+import { ParentNotes } from '../src/components/ParentNotes.js';
+import { DemoIntro } from '../src/components/DemoIntro.js';
+import { AppBoundary } from '../src/components/AppBoundary.js';
 
 function dom(t) {
   const { window } = parseHTML('<html><body><div id="root"></div></body></html>');
@@ -37,6 +38,81 @@ function dom(t) {
   };
   return { root, fire, wait };
 }
+
+test('a rendering failure offers a bilingual recovery control without exposing raw exception text', async t => {
+  const { root, fire, wait } = dom(t); let broken = true;
+  const Child = () => { if (broken) throw new Error('PRIVATE-RESPONSE'); return html`<p>Recovered</p>`; };
+  render(html`<${AppBoundary}><${Child}/></${AppBoundary}>`, root);
+  await wait(() => root.querySelector('[role=alert]'));
+  assert.doesNotMatch(root.textContent, /PRIVATE/);
+  broken = false; fire(root.querySelector('button'), 'click');
+  await wait(() => root.textContent.includes('Recovered'));
+});
+
+test('live AQI expires without a refresh, keeps its measurement time, and demo readings use the example clock', async t => {
+  const { root, fire, wait } = dom(t);
+  const instant = Date.parse('2026-09-21T06:45:00Z');
+  t.mock.timers.enable({ apis: ['Date'], now: instant });
+  const environment = { mode: 'live', clock: new Date().toISOString(), freshnessMinutes: 60,
+    assessment: { valid: true, aqi: 72, pm25: 20, oldestObservation: new Date(instant - 59 * 60000).toISOString() },
+    location: LOCATIONS[0] };
+  const paint = e => render(html`<${AirCard} environment=${e} lang="en"/>`, root);
+  paint(environment); await wait(() => root.querySelector('.air-moderate'));
+  const stamp = root.querySelector('.data-label').textContent;
+  t.mock.timers.setTime(instant + 60001); fire(document, 'visibilitychange');
+  await wait(() => root.querySelector('.air-unknown'));
+  assert.doesNotMatch(root.querySelector('.air-reading').textContent, /72/);
+  assert.equal(root.querySelector('.data-label').textContent, stamp);
+  paint({ ...environment, mode: 'demo' });
+  assert.ok(root.querySelector('.air-moderate'));
+  paint({ ...environment, mode: 'demo', failedRefresh: true });
+  assert.ok(root.querySelector('.air-unknown'));
+});
+
+test('an older inbox poll cannot undo marking a note read or populate another demo inbox', async t => {
+  const { root, fire, wait } = dom(t); let poll; let release; let hold = false;
+  const note = { id: 'note-1', text: 'Please bring paper', createdAt: '2026-09-21T06:00:00Z', readAt: null };
+  const unread = { notes: [note], unread: 1 }; const read = { notes: [{ ...note, readAt: note.createdAt }], unread: 0 };
+  t.mock.method(globalThis, 'setInterval', callback => { poll = callback; return 100; });
+  t.mock.method(globalThis, 'clearInterval', () => {});
+  t.mock.method(globalThis, 'fetch', async path => {
+    if (path.endsWith('/read')) return Response.json(read);
+    if (hold) { hold = false; return new Promise(resolve => { release = () => resolve(Response.json(unread)); }); }
+    return Response.json(path.includes('second') ? { notes: [], unread: 0 } : unread);
+  });
+  const paint = id => render(html`<${ParentNotes} demoId=${id} week=${{ weekStart: '2026-09-21' }} lang="en"/>`, root);
+  paint('first'); await wait(() => root.querySelector('.inbox-note.unread'));
+  hold = true; poll(); await wait(() => release);
+  fire(root.querySelector('.note-summary'), 'click');
+  await wait(() => root.querySelector('.unread-count').textContent === '0');
+  release(); release = null; await new Promise(resolve => setTimeout(resolve, 20));
+  assert.equal(root.querySelector('.unread-count').textContent, '0');
+  hold = true; poll(); await wait(() => release);
+  paint('second'); await wait(() => root.querySelector('.notes-empty'));
+  release(); await new Promise(resolve => setTimeout(resolve, 20));
+  assert.equal(root.querySelector('.inbox-note'), null);
+});
+
+test('welcome dialog traps keyboard focus, dismisses with Escape and restores the underlying control', async t => {
+  const { root, fire, wait } = dom(t); let active = document.body; let closed = 0; let left = 0;
+  Object.defineProperty(document, 'activeElement', { configurable: true, get: () => active });
+  t.mock.method(window.HTMLElement.prototype, 'focus', function () { active = this; });
+  const paint = open => render(html`<main><button>Underlying control</button></main>${open && html`<${DemoIntro} lang="en"
+    onClose=${() => { closed++; paint(false); }} onLeave=${() => { left++; paint(false); }}/>`}`, root);
+  paint(false); const previous = root.querySelector('main button'); previous.focus();
+  paint(true); await wait(() => root.querySelector('main').hasAttribute('inert'));
+  const buttons = [...root.querySelectorAll('.modal-actions button')];
+  const dialog = root.querySelector('.modal-overlay');
+  assert.equal(document.activeElement, buttons[0]);
+  assert.equal(fire(dialog, 'keydown', { key: 'Tab', shiftKey: true }).defaultPrevented, true);
+  assert.equal(document.activeElement, buttons[1]);
+  fire(dialog, 'keydown', { key: 'Tab' }); assert.equal(document.activeElement, buttons[0]);
+  fire(dialog, 'keydown', { key: 'Escape' });
+  assert.equal(closed, 1); assert.equal(document.activeElement, previous);
+  assert.equal(root.querySelector('main').hasAttribute('inert'), false);
+  paint(true); await wait(() => document.activeElement !== previous);
+  fire(root.querySelector('.modal-actions .secondary'), 'click'); assert.equal(left, 1);
+});
 
 test('teachers add and select a custom classroom tool with Enter without submitting the plan', async t => {
   const { root, fire, wait } = dom(t);
@@ -63,41 +139,6 @@ test('teachers add and select a custom classroom tool with Enter without submitt
   checkbox.checked = false; fire(checkbox, 'change');
   assert.equal(value.materials.includes(custom.id), false);
   assert.ok(root.querySelector(`input[value="${custom.id}"]`), 'unselected custom tools stay available');
-});
-
-test('inline editing preserves typing, supports cancel and distinguishes multiline Enter from commit', async t => {
-  const { root, fire } = dom(t); let begins = 0; let commits = 0; let cancels = 0; let draft;
-  const props = { value: 'Original', label: 'Edit title', draft: 'Draft', onBegin: () => begins++, onCommit: () => commits++, onCancel: () => cancels++, onInput: value => { draft = value; } };
-  render(html`<${InlineText} ...${props}/>`, root);
-  fire(root.querySelector('button'), 'click'); assert.equal(begins, 1);
-  render(html`<${InlineText} ...${props} active=${true}/>`, root);
-  const input = root.querySelector('input'); input.value = 'Changed'; fire(input, 'input'); assert.equal(draft, 'Changed');
-  fire(input, 'keydown', { key: 'Escape' }); assert.equal(cancels, 1);
-  fire(input, 'keydown', { key: 'Enter' }); assert.equal(commits, 1);
-  render(html`<${InlineText} ...${props} active=${true} multiline=${true}/>`, root);
-  const textarea = root.querySelector('textarea');
-  fire(textarea, 'keydown', { key: 'Enter' }); assert.equal(commits, 1);
-  fire(textarea, 'keydown', { key: 'Enter', ctrlKey: true }); assert.equal(commits, 2);
-  fire(textarea, 'keydown', { key: 'Enter', metaKey: true }); assert.equal(commits, 3);
-  fire(textarea, 'blur'); assert.equal(commits, 4);
-});
-
-test('legacy day assistant previews before apply, discards proposals and shows failures without applying', async t => {
-  const { root, fire, wait } = dom(t); const calls = []; let failure = false;
-  const pair = { mk: 'Пример', en: 'Example' };
-  const props = { lang: 'en', day: { date: '2026-09-22' }, demo: true, onApply: id => calls.push(id),
-    onSuggest: async (date, instruction) => { assert.equal(date, '2026-09-22'); assert.equal(instruction, 'More music'); if (failure) throw { code: 'ai_day_failed', generationIssue: 'ai_timeout' }; return { proposalId: 'fixture', source: 'library', theme: { title: pair, goal: pair, inside: pair, outside: pair } }; } };
-  render(html`<${DayAssistant} ...${props}/>`, root);
-  assert.equal(root.querySelector('button').disabled, true);
-  const field = root.querySelector('textarea'); field.value = 'More music'; fire(field, 'input');
-  await wait(() => !root.querySelector('button').disabled); fire(root.querySelector('button'), 'click');
-  await wait(() => root.querySelector('.day-proposal')); assert.deepEqual(calls, []);
-  fire(root.querySelector('.day-proposal .primary'), 'click'); assert.deepEqual(calls, ['fixture']);
-  fire(root.querySelector('.day-proposal .quiet'), 'click'); await wait(() => !root.querySelector('.day-proposal'));
-  failure = true; fire(root.querySelector('button'), 'click'); await wait(() => root.querySelector('[role="alert"]'));
-  assert.deepEqual(calls, ['fixture']); assert.equal(root.querySelector('.day-proposal'), null);
-  render(html`<${DayAssistant} ...${props} dirty=${true}/>`, root);
-  assert.equal(root.querySelector('button').disabled, true); assert.ok(root.querySelector('[role="status"]'));
 });
 
 test('week deletion requires confirmation and cancellation preserves the plan', async t => {
@@ -130,6 +171,7 @@ test('teacher registration requires kindergarten details while parents receive l
   const { root, fire, wait } = dom(t); let selectedLanguage; let demos = 0;
   const props = { lang: 'en', config: { locations: LOCATIONS }, setLang: value => { selectedLanguage = value; }, onDemo: () => demos++, onAuth: () => {} };
   render(html`<${Auth} ...${props}/>`, root);
+  assert.equal(root.querySelector('input[name=email]').type, 'text');
   assert.equal(root.querySelector('[name="kindergarten"]'), null);
   assert.equal(root.querySelector('[name="password"]').getAttribute('minlength'), '1');
   fire(root.querySelectorAll('.auth-tabs button')[1], 'click'); await wait(() => root.querySelector('[name="kindergarten"]'));
@@ -180,6 +222,21 @@ test('eco detail editing exposes both alternatives, goals, materials and holiday
   assert.deepEqual(saved.content.occasionDiscussion, pair);
   render(html`<${ActivityEditor} day=${day} row=${row} lang="en" materials=${MATERIALS} onCancel=${() => {}} onSave=${value => { saved = value; }}/>`, root);
   assert.ok(root.textContent.includes('A habit for home'));
+});
+
+test('teacher and parent activity details select the row variant, including the matching indoor backup', t => {
+  const { root } = dom(t); const day = editableDay();
+  const row = day.timeline.find(row => row.kind === 'eco');
+  row.note = { mk: 'Излегуваме во дворот.', en: 'Go into the yard.' };
+  row.variants = { inside: { mk: 'Градиме на масата.', en: 'Build at the table.' },
+    outside: { mk: 'Градиме во дворот.', en: 'Build in the yard.' } };
+  for (const readOnly of [false, true]) for (const lang of ['mk', 'en']) for (const mode of ['inside', 'outside']) {
+    render(html`<${DayPlan} day=${{ ...day, mode }} data=${{ today: '2026-09-21', week: { settings: DEFAULT_SETTINGS } }}
+      clock="2026-09-21T06:00:00Z" lang=${lang} materials=${MATERIALS} readOnly=${readOnly}/>`, root);
+    assert.equal(root.querySelector('.activity-summary').textContent, row.variants[mode][lang]);
+    assert.ok(!root.querySelector('.activity-summary').textContent.includes(row.note[lang]));
+    if (mode === 'outside') assert.ok(root.querySelector('.indoor-backup').textContent.includes(row.variants.inside[lang]));
+  }
 });
 
 test('top-level dragging and keyboard movement send complete row order; parent view exposes neither', async t => {

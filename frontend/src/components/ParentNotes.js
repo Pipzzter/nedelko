@@ -9,19 +9,28 @@ export function ParentNotes({ demoId, week, lang, busy, onSuggest, onApply }) {
   const [error, setError] = useState('');
   const [working, setWorking] = useState(false);
   const active = useRef(true);
+  const scope = useRef(0);
+  const request = useRef(0);
+  const mutating = useRef(false);
+  const currentContext = context => active.current && context === scope.current;
   const load = async () => {
+    if (mutating.current) return;
+    const version = ++request.current;
+    const current = () => active.current && version === request.current;
     try {
       const result = await api(`/parent-notes${demoId ? '?demoId=' + demoId : ''}`, undefined, { background: true });
-      if (active.current) {
+      if (current()) {
         setData(result);
         setError('');
       }
     } catch (err) {
-      if (active.current) setError(errorText(err.code, lang));
+      if (current()) setError(errorText(err.code, lang));
     }
   };
   useEffect(() => {
     active.current = true;
+    setData({ notes: [], unread: 0 }); setExpanded(null); setProposal(null); setError(''); setWorking(false);
+    mutating.current = false;
     load();
     const refresh = () => {
       if (!document.hidden) load();
@@ -30,48 +39,66 @@ export function ParentNotes({ demoId, week, lang, busy, onSuggest, onApply }) {
     document.addEventListener('visibilitychange', refresh);
     return () => {
       active.current = false;
+      scope.current++; request.current++;
       clearInterval(timer);
       document.removeEventListener('visibilitychange', refresh);
     };
   }, [demoId, week?.weekStart]);
   const show = async (note) => {
+    if (mutating.current) return;
     setExpanded(expanded === note.id ? null : note.id);
     setProposal(null);
     setError('');
-    if (!note.readAt)
+    if (!note.readAt) {
+      const context = scope.current;
+      request.current++; mutating.current = true; setWorking(true);
       try {
-        setData(await api('/parent-notes/read', { noteId: note.id, ...(demoId ? { demoId } : {}) }));
+        const result = await api('/parent-notes/read', { noteId: note.id, ...(demoId ? { demoId } : {}) });
+        if (currentContext(context)) setData(result);
       } catch (err) {
-        setError(errorText(err.code, lang));
+        if (currentContext(context)) setError(errorText(err.code, lang));
+      } finally {
+        if (currentContext(context)) { mutating.current = false; setWorking(false); }
       }
+    }
   };
   const suggest = async (note) => {
+    if (mutating.current) return;
+    const context = scope.current;
+    request.current++; mutating.current = true;
     setWorking(true);
     setError('');
     setProposal(null);
     try {
       const result = await onSuggest(note.id);
-      await load();
+      if (!active.current || context !== scope.current) return;
       setProposal(result.proposal ? { ...result.proposal, noteId: note.id } : null);
+      mutating.current = false;
+      await load();
     } catch (err) {
-      setError(
+      if (active.current && context === scope.current) setError(
         err.generationIssue ? `${errorText(err.code, lang)} ${t(err.generationIssue, lang)}` : errorText(err.code, lang)
       );
     } finally {
-      setWorking(false);
+      if (active.current && context === scope.current) { mutating.current = false; setWorking(false); }
     }
   };
   const apply = async () => {
+    if (mutating.current) return;
+    const context = scope.current;
+    request.current++; mutating.current = true;
     setWorking(true);
     setError('');
     try {
       await onApply(proposal.proposalId);
+      if (!active.current || context !== scope.current) return;
       setProposal(null);
+      mutating.current = false;
       await load();
     } catch (err) {
-      setError(errorText(err.code, lang));
+      if (active.current && context === scope.current) setError(errorText(err.code, lang));
     } finally {
-      setWorking(false);
+      if (active.current && context === scope.current) { mutating.current = false; setWorking(false); }
     }
   };
   return html`
