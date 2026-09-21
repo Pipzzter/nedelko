@@ -1,11 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseHTML } from 'linkedom';
-import { html, render } from '../src/lib/ui.js';
+import { html, render, localizedDate } from '../src/lib/ui.js';
 import { InlineText } from '../src/components/InlineText.js';
 import { DayAssistant } from '../src/components/DayAssistant.js';
 import { WeekActions } from '../src/components/WeekActions.js';
-import { PairInput } from '../src/components/SettingsForm.js';
+import { PairInput, SettingsForm } from '../src/components/SettingsForm.js';
+import { ParentNoteForm } from '../src/components/ParentNoteForm.js';
+import { ParentShare } from '../src/components/ParentShare.js';
+import { AirCard } from '../src/components/AirCard.js';
+import { Calendar } from '../src/components/Calendar.js';
 import { Auth } from '../src/pages/Auth.js';
 import { focusPlanField } from '../src/lib/plan-form.js';
 import { LOCATIONS } from '../../backend/config/index.js';
@@ -14,6 +18,8 @@ import { ScheduleEditor } from '../src/components/ScheduleEditor.js';
 import { DayPlan } from '../src/components/DayPlan.js';
 import { DEFAULT_SETTINGS, MATERIALS } from '../../backend/domain/settings.js';
 import { localCurriculum } from '../../backend/domain/curriculum.js';
+import { PREFERENCE_BOUNDS } from '../../backend/domain/preferences.js';
+import { validateParentNote } from '../../backend/domain/parent-notes.js';
 
 function dom(t) {
   const { window } = parseHTML('<html><body><div id="root"></div></body></html>');
@@ -176,4 +182,94 @@ test('top-level dragging and keyboard movement send complete row order; parent v
   fire(root.querySelector('.edit-activity'), 'click'); await wait(() => root.querySelector('.activity-editor'));
   render(html`<${DayPlan} ...${props} onEdit=${undefined} readOnly=${true}/>`, root);
   assert.equal(root.querySelector('.edit-activity, .activity-editor, .reorder-controls, [draggable="true"]'), null);
+});
+
+test('parent notes mount without randomUUID and preserve a valid nonce when retrying a failed submission', async t => {
+  const { root, fire, wait } = dom(t); const submitted = [];
+  t.mock.method(crypto, 'randomUUID', () => { throw new Error('Insecure origin'); });
+  t.mock.method(globalThis, 'fetch', async (_url, options) => {
+    submitted.push(JSON.parse(options.body));
+    return submitted.length === 1 ? Response.json({ error: 'unexpected_error' }, { status: 503 }) : Response.json({ ok: true });
+  });
+  const days = [{ date: '2026-09-22' }];
+  render(html`<${ParentNoteForm} token="fixture-token" days=${days} selected=${days[0].date} lang="en"/>`, root);
+  fire(root.querySelector('.note-launcher'), 'click'); await wait(() => root.querySelector('textarea'));
+  const textarea = root.querySelector('textarea'); textarea.value = 'Please include more music.'; fire(textarea, 'input');
+  await wait(() => !root.querySelector('[type="submit"]').disabled);
+  fire(root.querySelector('form'), 'submit'); await wait(() => root.querySelector('[role="alert"]'));
+  assert.doesNotThrow(() => validateParentNote(submitted[0], { days }));
+  fire(root.querySelector('form'), 'submit'); await wait(() => root.querySelector('.note-sent'));
+  assert.equal(submitted[0].nonce, submitted[1].nonce, 'retries identify the same note');
+  assert.equal(root.querySelector('textarea').value, '');
+});
+
+test('weather controls use every canonical range, expose precipitation and add routines without randomUUID', t => {
+  const { root, fire } = dom(t); let changed;
+  const config = { materials: MATERIALS, preferenceBounds: PREFERENCE_BOUNDS };
+  const value = structuredClone(DEFAULT_SETTINGS);
+  const props = { value, config, lang: 'en', onChange: next => { changed = next; }, onConfirm: () => {} };
+  render(html`<${SettingsForm} ...${props}/>`, root);
+  const fields = [...root.querySelectorAll('.weather-preferences input')];
+  assert.deepEqual(fields.map(field => field.name).sort(), Object.keys(PREFERENCE_BOUNDS).sort());
+  for (const field of fields) {
+    assert.equal(field.getAttribute('min'), String(PREFERENCE_BOUNDS[field.name].min));
+    assert.equal(field.getAttribute('max'), String(PREFERENCE_BOUNDS[field.name].max));
+    assert.equal(field.getAttribute('step'), 'any', 'fractional server preferences remain valid in the browser');
+  }
+  const precipitation = root.querySelector('#plan-maxPrecipitationMm'); let focused = false;
+  precipitation.focus = () => { focused = true; };
+  focusPlanField('maxPrecipitationMm');
+  assert.equal(root.querySelector('.weather-preferences').open, true); assert.equal(focused, true);
+  assert.equal(precipitation.value, String(value.preferences.maxPrecipitationMm));
+  Object.defineProperty(precipitation, 'valueAsNumber', { value: 1.25 }); fire(precipitation, 'input');
+  assert.equal(changed.preferences.maxPrecipitationMm, 1.25);
+  t.mock.method(crypto, 'randomUUID', () => { throw new Error('Insecure origin'); });
+  fire(root.querySelector('.routines-card > button'), 'click');
+  assert.equal(changed.blocks.length, value.blocks.length + 1);
+  assert.match(changed.blocks.at(-1).id, /^custom-[a-f0-9-]{36}$/);
+  const varied = { ...config, preferenceBounds: { ...PREFERENCE_BOUNDS, maxWindKmh: { min: 7, max: 23 } } };
+  render(html`<${SettingsForm} ...${props} config=${varied}/>`, root);
+  assert.equal(root.querySelector('#plan-maxWindKmh').getAttribute('min'), '7');
+  assert.equal(root.querySelector('#plan-maxWindKmh').getAttribute('max'), '23');
+  const invalid = { ...value, preferences: { ...value.preferences, maxPrecipitationMm: PREFERENCE_BOUNDS.maxPrecipitationMm.max + 1 } };
+  render(html`<${SettingsForm} ...${props} value=${invalid} issues=${[{ field: 'maxPrecipitationMm', key: 'checkWeatherPreferences' }]}/>`, root);
+  const invalidField = root.querySelector('#plan-maxPrecipitationMm');
+  assert.equal(invalidField.getAttribute('aria-invalid'), 'true');
+  assert.match(invalidField.getAttribute('aria-describedby'), /error-maxPrecipitationMm/);
+  assert.match(root.querySelector('#error-maxPrecipitationMm').textContent, /within the displayed range/);
+});
+
+test('parent sharing uses Skopje-local expiry dates and omits unsafe server links', t => {
+  const { root } = dom(t);
+  window.location = { href: 'https://kindergarten.test/#home', hostname: 'kindergarten.test' };
+  const share = { path: '/#parents/fixture-token', expiresAt: '2026-09-06T22:45:00Z' };
+  for (const lang of ['mk', 'en']) {
+    render(html`<${ParentShare} share=${share} lang=${lang} onShare=${() => {}}/>`, root);
+    assert.ok(root.textContent.includes(localizedDate(share.expiresAt, lang)));
+    assert.equal(root.querySelector('.share-actions a').getAttribute('href'), 'https://kindergarten.test/#parents/fixture-token');
+    assert.equal(root.querySelector('.share-actions a').getAttribute('rel'), 'noreferrer');
+  }
+  for (const path of ['javascript:alert(1)', 'data:text/html,bad', '//other.test']) {
+    render(html`<${ParentShare} share=${{ ...share, path }} lang="en" onShare=${() => {}}/>`, root);
+    assert.equal(root.querySelector('.share-actions a'), null);
+    assert.equal(root.querySelector('.share-actions .primary').disabled, true);
+    assert.equal(root.querySelector('.share-url').value, '');
+  }
+});
+
+test('live air sources retain safe links and the calendar preserves five selectable weekdays and attribution', t => {
+  const { root, fire } = dom(t); let selected;
+  const environment = { mode: 'live', assessment: { valid: true, aqi: 20, pm25: 4, sensors: [] }, location: { pulseCity: 'skopje', name: 'Скопје', nameEn: 'Skopje' } };
+  render(html`<${AirCard} environment=${environment} lang="en"/>`, root);
+  assert.equal(root.querySelector('.source-details a').getAttribute('href'), 'https://skopje.pulse.eco/');
+  render(html`<${AirCard} environment=${{ ...environment, location: { ...environment.location, pulseCity: '[bad' } }} lang="en"/>`, root);
+  assert.equal(root.querySelector('.source-details a').getAttribute('href'), null);
+  const days = ['21', '22', '23', '24', '25'].map(day => ({ date: `2026-09-${day}`, summary: { kind: 'clear', min: 12, max: 24 }, mode: 'inside' }));
+  const data = { today: days[0].date, week: { days }, mode: 'live' };
+  render(html`<${Calendar} data=${data} lang="en" selected=${days[0].date} onSelect=${date => { selected = date; }}/>`, root);
+  assert.equal(root.querySelectorAll('.calendar-day').length, 5);
+  assert.equal(root.querySelector('.calendar-caption a').getAttribute('href'), 'https://open-meteo.com/');
+  fire(root.querySelector('.calendar-day:last-child'), 'click'); assert.equal(selected, days[4].date);
+  render(html`<${Calendar} data=${{ ...data, mode: 'demo' }} lang="en" onSelect=${() => {}}/>`, root);
+  assert.match(root.querySelector('.calendar-caption').textContent, /Sample forecast/);
 });

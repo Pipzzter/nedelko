@@ -25,10 +25,15 @@ export const planningCopy = {
   parentNoLogin:['За родителите не е потребна сметка.','Parents don’t need an account.'], parentLinkOnly:['Родителите го отвораат линкот од воспитувачот за дневниот и неделниот план. Без најава или лозинка.','Parents open the teacher’s link to see the daily and weekly plan. No sign-in or password.'],
   sharedByTeacher:['Споделено од вашата градинка','Shared by your kindergarten'], teacherAccess:['Пристап за градинки','Kindergarten access'], teacherSignIn:['Најава за градинки','Kindergarten sign in'], teacherSignUp:['Регистрирај градинка','Register kindergarten'],
   parentEntry:['Дали сте родител?','Here as a parent?'], planningDemo:['Демо: активностите се од библиотеката. Во вистински план AI ги користи вашите насоки.','Demo: activities come from the library. In a real plan, AI uses your teaching brief.'],
-  fixBeforeGenerate:['Уште неколку детали пред да започнеме','A few details before we begin'], requiredKindergarten:['Внесете име на градинката.','Enter the kindergarten name.'], requiredGroup:['Внесете име на групата.','Enter the group name.'], requiredBrief:['Опишете што треба да содржи планот или изберете пример.','Describe what the plan should include, or choose an example.'],
+  fixBeforeGenerate:['Уште неколку детали пред да започнеме','A few details before we begin'], requiredBrief:['Опишете што треба да содржи планот или изберете пример.','Describe what the plan should include, or choose an example.'],
   requiredMaterials:['Изберете барем еден материјал.','Choose at least one material.'], requiredOutdoorDays:['Изберете од 0 до 5 дена надвор.','Choose between 0 and 5 outdoor days.'],
   checkDayTimes:['Проверете го почетокот и крајот. Потребни се барем 3 часа, меѓу 06:00 и 19:00.','Check the start and end: allow at least 3 hours between 06:00 and 19:00.'], checkRoutineNames:['Пополнете ги двете имиња на рутината.','Complete both language versions of the routine name.'], checkRoutineTimes:['Рутините мора да бидат во работното време, со крај по почетокот и без преклопување.','Routine times must fit within opening hours, end after they start, and not overlap.'], checkActivitySpace:['Оставете слободен термин доволно долг за еко-активноста.','Leave a gap long enough for the eco activity.'], checkWeatherPreferences:['Внесете вредност во прикажаниот опсег.','Enter a value within the displayed range.'], confirmRhythmError:['Потврдете дека го проверивте дневниот ритам.','Confirm that you’ve checked the daily rhythm.'],
+  maxRainMm: ['Најмногу врнежи mm', 'Maximum precipitation mm'],
+  checkTemperatureOrder: ['Најниската почувствувана температура мора да биде помала од највисоката.', 'The minimum feels-like temperature must be lower than the maximum.'],
+  reason_air_forecast_unavailable: ['Нема целосна прогноза за воздухот. Планот останува внатре.', 'A complete air forecast is unavailable. The plan stays indoors.'],
 };
 export const planningErrors = {
-  kindergarten_required: planningCopy.requiredKindergarten, group_required: planningCopy.requiredGroup, brief_required: planningCopy.requiredBrief,
+  kindergarten_required: ['Внесете име на градинката.', 'Enter the kindergarten name.'],
+  group_required: ['Внесете име на групата.', 'Enter the group name.'],
+  brief_required: planningCopy.requiredBrief,
 };

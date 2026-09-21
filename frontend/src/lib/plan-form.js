@@ -22,18 +22,18 @@ export function planIssues(value, config, rhythmConfirmed = true) {
     }
     if (Math.max(gap, minutes(value.dayEnd) - cursor) < value.duration) add('routines', 'checkActivitySpace', 2);
   }
-  for (const [key, min, max] of [
-    ['minApparentC', -10, 20],
-    ['maxApparentC', 20, 38],
-    ['maxPrecipProbability', 0, 90],
-    ['maxPrecipitationMm', 0, 5],
-    ['maxWindKmh', 0, 50]
-  ]) {
-    if (!Number.isFinite(value.preferences[key]) || value.preferences[key] < min || value.preferences[key] > max)
-      add(key, 'checkWeatherPreferences', 1);
-  }
+  addPreferenceIssues(value.preferences, config.preferenceBounds, add);
   if (!rhythmConfirmed) add('rhythmConfirmed', 'confirmRhythmError', 2);
   return issues;
+}
+
+function addPreferenceIssues(preferences, bounds, add) {
+  for (const [key, { min, max }] of Object.entries(bounds)) {
+    if (!Number.isFinite(preferences[key]) || preferences[key] < min || preferences[key] > max)
+      add(key, 'checkWeatherPreferences', 1);
+  }
+  if (preferences.minApparentC >= preferences.maxApparentC)
+    add('minApparentC', 'checkTemperatureOrder', 1);
 }
 export function focusPlanField(field) {
   const target = document.getElementById(`plan-${field}`);

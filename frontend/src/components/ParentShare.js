@@ -1,4 +1,4 @@
-import { html, useState } from '../lib/ui.js';
+import { html, useState, localizedDate, safeHref } from '../lib/ui.js';
 import { t } from '../locales/index.js';
 import { Icon } from './Icon.js';
 
@@ -36,7 +36,8 @@ export function ParentShare({ share, lang, busy, onShare }) {
 }
 
 function sharingURL({ share }) {
-  return share ? new URL(share.path, window.location.href).href : '';
+  const path = safeHref(share?.path);
+  return path ? new URL(path, window.location.href).href : '';
 }
 
 function renderSharingControls({ share, lang, url, copy, copied, busy, setCopied, onShare, failed }) {
@@ -50,10 +51,10 @@ function renderSharingControls({ share, lang, url, copy, copied, busy, setCopied
           onFocus=${(e) => e.currentTarget.select()}
       /></label>
       <div class="share-actions">
-        <button class="button primary" type="button" onClick=${copy}>
+        <button class="button primary" type="button" disabled=${!url} onClick=${copy}>
           ${t(copied ? 'copied' : 'copyParentLink', lang)}
         </button>
-        <a class="button secondary" href=${url} target="_blank" rel="noreferrer">${t('openParentView', lang)}</a>
+        ${url && html`<a class="button secondary" href=${url} target="_blank" rel="noreferrer">${t('openParentView', lang)}</a>`}
         <button
           class="button quiet"
           type="button"
@@ -68,7 +69,7 @@ function renderSharingControls({ share, lang, url, copy, copied, busy, setCopied
       </div>
       <p class="soft-note">
         ${t('parentLinkPrivacy', lang)} ${t('linkExpires', lang)}:
-        ${new Date(share.expiresAt).toLocaleDateString(lang === 'mk' ? 'mk-MK' : 'en-GB')}.
+        ${localizedDate(share.expiresAt, lang)}.
       </p>
       ${failed && html`
  <p role="status">${t('copyFailed', lang)}</p>

@@ -1,4 +1,4 @@
-import { html, localizedDate } from '../lib/ui.js';
+import { html, localizedDate, safeHref } from '../lib/ui.js';
 import { t } from '../locales/index.js';
 import { Icon } from './Icon.js';
 export function AirCard({ environment: e, lang, refresh, busy }) {
@@ -35,7 +35,7 @@ export function AirCard({ environment: e, lang, refresh, busy }) {
         <details class="source-details">
           <summary>${t('readings', lang)}</summary>
           <p>${t('airBasis', lang)}. ${t('weatherBasis', lang)}.</p>
-          <a href=${'https://' + e.location.pulseCity + '.pulse.eco/'} target="_blank" rel="noreferrer"
+          <a href=${safeHref('https://' + e.location.pulseCity + '.pulse.eco/')} target="_blank" rel="noreferrer"
             >pulse.eco · ${lang === 'mk' ? e.location.name : e.location.nameEn}</a
           >
           <p>${a.sensors?.length || 0} ${t('sensors', lang)} · ${observationSource({ e, lang })}</p>

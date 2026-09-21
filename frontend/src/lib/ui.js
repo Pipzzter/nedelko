@@ -4,6 +4,35 @@ export { useState, useEffect, useRef, useMemo } from '../../vendor/hooks.js';
 export { render, Fragment } from '../../vendor/preact.js';
 export const html = htm.bind(h);
 export const text = (value, lang) => (typeof value === 'string' ? value : value?.[lang] || '');
+let uuidSequence = 0;
+export function safeUuid() {
+  try {
+    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  } catch {
+    // Some browsers expose randomUUID but reject it on an insecure origin.
+  }
+  const bytes = new Uint8Array(16);
+  try {
+    globalThis.crypto.getRandomValues(bytes);
+  } catch {
+    // These IDs identify UI rows and note retries; they are not authentication tokens.
+    const fallback = Date.now().toString(16).padStart(16, '0') + (++uuidSequence).toString(16).padStart(16, '0');
+    for (let i = 0; i < bytes.length; i++) bytes[i] = Number.parseInt(fallback.slice(i * 2, i * 2 + 2), 16);
+  }
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+export function safeHref(value) {
+  if (typeof value !== 'string' || /[\u0000-\u0020\\]/u.test(value) || !/^(?:https?:\/\/|\/(?!\/)|#)/i.test(value)) return undefined;
+  try {
+    const parsed = new URL(value, 'https://relative.invalid');
+    return value.startsWith('/') || value.startsWith('#') ? value : parsed.href;
+  } catch {
+    return undefined;
+  }
+}
 const MK_DAYS = ['недела', 'понеделник', 'вторник', 'среда', 'четврток', 'петок', 'сабота'];
 const MK_SHORT_DAYS = ['нед', 'пон', 'вто', 'сре', 'чет', 'пет', 'саб'];
 const MK_MONTHS = [

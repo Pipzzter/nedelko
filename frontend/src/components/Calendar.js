@@ -2,7 +2,7 @@ import { html, degrees, monthLabel, shortDay, localizedDate } from '../lib/ui.js
 import { t } from '../locales/index.js';
 import { Icon, WeatherIcon } from './Icon.js';
 
-export function Calendar({ data, lang, selected, onSelect, onGenerate, compact = false }) {
+export function Calendar({ data, lang, selected, onSelect }) {
   const calendar = data.week?.days || data.calendar;
   if (!calendar?.length) return null;
   const month =
@@ -10,7 +10,7 @@ export function Calendar({ data, lang, selected, onSelect, onGenerate, compact =
       ? monthLabel(calendar[0].date, lang)
       : `${localizedDate(calendar[0].date, lang, { month: 'long' })} / ${monthLabel(calendar[4].date, lang)}`;
   return html`
-    <section class=${'card calendar-card ' + (compact ? 'compact-calendar' : '')} aria-label=${t('forecast', lang)}>
+    <section class="card calendar-card" aria-label=${t('forecast', lang)}>
       <div class="card-heading">
         <div>
           <span class="eyebrow">${t('forecast', lang)}</span>
@@ -72,26 +72,13 @@ export function Calendar({ data, lang, selected, onSelect, onGenerate, compact =
 `
         )}
       </div>
-      ${renderCalendarFooter({ data, compact, lang, onGenerate })}
+      ${renderCalendarFooter({ data, lang })}
     </section>
 
 `;
 }
 
-function renderCalendarFooter({ data, compact, lang, onGenerate }) {
-  if (!data.week && !compact) {
-    return html`
-      <div class="empty-week">
-        <span class="empty-sprout"><${Icon} name="leaf" size=${28} /></span>
-        <h3>${t('weekEmpty', lang)}</h3>
-        <p>${t('emptyHelp', lang)}</p>
-        <button class="button primary" onClick=${onGenerate}>
-          ${t('generate', lang)}<${Icon} name="arrow" size=${17} />
-        </button>
-      </div>
-
-`;
-  }
+function renderCalendarFooter({ data, lang }) {
   return html`
     <div class="calendar-caption">
       <span class="small-dot"></span>${t('morningCheck', lang)}${

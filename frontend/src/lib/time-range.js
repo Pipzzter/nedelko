@@ -1,3 +1,4 @@
+// Test-only legacy parser: application editors use native time inputs.
 // Friendly 24-hour typing is stored as canonical HH:MM values.
 export function parseTimeRange(value) {
   const match = /^\s*(\d{1,2}):([0-5]\d)\s*[-–]\s*(\d{1,2}):([0-5]\d)\s*$/.exec(value);

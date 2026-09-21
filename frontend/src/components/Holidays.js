@@ -38,54 +38,6 @@ export function Occasions({ day, lang }) {
 
 `;
 }
-export function HolidaySources({ calendars, lang }) {
-  if (!calendars?.length) return null;
-  return html`
-    <details class="holiday-sources">
-      <summary>${t('holidayCalendar', lang)}</summary>
-      <p class="soft-note">${t('holidayHelp', lang)}</p>
-      ${calendars.map(
-        (calendar) => html`
-          <div key=${calendar.year} class="holiday-source">
-            <b>${calendar.year}</b>
-            <p>${t(calendar.complete ? 'holidayComplete' : 'holidayIncomplete', lang)}</p>
-            ${calendar.verifiedOn && html`
- <p>${t('verifiedSnapshot', lang)}: ${calendar.verifiedOn}</p>
-`}
-            ${
-              calendar.fetchedAt &&
-              html`
-                <p>
-                  ${t('announcementSync', lang)}:
-                  ${localizedDate(calendar.fetchedAt, lang, { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                </p>
-
-`
-            }
-            ${(calendar.refreshFailed || calendar.partial) && html`
- <p>${t('holidayCached', lang)}</p>
-`}
-            ${
-              calendar.warnings?.includes('republic_observed_date_unverified') &&
-              html`
- <p>${t('holidayDateWarning', lang)}</p>
-`
-            }
-            ${
-              calendar.sourceUrl &&
-              html`
- <a href=${calendar.sourceUrl} target="_blank" rel="noreferrer">${t('officialProgramme', lang)}</a>
-`
-            }
-          </div>
-
-`
-      )}
-    </details>
-
-`;
-}
-
 function occasionKindLabel({ event }) {
   if (event.kind === 'classroom') {
     return 'classroomOccasion';

@@ -1,4 +1,4 @@
-import { html, useState, useRef, useEffect, localizedDate } from '../lib/ui.js';
+import { html, useState, useRef, useEffect, localizedDate, safeUuid } from '../lib/ui.js';
 import { api } from '../lib/api.js';
 import { t, errorText } from '../locales/index.js';
 import { Icon } from './Icon.js';
@@ -11,7 +11,8 @@ export function ParentNoteForm({ token, days, selected, lang }) {
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
   const input = useRef(null);
-  const nonce = useRef(crypto.randomUUID());
+  const nonce = useRef(null);
+  if (!nonce.current) nonce.current = safeUuid();
   useEffect(() => {
     if (open) input.current?.focus();
   }, [open]);
@@ -27,7 +28,7 @@ export function ParentNoteForm({ token, days, selected, lang }) {
       await api(`/parents/${token}/notes`, { text, date, nonce: nonce.current });
       setText('');
       setSent(true);
-      nonce.current = crypto.randomUUID();
+      nonce.current = safeUuid();
     } catch (err) {
       setError(errorText(err.code, lang));
     } finally {
@@ -60,7 +61,7 @@ export function ParentNoteForm({ token, days, selected, lang }) {
                 value=${date || ''}
                 onChange=${(event) => {
                   setDate(event.currentTarget.value || null);
-                  nonce.current = crypto.randomUUID();
+                  nonce.current = safeUuid();
                 }}
               >
                 <option value="">${t('wholeWeek', lang)}</option>
@@ -86,7 +87,7 @@ export function ParentNoteForm({ token, days, selected, lang }) {
                 onInput=${(event) => {
                   setText(event.currentTarget.value);
                   setSent(false);
-                  nonce.current = crypto.randomUUID();
+                  nonce.current = safeUuid();
                 }}
               />
             </label>
