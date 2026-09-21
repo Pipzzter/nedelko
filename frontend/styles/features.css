@@ -1,5 +1,14 @@
 @layer components {
-  .message-note p { overflow-wrap: anywhere; }
+  .app-shell > .workspace { margin-left: 0; }
+  .teacher-navbar { height: auto; min-height: 88px; flex-wrap: wrap; gap: 20px; padding-block: 16px; }
+  .teacher-navbar nav { display: flex; align-items: center; gap: 8px; }
+  .teacher-navbar nav a { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 12px; text-decoration: none; }
+  .teacher-navbar nav a.active { background: var(--green); color: var(--forest); }
+  .teacher-navbar .topbar-actions { margin-left: auto; flex-wrap: wrap; }
+  .parent-brand-header { display: flex; align-items: center; gap: 18px; padding: 24px 4%; }
+  .parent-brand-header .language-switch { margin-left: auto; }
+  .parent-notes-page { max-width: 1000px; margin-inline: auto; }
+  .parent-notes-page .notes-inbox { max-height: none; overflow: visible; }
   .lesson-card { position: relative; }
   .edit-activity { position: absolute; top: 10px; right: 10px; z-index: 1; background: var(--white); }
   .activity-editor fieldset { border: 0; padding: 0; margin: 18px 0; }
@@ -17,6 +26,13 @@
   .schedule-editor label { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .schedule-editor input { width: 125px; }
   .reorder-help { margin-bottom: 14px; }
+  .message-note p { overflow-wrap: anywhere; }
+  @media (max-width: 800px) {
+    .teacher-navbar { gap: 12px; }
+    .teacher-navbar nav { order: 3; width: 100%; }
+    .teacher-navbar .location-control { display: none; }
+    .teacher-navbar .topbar-actions { gap: 12px; }
+  }
   .group-heading { color: var(--forest); font-weight: 650; margin: 10px 0 4px; }
   .group-heading:empty { display: none; }
   .teacher-brief { margin-bottom: 24px; padding: clamp(22px, 4vw, 36px); background: linear-gradient(120deg, #eaf2e5, #fffefa); border-color: #cfddc5; }
@@ -186,4 +202,10 @@
   .network-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; overflow: hidden; background: #e0e7d6; z-index: 999; }
   @keyframes request-travel { 0% { transform: translateX(-105%); } 100% { transform: translateX(370%); } }
   @media (prefers-reduced-motion: reduce) { .ai-progress-track > span, .network-progress > span { animation: none; width: 100%; opacity: .55; } }
+}
+
+@layer responsive {
+  .app-shell > .workspace { margin-left: 0; }
+  .teacher-navbar { height: auto; min-height: 88px; flex-wrap: wrap; padding-block: 16px; }
+  .lesson-card { position: relative; }
 }

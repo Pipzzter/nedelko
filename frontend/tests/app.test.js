@@ -48,10 +48,10 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   await import('../../frontend/src/app.js');
   await wait(() => document.querySelector('.kindergarten-empty'));
   assert.equal(document.querySelector('.calendar-day'), null);
-  assert.equal(document.querySelectorAll('.sidebar nav a').length, 1);
+  assert.equal(document.querySelectorAll('.teacher-navbar nav a').length, 2);
   clickText('EN'); await wait(() => document.documentElement.lang === 'en');
   clickText('Generate plan'); await wait(() => document.querySelector('.plan-builder'));
-  assert.equal(window.location.hash, '#home');
+  assert.equal(window.location.hash, '#create');
   assert.equal(document.querySelector('#plan-kindergarten'), null);
   assert.equal(document.querySelector('#plan-groupName'), null);
   assert.match(document.querySelector('.planning-progress h2').textContent, /Our test kindergarten/);
@@ -95,7 +95,8 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   clickText('МК'); await wait(() => document.documentElement.lang === 'mk');
   assert.match(document.querySelector('.activity-summary').textContent, /Подготовка за оброкот/);
   clickText('EN'); await wait(() => document.documentElement.lang === 'en');
-  assert.equal(document.querySelector('.change-activity'), null, 'meal details have no edit control');
+  assert.equal(document.querySelector('.change-activity'), null, 'meal details have no AI control');
+  assert.ok(document.querySelector('.edit-activity'), 'meal details have a pencil editor');
   const editable = document.querySelector('.timeline li.kind-activity:not(.holiday-lesson) .timeline-activity');
   editable.dispatchEvent(new window.Event('click', { bubbles: true }));
   await wait(() => document.querySelector('.change-activity'));
@@ -107,7 +108,7 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   clickText('Change schedule'); await wait(() => document.querySelector('.change-schedule textarea'));
   assert.ok(document.querySelector('.change-schedule .location-actions button'), 'the schedule assistant can move a day inside or outside');
   await enter('.change-schedule textarea', 'Move the last game to 15:00');
-  document.querySelector('.change-schedule form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+  document.querySelector('.change-schedule .change-form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   await wait(() => document.querySelector('.schedule-proposal'));
   assert.doesNotMatch(document.querySelector('.timeline li:last-child .timeline-time').textContent, /^15:00/);
   clickText('Confirm and apply schedule');
@@ -119,10 +120,15 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   clickText('Copy link only'); await wait(() => clipboard === parentUrl);
   clickText('Weekly message'); await wait(() => document.querySelector('.message-toolbar .active').textContent === 'Weekly message');
   clipboard = ''; document.querySelector('.message-toolbar > button').dispatchEvent(new window.Event('click', { bubbles: true }));
-  await wait(() => clipboard === parentUrl);
+  await wait(() => clipboard.includes(parentUrl) && clipboard.length > parentUrl.length);
+  assert.ok(document.querySelector('.message-note').textContent.includes(parentUrl));
+  clickText('Parent notes'); await wait(() => document.querySelector('.parent-notes-page'));
+  assert.equal(document.querySelector('.calendar-day'), null);
+  assert.equal(window.location.hash, '#notes');
+  clickText('Home'); await wait(() => document.querySelector('.day-plan'));
   const demo = document.querySelector('.demo-switch input'); demo.checked = true; demo.dispatchEvent(new window.Event('change', { bubbles: true }));
   await wait(() => document.querySelector('.demo-banner'));
-  assert.equal(document.querySelectorAll('.sidebar nav a').length, 1);
+  assert.equal(document.querySelectorAll('.teacher-navbar nav a').length, 2);
   assert.match(document.querySelector('.current-row').textContent, /Breakfast/);
   const scenario = document.querySelector('.demo-air-select');
   Object.defineProperty(scenario, 'value', { value: 'polluted', configurable: true });
@@ -139,7 +145,7 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   await wait(() => document.querySelector('.parent-dashboard .day-plan'));
   assert.equal(document.querySelectorAll('.calendar-day').length, 5);
   assert.ok(document.querySelector('.air-card .source-details'));
-  assert.equal(document.querySelector('.change-assistant, .approval-actions, .parent-share, select'), null);
+  assert.equal(document.querySelector('.change-assistant, .approval-actions, .parent-share, select, nav, .messages-card, .edit-activity, .reorder-controls'), null);
   document.querySelector('.timeline li.kind-meal .timeline-activity').dispatchEvent(new window.Event('click', { bubbles: true }));
   await wait(() => /Prepare for the meal/.test(document.querySelector('.activity-summary').textContent));
   assert.doesNotMatch(document.body.textContent, /PRIVATE-BRIEF/);
