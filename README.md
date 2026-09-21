@@ -1,47 +1,109 @@
-# ЕкоЧувар · EkoCuvar
+<div align="center">
+  <img src="frontend/assets/favicon.svg" alt="" width="64" height="64">
+  <h1>Неделко · nedelko</h1>
+  <p>Вашата недела во градинка, испланирана. / Your kindergarten week, planned.</p>
+  <p><strong>Little discoveries. Thoughtful kindergarten planning.</strong></p>
+  <p>A Macedonian and English week planner with indoor alternatives,<br>local air observations, weather forecasts and teacher-reviewed parent notices.</p>
+  <p><a href="#quick-start">Quick start</a> · <a href="docs/README.md">Documentation</a> · <a href="docs/architecture/adrs/README.md">Architecture decisions</a> · <a href="docs/development/quality-gates.md">Quality gates</a></p>
+</div>
 
-A Macedonian and English kindergarten week planner. Teachers set meals and rest once, generate daily eco activities and parent notes, and adapt outdoor days to weather and local PM2.5 readings.
+---
 
-## Run
+## What it does
 
-Node.js **24+**. No build step or server runtime packages.
+- **Plan Monday–Friday.** Reuse the kindergarten’s meals and rest times, then create bilingual activities with indoor and outdoor versions. Earlier days remain empty when generating midweek.
+- **Adapt to current evidence.** Deterministic PM2.5 and weather checks can move activities indoors. Weather limits are editable logistics preferences.
+- **Keep teachers in control.** Edit an activity, review a proposed timetable, and recheck the same morning before approving a parent notice.
+- **Share a family view.** Parents follow a revocable link to view the week and submit notes. Teacher accounts own private plans; there is no formal Parent/Teacher RBAC system.
+- **Explore without credentials.** Isolated synthetic demos include different seasons, holidays, pollution, stale readings and unavailable sensors. They never overwrite an account’s plan.
 
-```powershell
-npm.cmd start
+> Weekly plans are provisional. Missing or suspect readings mean unknown conditions. PM2.5 screening is not a complete air-quality assessment or medical certification. No message delivery, user study or measured impact is claimed.
+
+## Quick start
+
+### With Node.js
+
+Requires **Node.js 24+**. No build step or server runtime dependencies.
+
+```sh
+npm start
 ```
 
-Open **[http://127.0.0.1:4173](http://127.0.0.1:4173)**. Use `npm start` on macOS/Linux.
+Open **[127.0.0.1:4173](http://127.0.0.1:4173)** and explore the sample week, or register a kindergarten account. Use `npm.cmd` in Windows PowerShell if `npm` is restricted by execution policy.
 
-- Choose **Explore a sample week**. Demo and real accounts use the same planning, editing and parent-sharing screens. Demo data is synthetic and isolated; scenario controls let you try changing conditions without modifying a real plan or calling AI.
-- The initial example is Monday, **7 September 2026 at 08:45**. Try **October · A day of little discoveries** for a 14:30 example with elapsed morning activities.
-- Or create a teacher username/password account. Real calendars start empty. Parents only need the shared URL; there is no parent login.
-- **Home** is the single teacher workspace. New accounts start with **Create kindergarten**. Setup collects the group, learning ideas and daily rhythm, including meals and rest. Confirm the timetable before generating; your kindergarten profile is reusable.
-- Select an activity on Home, then **Change activity** to replace just that item. **Change schedule** accepts changes to activities and times, previews the complete day, and requires confirmation. Meals, sleep, holidays and started activities are locked. Demo suggestions are labelled library examples. Each main lesson keeps an indoor backup.
-- **Manage week > Regenerate week** opens saved settings and explains replacement. Cancelling or failed generation preserves the saved week.
-- **Create parent link**, then **Preview as a parent** opens the read-only family page. The URL stays the same through edits, refreshes and regeneration of the same week. **Disable link** revokes access; links expire after 14 days (demo: one hour), and renewal retains the URL until revoked. Parents cannot edit the plan. Localhost links work only on this computer.
-- The running server checks active weeks every minute, even with the teacher browser closed. Newly detected pollution or uncertain evidence selects the indoor version. Home and the parent page show an indoor-day alert and an eligible provisional replacement when available. No email, SMS or push is sent.
-- **Manage week > Delete week** asks for confirmation, removes the plan and retains your settings on Home.
-- Meals and rest stay fixed. Story, movement, creative play and reflection vary by day. When AI generation succeeds, the model ranks the eligible outdoor days using the activities and forecast. Server-side air, weather and timetable gates remain authoritative and move a blocked day to its indoor backup. Manual edits stay intact.
-- The **Demo** switch isolates sample data. **Example week** offers six dated examples: Independence Day, Easter, Halloween, winter snow, an autumn afternoon and a spring garden. Clocks stay fixed for repeatable walkthroughs. **Monday air conditions** includes normal, polluted, stale, offline, disagreement and sensor-spike examples. Try **Polluted morning** in the September example to move Monday’s outdoor slot to another eligible day.
+### With Docker
 
-The browser uses locally vendored **Preact 10.29.8 + HTM 3.1.1**. The backend uses native Node HTTP, crypto and SQLite. Accounts and real plans survive restarts in `.local/ekocuvar.sqlite`. The server binds only to this computer.
+Requires Docker Engine/Desktop with Compose v2.24+.
+
+```sh
+docker compose up --build -d --wait
+```
+
+| Service | Address | Persistence |
+| --- | --- | --- |
+| Application | [127.0.0.1:4173](http://127.0.0.1:4173) | SQLite in `app_data` |
+| SonarQube Community Build | [127.0.0.1:9000](http://127.0.0.1:9000) | Dedicated PostgreSQL and Sonar volumes |
+
+The root Compose stack starts the application. Start Sonar separately with `npm --prefix static-analysis start`. Stop the app with `docker compose down`; named volumes remain. See [Docker operation](docs/operations/docker.md) for resource requirements, ports and backups.
 
 ## Optional AI
 
-If `.env` does not exist, copy `.env.example`, add `OPENAI_API_KEY` and a model your project can access, then restart. Do not overwrite an existing `.env`. The key stays on the backend. Home identifies generation failures and library fallback. Explicit daily-topic requests fail visibly if AI cannot cover them, preserving any saved week. Whole-week generation sends all timetable slots together and validates distinct per-slot activities.
+If `.env` does not already exist, copy [.env.example](.env.example) to `.env` and set `OPENAI_API_KEY` and `OPENAI_MODEL`. Restart the app after changes. Keys stay server-side and are excluded from the image and scanner. Preserve any existing `.env`.
 
-On 2026-09-20, live full-week generation and single-day revision succeeded with the configured API key. These were synthetic teaching requests, not a production reliability benchmark. Earlier provider credit errors are shown separately from timeouts, refusals, incomplete responses and invalid content. Live environmental requests succeeded for Skopje, Bitola and Ohrid; service availability can change.
+Validated model output supplies educational content; the server owns air-quality arithmetic, scheduling constraints and approval rules. Library fallback is identified under Manage week. Explicit daily-topic requests cannot silently fall back and overwrite an existing week. Demo suggestions use the local library.
 
-## Verify
+## Develop and verify
 
-```powershell
-npm.cmd ci
-npm.cmd test
-npm.cmd run check
+```sh
+npm ci
+npm run hooks:install       # required once per clone
+npm run verify             # syntax, documentation links, tests, line coverage
 ```
 
-`linkedom` is a development-only DOM test dependency. Starting the app does not require `npm install`.
+| Command | Purpose |
+| --- | --- |
+| `npm test` | Domain, API, SQLite, DOM and tooling regression tests |
+| `npm run test:api` | [Postman API collection](docs/development/api-tests.md) against an isolated app; first run `npm --prefix api-tests ci` |
+| `npm run test:coverage` | LCOV report; requires **≥91% lines separately for backend and frontend** |
+| `npm run check` | JavaScript syntax and local documentation links |
+| `npm run gate` | Local checks plus a completed, passing SonarQube quality gate |
+| `npm run dev` | Restart the native server when source changes |
 
-[Architecture](docs/ARCHITECTURE.md) · [Decision rules](docs/DECISION_BASIS.md) · [Checks and limitations](docs/BREAKING.md) · [Sources](docs/SOURCES.md) · [Local operation](docs/OPERATIONS.md) · [Product research and roadmap](docs/PRODUCT_RESEARCH.md) · [Original feature branches](docs/FEATURE_BRANCHES.md) ? [Planner fix branches](docs/PLANNER_FIX_BRANCHES.md)
+The **91% value is an enforced minimum, not a claim about a verified result**. Current successful test-run results are in `coverage/summary.json`; an incomplete or failed test run cannot pass. Coverage includes every authored application JavaScript file, with branches and functions also reported. See [verification status](docs/development/verification-status.md).
 
-No teacher study, endorsement, measured environmental impact or real parent delivery is claimed. Weekly plans are provisional. This is a PM2.5 screening tool, not a full air-quality or medical assessment.
+### Required before pushing
+
+1. Start SonarQube with `npm --prefix static-analysis start`.
+2. Sign in at port 9000 using the initial `admin` / `admin` credentials and change the password. Generate an admin **user token** under **My Account → Security**.
+3. Copy [static-analysis/.env.example](static-analysis/.env.example) to `static-analysis/.env`, set `SONAR_TOKEN`, and run `npm run sonar:configure`. This provisions the private project and its quality gate. For routine scans, replace the setup token with a non-admin scanner account’s **user token**, granting Browse and Execute Analysis permissions on the project. Project analysis tokens cannot read the gate configuration on the pinned server. See the [full setup instructions](docs/development/quality-gates.md).
+4. Run `npm run gate`. After `npm run hooks:install`, every push of source refs runs the same gate and waits for Sonar’s result.
+
+The hook blocks missing credentials, test failures, insufficient coverage, unavailable SonarQube and failed quality gates. Pushes require a clean working tree and refs pointing to checked-out HEAD, so the checked code matches the pushed code. Hooks are local safeguards; Git can bypass them, so server-side enforcement would require a separate remote policy. [Setup and troubleshooting →](docs/development/quality-gates.md)
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Teacher[Teacher browser] --> HTTP[Node HTTP API]
+    Parent[Parent sharing link] --> HTTP
+    HTTP --> Domain[Deterministic domain rules]
+    HTTP --> SQLite[(Account-scoped SQLite)]
+    HTTP --> Providers[Environmental and holiday providers]
+    HTTP --> AI[Optional validated AI content]
+    Push[Local pre-push hook] --> Tests[Tests + coverage]
+    Tests --> Sonar[Docker SonarQube quality gate]
+```
+
+**Frontend:** pinned local Preact 10.29.8 + HTM 3.1.1, browser ES modules and CSS. **Backend:** native Node HTTP, crypto and SQLite. **Tests:** `node:test` and development-only `linkedom`. Docker starts the same app without installing runtime packages.
+
+## Documentation
+
+| Read this | For |
+| --- | --- |
+| [Documentation index](docs/README.md) | The complete documentation map |
+| [Architecture & ADRs](docs/architecture/adrs/README.md) | Decisions, tradeoffs and alternatives |
+| [Decision basis](docs/architecture/decision-basis.md) | Evidence, freshness and recommendation rules |
+| [Local operation](docs/operations/local-development.md) | Accounts, demos, persistence and parent links |
+| [Quality gates](docs/development/quality-gates.md) | Coverage, SonarQube and pre-push enforcement |
+| [Product research](docs/product/research.md) | Research inputs and possible future work |
+| [Sources](docs/reference/sources.md) · [Third-party notices](docs/reference/third-party.md) | Attribution and vendored licenses |

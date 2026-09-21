@@ -1,7 +1,7 @@
 # Backend
 
 - Built-in Node HTTP, fetch, filesystem, crypto, node:sqlite, and node:test. Passwords use async salted scrypt. Sessions use random opaque cookies and hashed storage.
-- Bind to loopback. Serve only frontend/ static files; never project-root files.
+- Native startup binds loopback; Docker explicitly uses BIND_HOST=0.0.0.0 and publishes only on host 127.0.0.1. Keep HTTP Host/origin restrictions. Serve only frontend/ static files; never project-root files.
 - Reject oversized/invalid bodies, cross-origin mutations, and unrecognised location/scenario values.
 - Keep domain functions pure and injectable clocks/fetch for tests.
 - Never accept a verdict, AQI, source URL, or sensor values from the client/model as trusted evidence.

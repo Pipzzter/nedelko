@@ -4,13 +4,17 @@
 
 Use Node 24+ and `npm.cmd start` from the repository. The app is at http://127.0.0.1:4173. No build or frontend CDN is needed. Stop a foreground server with Ctrl+C. For the hidden development server started by Codex, the process ID is in `.local/server.pid`; verify its command line before stopping that specific process. Do not kill all Node processes.
 
+While changing backend code, use `npm run dev` (`npm.cmd run dev` on Windows). It restarts the server when imported backend modules change. `npm start` loads backend modules only once, but frontend files are read from disk on each request. Leaving an older process running after adding an endpoint can therefore show new controls whose requests return `404 {"error":"not_found"}`. Stop that app process and restart it from the current checkout, then reload the page. A page reload alone cannot update the server. Saved account plans and sessions remain in SQLite; in-memory demos expire on restart.
+
+After changing API routes, run `npm --prefix api-tests run test:local` against the app the browser actually uses. The [Postman suite](../development/api-tests.md) checks direct content editing, drag/arrow reorder requests, explicit time boundaries and persistence after refresh. Tests against an isolated server do not establish that an already-running process has loaded the same code.
+
 `.env` is read only at process startup. Keep the existing key server-side and restart after changes. Node's inherited process environment takes precedence over the env file, so check for an existing `OPENAI_API_KEY` environment variable if the file appears to be ignored. Never print the key. `OPENAI_MODEL` must name a model available to that API project.
 
-Home shows the public failure reason. Bounded diagnostics remain available in `week.generationError` in an authenticated response: HTTP status, recognized provider code and request ID, without raw provider text. Restarting does not retry or replace a saved plan.
+Home omits the saved generation-warning banner. Library or mixed-source information is available inside Manage week. Failed new requests still show their actionable error. Bounded diagnostics remain available in `week.generationError` in an authenticated response: HTTP status, recognized provider code and request ID, without raw provider text. Restarting does not retry or replace a saved plan.
 
 `credit_balance_exhausted` means OpenAI reported an empty prepaid balance for the organization used by that request. If credits are available, verify that the `.env` key belongs to that funded organization and project. `insufficient_quota` alone is broader; spending limits and rate limits are reported separately. Do not repeatedly retry billing failures. See the [OpenAI error reference](https://developers.openai.com/api/docs/guides/error-codes). The app remains usable with explicitly labeled library activities.
 
-Generation allows OpenAI up to 180 seconds, and the browser waits up to 240 seconds including environmental/calendar requests. The weekly request uses low reasoning effort for the verified GPT-5.6 Sol/Terra/Luna and GPT-6 Astra families, keeping the configured model and the same validated output. Other model families receive no added reasoning setting. A timeout does not establish that credits are exhausted. There are no automatic retries that could duplicate model charges.
+Generation allows OpenAI up to 180 seconds, and the browser waits up to 270 seconds including environmental/calendar requests. The weekly request uses low reasoning effort for the verified GPT-5.6 Sol/Terra/Luna and GPT-6 Astra families, keeping the configured model and the same validated output. Other model families receive no added reasoning setting. A timeout does not establish that credits are exhausted. There are no automatic retries that could duplicate model charges.
 
 On Home, select an activity and choose **Change activity**. Submitting replaces only that item. **Change schedule** accepts activity and time changes, displays a complete proposal and requires confirmation. If generation times out, refresh to check whether a result was saved before retrying.
 
@@ -24,13 +28,13 @@ Real accounts, password hashes, session hashes, weekly plans, group profiles and
 
 ## Local scope
 
-The app binds to loopback and permits only localhost/127.0.0.1 Host headers. Its responsive layout can be viewed in a desktop browser’s mobile viewport. It is not currently exposed to other phones/computers on the network.
+Native startup binds to loopback and permits only localhost/127.0.0.1 Host headers. In [Docker](docker.md), the process binds the container interface while Compose publishes only on host loopback; the same HTTP Host/origin checks still apply. Its responsive layout can be viewed in a desktop browser’s mobile viewport. It is not currently exposed to other phones/computers on the network.
 
 A public deployment is separate work: HTTPS and Secure cookies, a configured origin instead of the loopback host rule, password/account recovery, operational monitoring, data-retention policy and hosting/backups need concrete deployment choices. No accounts or plans are synchronized to a cloud service in this version.
 
 ## Updating activities and routines
 
-Default recurring routines live in `backend/domain/settings.js`; educational dates and the lesson library live in `backend/domain/curriculum.js`. Confirm routine times during setup. Meal, sleep and holiday content stays protected during day edits. The model returns both language versions. Holiday context alone does not establish a closure.
+Default recurring routines live in `backend/domain/settings.js`; educational dates and the lesson library live in `backend/domain/curriculum.js`. Confirm routine times during setup. Teachers can directly edit bilingual meal, sleep and holiday content, reorder upcoming activities, or review changed time boundaries. Model proposals still protect meals, sleep and holiday lessons. The model returns both language versions. Holiday context alone does not establish a closure.
 
 Generation creates this week’s remaining weekdays, or next Monday–Friday when used on a weekend. There is no arbitrary future-week picker. Plans adapt when the app loads, refreshes, saves an edit, changes location or performs a recheck. While Home remains visible, it refreshes every minute. The running server also checks active weeks every minute without an open browser. The parent page refreshes every minute while visible. Parents do not receive automatic notifications. A sleeping/stopped computer cannot refresh plans.
 
@@ -53,7 +57,7 @@ All six air scenarios are available for every example. Refreshing, changing loca
 
 ## Development
 
-`npm.cmd ci` installs only test tooling. `npm.cmd test` tests backend and rendered component behaviour. `npm.cmd run check` checks all JavaScript files. The app itself runs without installing packages. Never commit `.env`, `.local`, `.cache`, `node_modules` or private schedule snapshots.
+`npm.cmd ci` installs only test tooling. Run `npm run hooks:install` once per clone to activate the required push gate; see [quality gates](../development/quality-gates.md). `npm.cmd test` tests backend and rendered component behaviour. `npm.cmd run check` checks all JavaScript files. The app itself runs without installing packages. Never commit `.env`, `.local`, `.cache`, `node_modules` or private schedule snapshots.
 
 
 ## Parent links and daily changes

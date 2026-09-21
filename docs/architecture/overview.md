@@ -4,7 +4,7 @@
 frontend/
   index.html                  browser entry point
   src/app.js                  session, routing and application state
-  src/pages/                  sign-in, create plan, edit week, parent week
+  src/pages/                  sign-in, create plan, parent week
   src/components/             calendar, air card, timetable, messages, forms
   src/lib/                    same-origin API and date/render helpers
   src/locales/                Macedonian and English interface copy
@@ -26,7 +26,9 @@ scripts/check.js              syntax checks, no build required
 
 ## Flow and ownership
 
-1. Register or sign in with a username/password. The account starts with no week.
+The application database choice, schema boundaries and operational limits are recorded in [ADR-0006: SQLite](adrs/0006-sqlite-application-database.md).
+
+1. Register or sign in with an email/password. The account starts with no week.
 2. Create a week with editable recurring routines, materials, age and weather preferences.
 3. The server obtains environmental data and bilingual lesson suggestions. It fills a Monday–Friday timetable; days before today remain empty.
 4. For a successful AI generation, the model ranks all five dates for outdoor learning using each generated activity and a sanitized forecast summary. The deterministic scheduler selects from that order only when its air, weather and timetable gates allow the day. Library plans use the deterministic weather score. The remaining eco lessons use their indoor versions.
@@ -43,23 +45,23 @@ All real week reads/writes are scoped to the cookie-authenticated account. SQLit
 
 `POST /api/week/delete` removes the authenticated account's current week, its notices and approval. SQLite retains only a revision tombstone, preventing old tabs from modifying a newly regenerated week. Demo deletion clears only the isolated example and retains its fixed profile/clock. The frontend confirms deletion, holds the settings in memory, and returns Home to its setup entry. It does not delete an existing plan merely by opening the editor.
 
-`pages/EditWeek.js` shows a readable timeline with fixed time labels. `components/InlineText.js` edits titles and lesson paragraphs in the selected language. Enter applies a single-line edit, Escape cancels it, and Save includes any active edit. Day headings toggle their content. Adding an activity requires an unused 30-minute gap and never borrows time. The server rejects changed existing times/kinds and still validates bounds and overlaps. The other language is preserved after a manual edit. `components/DayPlan.js` uses accessible selection buttons to show the chosen activity description in the current language, with full eco lesson details where applicable.
+Home is the only teacher workspace. `components/DayPlan.js` presents selectable activities and bilingual descriptions; `components/ChangeAssistant.js` handles selected-activity replacements and confirmed schedule proposals. The legacy weekly editor page has been removed.
 
 Day location controls submit only `outdoorPreference: auto | inside | outside` through the existing revision-checked edit endpoint. The backend validates the preference, rejects location changes after the eco slot ends, and recomputes the actual `mode`, activity variant and notices. Eligible explicit outdoor choices take priority; automatic days fill the weekly target remaining after elapsed and explicit slots. The preference persists when evidence blocks it, but client-supplied modes or reasons cannot override server checks. Every save clears the morning check and notice approval.
 
 ## Authentication and secrets
 
-New usernames require at least eight characters after normalization and trimming. There is no character whitelist or thirty-character cap. Sign-in still accepts existing shorter usernames; passwords retain their separate policy. Usernames are stored with prepared statements and rendered as escaped text.
+Registration validates and normalizes an email address and captures the kindergarten profile. Sign-in also accepts legacy usernames. All accounts have the same teacher capabilities; parent access uses revocable bearer links, not parent accounts or an RBAC role field.
 
 Passwords use asynchronous scrypt with independent 128-bit salts, N=32768, r=8, p=1, and timing-safe comparison. Random 256-bit session tokens are stored only as SHA-256 hashes. Cookies are HttpOnly, SameSite=Strict, expire after seven days, rotate on sign-in and are revoked on sign-out. Login attempts are rate limited. No password, token or private schedule is logged.
 
-This is a loopback HTTP app. It is not a production HTTPS deployment; see OPERATIONS.md before exposing it. SQLite is a local unencrypted file protected by the computer’s filesystem permissions. The server serves only approved extensions beneath `frontend/`; project files, keys and the database are inaccessible over HTTP.
+This is a loopback HTTP app. It is not a production HTTPS deployment; see [local operation](../operations/local-development.md) before exposing it. SQLite is a local unencrypted file protected by the computer’s filesystem permissions. The server serves only approved extensions beneath `frontend/`; project files, keys and the database are inaccessible over HTTP.
 
 ## AI boundary
 
-The weekly model request has a 180-second deadline and a 10,000-token output budget. It requests low reasoning effort for the verified GPT-5.6 Sol/Terra/Luna and GPT-6 Astra model families; the configured model is retained. The client refuses redirects, bounds the provider body to 1 MB, and still rejects incomplete or invalid output. The browser gives `/api/week/generate` 240 seconds including upstream preparation; day suggestions have a 120-second browser deadline; other browser requests keep their 60-second deadline. Node's `requestTimeout` bounds receipt of the incoming request, not model processing, and stays at 60 seconds. See the [official reasoning guidance](https://developers.openai.com/api/docs/guides/reasoning) and [GPT-5.6 Terra model reference](https://developers.openai.com/api/docs/models/gpt-5.6-terra).
+The weekly model request has a 180-second deadline and a 10,000-token output budget. It requests low reasoning effort for the verified GPT-5.6 Sol/Terra/Luna and GPT-6 Astra model families; the configured model is retained. The client refuses redirects, bounds the provider body to 1 MB, and still rejects incomplete or invalid output. The browser gives `/api/week/generate` 270 seconds including upstream preparation; day suggestions have a 120-second browser deadline; other browser requests keep their 60-second deadline. Node's `requestTimeout` bounds receipt of the incoming request, not model processing, and stays at 60 seconds. See the [official reasoning guidance](https://developers.openai.com/api/docs/guides/reasoning) and [GPT-5.6 Terra model reference](https://developers.openai.com/api/docs/models/gpt-5.6-terra).
 
-Home shows generation failure and unapplied-library-brief notices. Successful provenance banners are omitted. Account-scoped diagnostics remain in the saved response. Explicit AI retries and daily-topic requests cannot replace a saved plan with fallback. Successful replacement clears approval.
+Home omits saved generation failure and unapplied-library-brief banners. Library or mixed-source information appears inside the collapsed Manage week section; successful AI provenance banners remain omitted. Failed new requests still show their error, and account-scoped diagnostics remain in the saved response. Explicit AI retries and daily-topic requests cannot replace a saved plan with fallback. Successful replacement clears approval.
 
 `services/curriculum.js` uses the existing Responses API client with strict JSON Schema and `store:false`. Input contains dates, a variation seed, age range, material IDs, season, the teacher brief, all supplied occasions and a sanitized per-day forecast summary. No library titles or sample lessons are supplied. Account IDs, kindergarten/group names, raw sensor readings, AQI and PM2.5 values are excluded. Teachers are asked to omit child names and private details from the free-text brief; the application does not claim automatic anonymization of that text. The server first supplies a `serverEligible` result from deterministic gates and the best available timetable window. Output must contain exactly five bilingual educational goals, indoor/outdoor variants, habits, four distinct indoor session titles per day and every supplied date exactly once in `outdoorOrder`. The schema constrains string lengths and selected material IDs to match domain limits. The server independently validates text lengths, language pairs, material IDs and the exact date permutation and rejects selected markup/instruction/air-safety patterns. It also requires the first occasion's name in the title and every occasion's name in both activity variants, in both languages. This checks visible coverage, not educational quality; lessons remain editable for the teacher. Other model calls retain their 25-second API deadline. The request uses the existing configured model. The structured-output request follows the [official OpenAI Responses API](https://developers.openai.com/api/reference/cli/resources/responses/methods/create).
 
