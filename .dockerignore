@@ -1,0 +1,13 @@
+**
+!package.json
+!backend/
+!backend/**
+!frontend/
+!frontend/**
+!docs/
+!docs/reference/
+!docs/reference/licenses/
+!docs/reference/licenses/**
+backend/tests/
+frontend/tests/
+**/AGENTS.md

@@ -11,7 +11,9 @@
     "start": "node --env-file-if-exists=.env backend/server.js",
     "dev": "node --watch --env-file-if-exists=.env backend/server.js",
     "test": "node --test backend/tests/*.test.js frontend/tests/*.test.js",
-    "check": "node scripts/check.js"
+    "check": "node scripts/check.js",
+    "docker:up": "docker compose up --build -d --wait",
+    "docker:down": "docker compose down"
   },
   "devDependencies": {
     "linkedom": "0.18.12"
