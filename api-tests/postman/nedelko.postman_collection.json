@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "5b66b453-b40a-43d9-a8b1-139bdd4a8d1b",
-    "name": "EkoCuvar local API regression tests",
-    "description": "Run all folders in order with the EkoCuvar local environment. Planning, editing, sharing and approval use explicitly synthetic demos. Auth requests create a unique disposable example.test account. Every request disables the shared cookie jar and sends only this run’s captured session cookie. Successful cleanup deletes the demo, revokes sharing, logs out and clears runtime variables. Use npm --prefix api-tests test for an isolated in-memory app, or npm --prefix api-tests run test:local for an existing native/Docker app. See docs/development/api-tests.md.",
+    "name": "Nedelko local API regression tests",
+    "description": "Run all folders in order with the Nedelko local environment. Planning, editing, sharing and approval use explicitly synthetic demos. Auth requests create a unique disposable example.test account. Every request disables the shared cookie jar and sends only this run’s captured session cookie. Successful cleanup deletes the demo, revokes sharing, logs out and clears runtime variables. Use npm --prefix api-tests test for an isolated in-memory app, or npm --prefix api-tests run test:local for an existing native/Docker app. See docs/development/api-tests.md.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {

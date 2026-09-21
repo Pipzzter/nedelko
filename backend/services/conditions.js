@@ -49,7 +49,7 @@ export function createCachedFetch({
       return { ...saved, cached: true, failedRefresh: false };
     const request = (async () => {
       try {
-        const headers = { Accept: 'application/json', 'User-Agent': 'EkoCuvar-LocalPlanner/1.0' };
+        const headers = { Accept: 'application/json', 'User-Agent': 'Nedelko-LocalPlanner/1.0' };
         if (parsed.hostname.endsWith('.pulse.eco') && process.env.PULSE_USERNAME && process.env.PULSE_PASSWORD) {
           headers.Authorization = `Basic ${Buffer.from('' + process.env.PULSE_USERNAME + ':' + process.env.PULSE_PASSWORD).toString('base64')}`;
         }

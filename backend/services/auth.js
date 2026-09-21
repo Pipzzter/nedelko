@@ -72,14 +72,14 @@ export async function login(store, body) {
   return publicUser(row);
 }
 export function readSessionCookie(request) {
-  const match = (request.headers.cookie ?? '').match(/(?:^|;\s*)eko_session=([a-f0-9]{64})(?:;|$)/);
+  const match = (request.headers.cookie ?? '').match(/(?:^|;\s*)nedelko_session=([a-f0-9]{64})(?:;|$)/);
   return match?.[1] ?? null;
 }
 export function createSession(store, user, previousToken) {
   if (previousToken) store.deleteSession(tokenHash(previousToken));
   const token = randomBytes(32).toString('hex');
   store.createSession(tokenHash(token), user.id, Date.now() + SESSION_SECONDS * 1000);
-  return `eko_session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${SESSION_SECONDS}`;
+  return `nedelko_session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${SESSION_SECONDS}`;
 }
 
 function emailFormat(email) {

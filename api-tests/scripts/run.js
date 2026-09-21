@@ -35,7 +35,7 @@ function runCollection(baseUrl) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [
       localPath('../node_modules/postman-cli/bin/postman.js'),
-      'collection', 'run', localPath('../postman/ekocuvar.postman_collection.json'),
+      'collection', 'run', localPath('../postman/nedelko.postman_collection.json'),
       '--environment', localPath('../postman/local.postman_environment.json'),
       '--env-var', `baseUrl=${baseUrl}`,
       '--reporters', 'cli', '--no-report-events',

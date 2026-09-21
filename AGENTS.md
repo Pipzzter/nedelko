@@ -1,4 +1,4 @@
-# ЕкоЧувар
+# Неделко
 
 ## Run and verify
 - Node 24+, no server runtime dependencies, no build step. Preact + HTM are pinned local browser assets.
@@ -30,4 +30,4 @@
 
 ## Team workflow skill
 
-- For requests to continue/reopen PRs or complete the branch, push, PR, merge and pull cycle, read [ekocuvar-pr-workflow](docs/development/skills/ekocuvar-pr-workflow/SKILL.md). Follow its scope and authorization rules; merely loading the skill does not authorize publishing.
+- For requests to continue/reopen PRs or complete the branch, push, PR, merge and pull cycle, read [nedelko-pr-workflow](docs/development/skills/nedelko-pr-workflow/SKILL.md). Follow its scope and authorization rules; merely loading the skill does not authorize publishing.

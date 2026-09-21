@@ -38,7 +38,7 @@ Use `DatabaseSync` from `node:sqlite` behind the storage functions in `backend/s
 | `parent_links` | Expiring, revocable sharing tokens tied to an account/week |
 | `parent_notes` | Account/week-scoped notes, submission nonce, status and optional advice |
 
-The native database is `.local/ekocuvar.sqlite`. Docker stores it at `/app/.local/ekocuvar.sqlite` in the `app_data` named volume. These are independent stores; container startup does not import native accounts. Demo plans remain in memory and provider responses use a separate cache.
+The native database is a SQLite file within `.local`. Docker stores it under `/app/.local` in the `app_data` named volume. These are independent stores; container startup does not import native accounts. Demo plans remain in memory and provider responses use a separate cache. The current filename and upgrade selection rules are recorded in [ADR-0009](0009-nedelko-product-identity.md).
 
 The store requests `journal_mode=WAL`, enables `foreign_keys=ON` and sets `busy_timeout=5000`. Queries bind values through prepared statements. Ownership is enforced through authenticated account IDs and scoped queries, not through database users or an RBAC system.
 

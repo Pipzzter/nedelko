@@ -11,7 +11,7 @@ import { ParentNoteForm } from '../components/ParentNoteForm.js';
 export function ParentWeek({ token }) {
   const [lang, setLang] = useState(() => {
     try {
-      return localStorage.getItem('eko-language') === 'en' ? 'en' : 'mk';
+      return localStorage.getItem('nedelko-language') === 'en' ? 'en' : 'mk';
     } catch {
       return 'mk';
     }
@@ -24,7 +24,7 @@ export function ParentWeek({ token }) {
     document.documentElement.lang = lang;
     document.title = `${t('brand', lang)} · ${t('parentWeek', lang)}`;
     try {
-      localStorage.setItem('eko-language', lang);
+      localStorage.setItem('nedelko-language', lang);
     } catch {}
   }, [lang]);
   useEffect(() => {

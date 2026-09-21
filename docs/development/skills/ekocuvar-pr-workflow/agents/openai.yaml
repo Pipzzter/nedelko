@@ -1,4 +1,0 @@
-interface:
-  display_name: "EkoCuvar PR Workflow"
-  short_description: "Continue PRs, publish changes, merge and sync main"
-  default_prompt: "Use $ekocuvar-pr-workflow to complete the full branch, commit, push, PR, merge, and pull cycle for the changes I specify, following this repository's conventions and quality gates."

@@ -322,7 +322,7 @@ test('auth rate limits block repeated password attempts', async t => {
 
 test('only frontend files are served and configuration never leaks secrets', async t => {
   const { client, base } = await app(t); const request = client();
-  for (const path of ['/.env', '/backend/server.js', '/%2e%2e%5cbackend%5cserver.js', '/AGENTS.md', '/.local/ekocuvar.sqlite', '/tests/app.test.js']) assert.equal((await request(path)).status, 404);
+  for (const path of ['/.env', '/backend/server.js', '/%2e%2e%5cbackend%5cserver.js', '/AGENTS.md', '/.local/nedelko.sqlite', '/tests/app.test.js']) assert.equal((await request(path)).status, 404);
   const config = await request('/api/config'); assert.equal(config.status, 200); assert.equal(config.body.locations.length, 24);
   assert.deepEqual(config.body.preferenceBounds, PREFERENCE_BOUNDS);
   assert.doesNotMatch(JSON.stringify(config.body), /OPENAI|sk-proj-|password_hash/);

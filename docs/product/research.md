@@ -1,6 +1,6 @@
-# Nedelko / EkoCuvar: product research and a path to a useful daily app
+# Nedelko: product research and a path to a useful daily app
 
-Desk research began on 20 September 2026; this record was updated on 21 September 2026. The current product brand is Неделко / Nedelko, with ЕкоЧувар / EkoCuvar retained in the project identity.
+Desk research began on 20 September 2026; this record was updated on 21 September 2026. The product brand is Неделко / Nedelko.
 
 **Recommendation:** build around one dependable daily loop: the teacher plans, the family knows what to expect, children enjoy the activity, and a short reflection improves the next plan. The strongest opportunity is a locally relevant, bilingual planner that responds clearly to changing conditions and connects classroom play with home.
 
@@ -12,16 +12,16 @@ The project owner reports a pilot session with a practising kindergarten teacher
 
 ## What the sources suggest
 
-| Evidence | Implication for EkoCuvar |
+| Evidence | Implication for Nedelko |
 | --- | --- |
 | NAEYC describes family partnerships as reciprocal and values what families know about their children. | Add a small, structured way for parents to contribute interests and observations, alongside teacher updates. [NAEYC family partnerships](https://www.naeyc.org/node/3810) |
 | NAEYC’s developmentally appropriate practice emphasizes joyful play, individual context, language, culture and ability. | Offer flexible versions of practical activities and give teachers control over learning goals. [NAEYC definition](https://www.naeyc.org/node/3807) |
-| Brightwheel documents lesson planning, reusable curriculum, observations, learning frameworks and sharing controls. | Planning and family communication are established product capabilities. EkoCuvar needs a distinctive local planning experience and teacher workflow. [Brightwheel learning](https://mybrightwheel.com/features/learning/) |
+| Brightwheel documents lesson planning, reusable curriculum, observations, learning frameworks and sharing controls. | Planning and family communication are established product capabilities. Nedelko needs a distinctive local planning experience and teacher workflow. [Brightwheel learning](https://mybrightwheel.com/features/learning/) |
 | Famly documents daily activity updates, optional notifications, parent contributions and secure staff messaging. | Parents need a clear daily view and a reliable way to respond. Notification preferences should be part of the design. [Famly parent guide](https://help.famly.co/en/articles/4912437-parents-get-the-most-out-of-the-app) |
 | UNICEF’s 2025 AI guidance emphasizes children’s privacy, safety, inclusion, transparency and accountability. | Keep the AI teacher-facing, collect only necessary data, and retain human review of educational content. [UNICEF guidance](https://www.unicef.org/innocenti/reports/policy-guidance-ai-children) |
 | WCAG 2.2 provides testable accessibility criteria, including keyboard interaction, visible focus, target sizing and accessible authentication. | Include accessibility checks in each release and test with real assistive-technology users. [W3C WCAG 2.2](https://www.w3.org/TR/WCAG22/) |
 
-These sources support design principles and comparisons. They do not establish demand in Macedonian kindergartens, prove EkoCuvar’s effectiveness, or constitute local curriculum approval.
+These sources support design principles and comparisons. They do not establish demand in Macedonian kindergartens, prove Nedelko’s effectiveness, or constitute local curriculum approval.
 
 ## What is already implemented in this update
 
@@ -33,7 +33,7 @@ These sources support design principles and comparisons. They do not establish d
 - Revocable, expiring links; a dedicated control copies just the URL, while weekly and daily notice copies include the notice and enabled link.
 - Private parent notes through the shared link, a teacher inbox and teacher-confirmed suggestions; a note cannot edit the plan itself.
 - A server worker that revisits active plans every minute, selecting indoor alternatives and rebuilding parent drafts when conditions change.
-- Responsive parent and teacher improvements while retaining EkoCuvar’s identity.
+- Responsive parent and teacher improvements while retaining Nedelko’s identity.
 
 Current boundaries: the app runs on localhost; family links work on this computer. A link grants access to anyone holding it, without verifying parent identity. There is no email, push or SMS delivery. Both account and demo modes focus on planning, editing and read-only parent sharing. The earlier classroom simulation has been removed: neither mode offers two-way family conversations, child rosters, attendance, individual learning records or packing acknowledgements. The implemented private parent-note submission is a narrower teacher-review workflow. Demo examples remain synthetic and isolated from account data. Automatic checks require the server and computer to be running. The opportunities below are proposals, not implemented features or evidence of demand.
 
@@ -110,4 +110,4 @@ Optimize for saved teacher time, parent understanding and enjoyable participatio
 
 **Later:** co-teacher collaboration, consent-controlled journals and curriculum mapping. Expand to multiple groups only when the single-group workflow is reliable and the pilot asks for it.
 
-Billing, attendance hardware, unrestricted child AI chat and automated developmental scoring would substantially broaden the product. I would defer them while testing whether EkoCuvar’s planning-and-family loop earns repeated voluntary use.
+Billing, attendance hardware, unrestricted child AI chat and automated developmental scoring would substantially broaden the product. I would defer them while testing whether Nedelko’s planning-and-family loop earns repeated voluntary use.

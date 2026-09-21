@@ -1,9 +1,9 @@
 ---
-name: ekocuvar-pr-workflow
-description: "Continue or reopen an EkoCuvar pull request, or create a focused branch and PR, using this repository's commit conventions and quality gates. Use for requests to publish changes, follow the same PR pattern, merge into main, and pull the result locally."
+name: nedelko-pr-workflow
+description: "Continue or reopen an Nedelko pull request, or create a focused branch and PR, using this repository's commit conventions and quality gates. Use for requests to publish changes, follow the same PR pattern, merge into main, and pull the result locally."
 ---
 
-# EkoCuvar PR workflow
+# Nedelko PR workflow
 
 Carry the requested change through the authorized parts of the branch, commit, push, PR, merge, and local-sync cycle. Run commands from the repository root; project paths below are relative to that root, regardless of the skill's installation location. Use Git and an authenticated GitHub CLI (`gh`), or an available GitHub integration with equivalent operations.
 

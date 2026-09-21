@@ -9,7 +9,7 @@ import { LOCATIONS } from '../config/index.js';
 const instant = Date.parse('2026-09-21T06:45:00Z');
 const url = 'https://skopje.pulse.eco/rest/current';
 async function directory(t) {
-  const path = await mkdtemp(join(tmpdir(), 'eko-conditions-test-'));
+  const path = await mkdtemp(join(tmpdir(), 'nedelko-conditions-test-'));
   t.after(() => rm(path, { recursive: true, force: true }));
   return path;
 }

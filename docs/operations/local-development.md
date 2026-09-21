@@ -30,7 +30,9 @@ New AI requests include community holidays as lesson context without library tit
 
 ## Persistence
 
-Real accounts, password hashes, session hashes, weekly plans, group profiles and expiring parent links are in `.local/ekocuvar.sqlite`, with SQLite WAL/SHM files while running. Stop the server before making a simple file backup. Do not delete `.local` when restarting. No accounts are pre-created. Demo data is held in memory for at most an hour and disappears after restart. Environmental snapshots live under `.cache/` and retain original timestamps.
+Real accounts, password hashes, session hashes, weekly plans, group profiles and expiring parent links use SQLite, with WAL/SHM files while running. New installations use `.local/nedelko.sqlite`. If that file is absent and `.local` contains one existing `.sqlite` file, the app reuses it without copying, renaming or resetting data. If there are multiple candidates, startup fails rather than guessing; set `NEDELKO_DATABASE_PATH` to the intended file, using an absolute path or a path relative to the repository root. Stop the server before making a simple file backup, and keep backup copies outside `.local`. Do not delete `.local` when restarting. No accounts are pre-created. Demo data is held in memory for at most an hour and disappears after restart. Environmental snapshots live under `.cache/` and retain original timestamps.
+
+The session cookie is `nedelko_session`, and browser preferences use `nedelko-language` and `nedelko-visited`. After upgrading an existing installation, sign in again and reselect the language if needed. Account data and parent-link tokens are unchanged. See [ADR-0009](../architecture/adrs/0009-nedelko-product-identity.md).
 
 ## Local scope
 

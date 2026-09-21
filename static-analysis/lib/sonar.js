@@ -1,5 +1,5 @@
-export const PROJECT = 'ekocuvar';
-export const GATE = 'EkoCuvar';
+export const PROJECT = 'nedelko';
+export const GATE = 'Nedelko';
 
 export function sonarClient(env = process.env, fetcher = fetch) {
   if (!env.SONAR_TOKEN?.trim()) throw new Error('SONAR_TOKEN is required; SonarQube analysis cannot be skipped.');
@@ -20,7 +20,7 @@ export function sonarClient(env = process.env, fetcher = fetch) {
 
 export async function assertQualityPolicy(request) {
   const { qualityGate } = await request('qualitygates/get_by_project', { project: PROJECT });
-  if (qualityGate?.name !== GATE) throw new Error('Project must use the EkoCuvar quality gate. Run npm run sonar:configure.');
+  if (qualityGate?.name !== GATE) throw new Error('Project must use the Nedelko quality gate. Run npm run sonar:configure.');
   const gate = await request('qualitygates/show', { name: GATE });
   if (!gate.conditions?.some(c => c.metric === 'line_coverage' && c.op === 'LT' && Number(c.error) >= 91)) {
     throw new Error('SonarQube must enforce overall line coverage >= 91%. Run npm run sonar:configure.');
@@ -31,7 +31,7 @@ export async function configureProject(request) {
   try { await request('components/show', { component: PROJECT }); }
   catch (error) {
     if (error.status !== 404) throw error;
-    await request('projects/create', { project: PROJECT, name: 'EkoCuvar', visibility: 'private' }, 'POST');
+    await request('projects/create', { project: PROJECT, name: 'Nedelko', visibility: 'private' }, 'POST');
   }
   let gate;
   try { gate = await request('qualitygates/show', { name: GATE }); }

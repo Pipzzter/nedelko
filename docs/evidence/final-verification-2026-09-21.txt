@@ -1,3 +1,5 @@
+Editorial note: retired project and container identifiers were redacted during the Nedelko branding update; trailing whitespace on those lines was removed. Original timestamps, command results and metrics are unchanged. This is a historical run, not verification of the branding change. Original identifiers remain in Git history.
+
 Final verification
 Started UTC: 2026-09-21T20:43:09.258Z
 Repository: C:/Users/pipoj/PycharmProjects/gun-mayhem-repo
@@ -904,11 +906,11 @@ frontend/src/ 94.88% lines (4056/4275); required 91%.
 20:43:43.044 INFO  Load/download plugins (done) | time=22ms
 20:43:43.303 INFO  Process project properties
 20:43:43.325 INFO  Process project properties (done) | time=22ms
-20:43:43.337 INFO  Project key: ekocuvar
+20:43:43.337 INFO  Project key: [project]
 20:43:43.337 INFO  Base dir: /usr/src
 20:43:43.338 INFO  Working dir: /tmp/analysis
-20:43:43.353 INFO  Load project settings for component key: 'ekocuvar'
-20:43:43.367 INFO  Load project settings for component key: 'ekocuvar' (done) | time=13ms
+20:43:43.353 INFO  Load project settings for component key: '[project]'
+20:43:43.367 INFO  Load project settings for component key: '[project]' (done) | time=13ms
 20:43:43.399 INFO  Load quality profiles
 20:43:43.444 INFO  Load quality profiles (done) | time=44ms
 20:43:43.502 INFO  Load active rules
@@ -934,7 +936,7 @@ frontend/src/ 94.88% lines (4056/4275); required 91%.
 20:43:44.662 INFO  Quality profile for js: Sonar way
 20:43:44.662 INFO  Quality profile for web: Sonar way
 20:43:44.663 INFO  Quality profile for yaml: Sonar way
-20:43:44.663 INFO  ------------- Run sensors on module EkoCuvar
+20:43:44.663 INFO  ------------- Run sensors on module [project]
 20:43:44.691 INFO  Load metrics repository
 20:43:44.709 INFO  Load metrics repository (done) | time=17ms
 20:43:45.033 INFO  Reflections took 64 ms to scan 1 urls, producing 30 keys and 295 values
@@ -1006,22 +1008,22 @@ frontend/src/ 94.88% lines (4056/4275); required 91%.
 20:44:02.646 INFO  Analysis report uploaded in 126ms
 20:44:02.647 INFO  ------------- Check Quality Gate status
 20:44:02.648 INFO  Waiting for the analysis report to be processed (max 300s)
-20:44:07.681 INFO  QUALITY GATE STATUS: PASSED - View details on http://sonarqube:9000/dashboard?id=ekocuvar
+20:44:07.681 INFO  QUALITY GATE STATUS: PASSED - View details on http://sonarqube:9000/dashboard?id=[project]
 20:44:07.822 INFO  Analysis total time: 24.750 s
 20:44:07.839 INFO  SonarScanner Engine completed successfully
 20:44:07.858 INFO  EXECUTION SUCCESS
 20:44:07.859 INFO  Total time: 27.012s
 Local gate passed: syntax, documentation, tests, coverage and SonarQube.
- Container ekocuvar-sonarqube-1 Running 
- Container ekocuvar-sonar-db-1 Running 
- Container ekocuvar-sonar-db-1 Waiting 
- Container ekocuvar-sonar-db-1 Healthy 
- Container ekocuvar-sonarqube-1 Waiting 
- Container ekocuvar-sonar-db-1 Waiting 
- Container ekocuvar-sonar-db-1 Healthy 
- Container ekocuvar-sonarqube-1 Healthy 
- Container ekocuvar-sonar-scanner-run-9e4798c10615 Creating 
- Container ekocuvar-sonar-scanner-run-9e4798c10615 Created 
+ Container [project]-sonarqube-1 Running
+ Container [project]-sonar-db-1 Running
+ Container [project]-sonar-db-1 Waiting
+ Container [project]-sonar-db-1 Healthy
+ Container [project]-sonarqube-1 Waiting
+ Container [project]-sonar-db-1 Waiting
+ Container [project]-sonar-db-1 Healthy
+ Container [project]-sonarqube-1 Healthy
+ Container [project]-sonar-scanner-run-9e4798c10615 Creating
+ Container [project]-sonar-scanner-run-9e4798c10615 Created
 
 Exit code: 0
 Finished UTC: 2026-09-21T20:44:10.909Z

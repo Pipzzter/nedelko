@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { gitExecutable } from '../lib/git.js';
 
 test('hook installation ignores PATH executables and preserves an existing custom hook', async t => {
-  const directory = await mkdtemp(join(tmpdir(), 'ekocuvar-hooks-'));
+  const directory = await mkdtemp(join(tmpdir(), 'nedelko-hooks-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const globalConfig = join(directory, 'gitconfig-global');
   const systemConfig = join(directory, 'gitconfig-system');

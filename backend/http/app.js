@@ -212,7 +212,7 @@ export function createApp({
   async function handleAuthLogout({ request, cookie, response, send }) {
     await jsonBody(request);
     if (cookie) store.deleteSession(tokenHash(cookie));
-    response.setHeader('Set-Cookie', 'eko_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0');
+    response.setHeader('Set-Cookie', 'nedelko_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0');
     return send(200, { ok: true });
   }
 

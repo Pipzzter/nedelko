@@ -1,11 +1,31 @@
 import { DatabaseSync } from 'node:sqlite';
-import { mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { mkdirSync, readdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
 import { parentNoteStore } from './parent-notes.js';
 
-export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuvar.sqlite', import.meta.url))) {
+const PROJECT_ROOT = fileURLToPath(new URL('../../', import.meta.url));
+const DATA_DIRECTORY = join(PROJECT_ROOT, '.local');
+const DATABASE_NAME = 'nedelko.sqlite';
+
+export function databaseFilename(directory = DATA_DIRECTORY, configured = process.env.NEDELKO_DATABASE_PATH) {
+  if (configured?.trim()) return resolve(PROJECT_ROOT, configured.trim());
+  const preferred = join(directory, DATABASE_NAME);
+  let entries;
+  try { entries = readdirSync(directory, { withFileTypes: true }); }
+  catch (error) {
+    if (error.code === 'ENOENT') return preferred;
+    throw error;
+  }
+  const databases = entries.filter(entry => entry.isFile() && entry.name.endsWith('.sqlite')).map(entry => entry.name);
+  if (databases.includes(DATABASE_NAME)) return preferred;
+  if (databases.length > 1) throw new Error('Multiple SQLite databases found. Set NEDELKO_DATABASE_PATH to the existing account database.');
+  // Reuse an existing installation without copying, renaming or resetting private data.
+  return databases.length ? join(directory, databases[0]) : preferred;
+}
+
+export function openStore(filename = databaseFilename()) {
   if (filename !== ':memory:') mkdirSync(dirname(filename), { recursive: true });
   const db = new DatabaseSync(filename);
   db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;

@@ -10,7 +10,7 @@
 
 ---
 
-The GitHub repository is named `gun-mayhem-repo` for administrative reasons; the product is Nedelko / ЕкоЧувар.
+The GitHub repository is named `gun-mayhem-repo` for administrative reasons; the product is Nedelko (Неделко).
 
 ## Teacher pilot feedback
 

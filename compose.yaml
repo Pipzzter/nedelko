@@ -1,4 +1,4 @@
-name: ekocuvar
+name: nedelko
 
 services:
   app:
@@ -11,6 +11,7 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-}
       PULSE_USERNAME: ${PULSE_USERNAME:-}
       PULSE_PASSWORD: ${PULSE_PASSWORD:-}
+      NEDELKO_DATABASE_PATH: ${NEDELKO_DATABASE_PATH:-}
     volumes:
       - app_data:/app/.local
       - app_cache:/app/.cache

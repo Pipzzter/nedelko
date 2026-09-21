@@ -15,7 +15,7 @@ export function startServer({ env = process.env, factory = createApp, lifecycle 
   const { port, host } = serverOptions(env);
   const server = factory({ autoRefreshMs: 60000 });
   server.on('error', error => { logger.error(error.code === 'EADDRINUSE' ? `Port ${port} is busy.` : 'Server could not start.'); lifecycle.exitCode = 1; });
-  server.listen(port, host, () => logger.log(`EkoCuvar: http://127.0.0.1:${port}`));
+  server.listen(port, host, () => logger.log(`Nedelko: http://127.0.0.1:${port}`));
   for (const signal of ['SIGINT', 'SIGTERM']) lifecycle.on(signal, () => server.close(() => lifecycle.exit(0)));
   return server;
 }

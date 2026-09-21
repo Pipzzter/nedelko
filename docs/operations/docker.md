@@ -24,6 +24,8 @@ Root Compose reads `.env` for app substitutions; the analysis stack reads `stati
 | `SONAR_DB_PASSWORD` | Required, no default | Private analysis DB password; set before the first initialization and retain for existing volumes |
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | Empty | Optional server-side educational generation |
 | `PULSE_USERNAME`, `PULSE_PASSWORD` | Empty | Optional upstream credentials |
+| `NEDELKO_DATABASE_PATH` | Automatic selection | Optional app database path inside the container, relative to `/app` or absolute |
+| `COMPOSE_PROJECT_NAME` | `nedelko` | Optional existing stack identifier to retain its containers and named volumes |
 
 Native `PORT` does not control the container port. `BIND_HOST=0.0.0.0` is confined to the image; the published host port remains loopback and the API’s Host/origin checks remain unchanged. Native startup defaults to `127.0.0.1`.
 
@@ -33,13 +35,15 @@ Use `static-analysis/.env` for the scanner token and `SONAR_HOST_URL`. The npm a
 
 ## Persistence and backups
 
-`app_data` holds `/app/.local/ekocuvar.sqlite` and its SQLite WAL/SHM files. `app_cache` holds provider caches. Sonar has separate `sonar_db`, `sonar_data`, `sonar_extensions`, `sonar_logs` and `scanner_cache` volumes. Native `.local/` and Docker’s `app_data` are separate databases; starting Docker does not import native accounts.
+`app_data` holds the SQLite database and its WAL/SHM files. New installations use `/app/.local/nedelko.sqlite`; a single existing `.sqlite` file is reused if that default is absent. Multiple candidates require an explicit `NEDELKO_DATABASE_PATH`. `app_cache` holds provider caches. Sonar has separate `sonar_db`, `sonar_data`, `sonar_extensions`, `sonar_logs` and `scanner_cache` volumes. Native `.local/` and Docker’s `app_data` are separate databases; starting Docker does not import native accounts.
+
+Both Compose files default to the `nedelko` project identifier. Before upgrading an existing stack, find its current identifier with `docker compose ls` and retain it as `COMPOSE_PROJECT_NAME` in the relevant private environment file. The root stack uses `.env`; analysis uses `static-analysis/.env`. This preserves persistent volumes without copying or deleting data. A new project identifier creates a separate set of volumes; do not mistake an empty new instance for a migrated database. Persistent resource identifiers are compatibility settings, separate from the product's displayed name.
 
 Stop the app before making a simple backup; copy the entire data directory to a private destination:
 
 ```sh
 docker compose stop app
-docker compose cp app:/app/.local ./ekocuvar-backup
+docker compose cp app:/app/.local ./nedelko-backup
 docker compose start app
 ```
 

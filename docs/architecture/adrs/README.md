@@ -16,5 +16,6 @@ Record 0006 separately documents the existing SQLite database choice, also retro
 | [0006](0006-sqlite-application-database.md) | SQLite through built-in node:sqlite for application persistence | Accepted |
 | [0007](0007-conservative-forecast-and-refresh-boundaries.md) | Complete future air forecasts and revision-stable, approval-invalidating reads | Accepted |
 | [0008](0008-critical-coverage-and-analysis-secrets.md) | Critical-file coverage floors and required private Sonar database password | Accepted |
+| [0009](0009-nedelko-product-identity.md) | Sole Nedelko identity with preserved account data and analysis history | Accepted |
 
 Use the [template](template.md). Number records sequentially. Preserve accepted records; supersede a decision with a new linked record when its premise changes.

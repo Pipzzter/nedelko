@@ -7,7 +7,7 @@ Nedelko was built with substantial AI coding assistance. Optional runtime AI sup
 | Area | Documents |
 | --- | --- |
 | Architecture | [Overview](architecture/overview.md), [decision basis](architecture/decision-basis.md), [ADRs](architecture/adrs/README.md) |
-| Development | [Quality gates](development/quality-gates.md), [Postman API tests](development/api-tests.md), [verification status](development/verification-status.md), [team PR workflow skill](development/skills/ekocuvar-pr-workflow/SKILL.md) |
+| Development | [Quality gates](development/quality-gates.md), [Postman API tests](development/api-tests.md), [verification status](development/verification-status.md), [team PR workflow skill](development/skills/nedelko-pr-workflow/SKILL.md) |
 | Operations | [Native development and demos](operations/local-development.md), [Docker and persistence](operations/docker.md) |
 | Evidence | [Live AI generation and its limits](evidence/README.md) |
 | Product | [Research and roadmap](product/research.md) |
@@ -16,18 +16,18 @@ Nedelko was built with substantial AI coding assistance. Optional runtime AI sup
 
 ## Team PR workflow skill
 
-The reusable [ekocuvar-pr-workflow skill](development/skills/ekocuvar-pr-workflow/SKILL.md) follows the repository's observed branch names, commit subjects, PR merge style, and current quality gates. Its source and UI metadata live in this repository so teammates can review and share changes together.
+The reusable [nedelko-pr-workflow skill](development/skills/nedelko-pr-workflow/SKILL.md) follows the repository's observed branch names, commit subjects, PR merge style, and current quality gates. Its source and UI metadata live in this repository so teammates can review and share changes together.
 
-Use it directly by asking: "Read `docs/development/skills/ekocuvar-pr-workflow/SKILL.md` and use it to commit, push, create or reactivate the appropriate PR, merge into main, and pull for [describe the changes]." Narrow the request when only preparation or an unmerged PR is wanted. The root project instructions also point agents to this skill for matching tasks.
+Use it directly by asking: "Read `docs/development/skills/nedelko-pr-workflow/SKILL.md` and use it to commit, push, create or reactivate the appropriate PR, merge into main, and pull for [describe the changes]." Narrow the request when only preparation or an unmerged PR is wanted. The root project instructions also point agents to this skill for matching tasks.
 
 For Codex skill-menu discovery, copy the skill folder into `.agents/skills` from a terminal allowed to write there. [Official Codex documentation](https://learn.chatgpt.com/docs/build-skills) describes this repository-scoped location. From the repository root, when the destination skill does not already exist:
 
 ```sh
 mkdir -p .agents/skills
-cp -R docs/development/skills/ekocuvar-pr-workflow .agents/skills/
+cp -R docs/development/skills/nedelko-pr-workflow .agents/skills/
 ```
 
-Then invoke `$ekocuvar-pr-workflow` with the changes and desired scope. Keep the installed copy aligned with the source when the skill changes; inspect an existing copy before updating it. Restart Codex if the new skill does not appear. No global skill installation is needed.
+Then invoke `$nedelko-pr-workflow` with the changes and desired scope. Keep the installed copy aligned with the source when the skill changes; inspect an existing copy before updating it. Restart Codex if the new skill does not appear. No global skill installation is needed.
 
 ## Maintaining these docs
 

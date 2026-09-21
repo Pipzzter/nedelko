@@ -16,12 +16,12 @@ test('Sonar credentials are required, loopback-only, sent in headers and never c
 });
 
 test('Sonar policy rejects missing or weakened server coverage conditions', async () => {
-  const request = conditions => async path => path.endsWith('get_by_project') ? { qualityGate: { name: 'EkoCuvar' } } : { conditions };
+  const request = conditions => async path => path.endsWith('get_by_project') ? { qualityGate: { name: 'Nedelko' } } : { conditions };
   await assertQualityPolicy(request([{ metric: 'line_coverage', op: 'LT', error: '91' }]));
   for (const conditions of [[], [{ metric: 'line_coverage', op: 'LT', error: '90' }], [{ metric: 'new_coverage', op: 'LT', error: '91' }]]) {
     await assert.rejects(assertQualityPolicy(request(conditions)), /overall line coverage/);
   }
-  await assert.rejects(assertQualityPolicy(async () => ({ qualityGate: { name: 'Sonar way' } })), /EkoCuvar/);
+  await assert.rejects(assertQualityPolicy(async () => ({ qualityGate: { name: 'Sonar way' } })), /Nedelko/);
 });
 
 test('Sonar setup creates a private project once, copies the standard gate and reconciles thresholds on repeat', async () => {
@@ -31,13 +31,13 @@ test('Sonar setup creates a private project once, copies the standard gate and r
     if (path === 'components/show' && !project || path === 'qualitygates/show' && !gate) throw { status: 404 };
     if (path === 'projects/create') { project = true; assert.equal(params.visibility, 'private'); }
     if (path === 'qualitygates/copy') {
-      assert.deepEqual(params, { sourceName: 'Sonar way', name: 'EkoCuvar' }); gate = true;
+      assert.deepEqual(params, { sourceName: 'Sonar way', name: 'Nedelko' }); gate = true;
       conditions.push({ id: 'new', metric: 'new_coverage', op: 'LT', error: '80' });
     }
     if (path === 'qualitygates/show') return { conditions };
     if (path === 'qualitygates/create_condition') conditions.push({ id: 'overall', metric: params.metric, op: params.op, error: params.error });
     if (path === 'qualitygates/update_condition') Object.assign(conditions.find(condition => condition.id === params.id), params);
-    if (path === 'qualitygates/get_by_project') return { qualityGate: { name: 'EkoCuvar' } };
+    if (path === 'qualitygates/get_by_project') return { qualityGate: { name: 'Nedelko' } };
     return {};
   };
   await configureProject(request); await configureProject(request);
@@ -45,6 +45,6 @@ test('Sonar setup creates a private project once, copies the standard gate and r
   assert.equal(writes.filter(call => call.path === 'qualitygates/copy').length, 1);
   assert.equal(writes.filter(call => call.path === 'qualitygates/create_condition').length, 1);
   assert.ok(conditions.every(condition => condition.error === '91'));
-  assert.deepEqual(writes.at(-1), { path: 'qualitygates/select', params: { gateName: 'EkoCuvar', projectKey: 'ekocuvar' } });
+  assert.deepEqual(writes.at(-1), { path: 'qualitygates/select', params: { gateName: 'Nedelko', projectKey: 'nedelko' } });
   await assert.rejects(configureProject(async () => { throw Object.assign(new Error('forbidden'), { status: 403 }); }), /forbidden/);
 });

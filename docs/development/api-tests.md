@@ -1,6 +1,6 @@
 # Postman API tests
 
-The standalone [api-tests package](../../api-tests/package.json) contains a [Postman v2.1 collection](../../api-tests/postman/ekocuvar.postman_collection.json) and a [local environment](../../api-tests/postman/local.postman_environment.json). It exercises the real HTTP API with response assertions and chained session cookies, demo IDs, plan revisions, proposals and parent links.
+The standalone [api-tests package](../../api-tests/package.json) contains a [Postman v2.1 collection](../../api-tests/postman/nedelko.postman_collection.json) and a [local environment](../../api-tests/postman/local.postman_environment.json). It exercises the real HTTP API with response assertions and chained session cookies, demo IDs, plan revisions, proposals and parent links.
 
 ## Run an isolated test
 
@@ -34,8 +34,8 @@ The runner accepts only loopback HTTP origins, matching the application's Host/o
 ## Import into Postman
 
 1. Import both JSON files linked above.
-2. Select **EkoCuvar local** as the environment and confirm `baseUrl` matches your running app.
-3. Run **EkoCuvar local API regression tests** with all six folders in order, one iteration.
+2. Select **Nedelko local** as the environment and confirm `baseUrl` matches your running app.
+3. Run **Nedelko local API regression tests** with all six folders in order, one iteration.
 4. For individual requests, first run their setup requests. The first configuration request resets the collection's runtime values. Later requests depend on captured IDs and the latest revision.
 
 Each request disables Postman's shared cookie jar and explicitly sends this run's `sessionCookie`. Anonymous parent requests send an empty cookie. This keeps an existing browser/Postman account out of the suite. Do not replace the generated credentials with a real teacher account. Runtime credentials and parent tokens are marked secret in the environment and cleared by successful cleanup; do not export populated runtime values after an interrupted run.

@@ -20,7 +20,7 @@ test('demo uses the planner and shared parent page; links, languages and isolate
   window.location = { hash: '#home', href: base + '/#home', hostname: '127.0.0.1' };
   window.history = { pushState: (_a, _b, hash) => { window.location.hash = hash; } }; window.scrollTo = () => {};
   globalThis.window = window; globalThis.document = window.document;
-  const languages = new Map([['eko-language', 'en']]);
+  const languages = new Map([['nedelko-language', 'en']]);
   globalThis.localStorage = { getItem: key => languages.get(key), setItem: (key, value) => languages.set(key, value) };
   globalThis.requestAnimationFrame = fn => setTimeout(fn, 0); globalThis.cancelAnimationFrame = clearTimeout;
   globalThis.fetch = (path, opts) => nativeFetch(typeof path === 'string' && path.startsWith('/') ? base + path : path, opts);

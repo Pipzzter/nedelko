@@ -36,7 +36,7 @@ Tooling regression tests cover threshold boundaries, missing source, ref matchin
 
 ## Analysis package
 
-Sonar tooling lives in `static-analysis/`, including its private environment file, Compose services, scanner configuration and policy tests. The root `sonar:configure` and `sonar:scan` commands delegate to this package. The application Compose stack starts only the application. Analysis keeps the existing `ekocuvar` Compose project/volume names and Sonar project key so local history and data remain available. Never use `--remove-orphans` across the two stacks.
+Sonar tooling lives in `static-analysis/`, including its private environment file, Compose services, scanner configuration and policy tests. The root `sonar:configure` and `sonar:scan` commands delegate to this package. The application Compose stack starts only the application. New stacks use the `nedelko` Compose identifier; existing stacks can retain their current `COMPOSE_PROJECT_NAME` in the private analysis environment to preserve volumes. Never use `--remove-orphans` across the two stacks.
 
 For an existing checkout, move the private `.env.sonar` file to `static-analysis/.env` without overwriting a configured destination. Move any custom `SONAR_PORT` or `SONAR_DB_PASSWORD` settings from the root environment into that analysis environment. Keep `APP_PORT` in the root `.env`.
 
@@ -51,10 +51,12 @@ npm --prefix static-analysis start
 1. Open `http://127.0.0.1:9000`, sign in as `admin` / `admin`, and change the password.
 2. Under **My Account → Security**, generate a **user token** with permission to create a project and administer quality gates.
 3. Add the setup token and local Sonar URL to the existing private `static-analysis/.env`; retain its database password.
-4. Run `npm run sonar:configure`. It creates a private `ekocuvar` project and an `EkoCuvar` quality gate copied from Sonar way. It sets overall `line_coverage` and `new_coverage` to at least 91% and assigns the gate to the project. Re-running reconciles these conditions without resetting Sonar data.
-5. For routine scans, create a non-admin local scanner account with Browse and Execute Analysis permissions on `ekocuvar`, generate a **user token** for that account, and replace the setup token in `static-analysis/.env`. Revoke the temporary admin setup token after verifying the scanner account. The pinned SonarQube 26.9 server rejects project analysis tokens on `qualitygates/get_by_project` with HTTP 403, so this wrapper needs a user token to read and validate the gate before scanning. Keep administration credentials out of routine use; use an admin setup token again when reconciling the project or gate.
+4. Run `npm run sonar:configure`. It creates a private `nedelko` project and a `Nedelko` quality gate copied from Sonar way. It sets overall `line_coverage` and `new_coverage` to at least 91% and assigns the gate to the project. Re-running reconciles these conditions without resetting Sonar data.
+5. For routine scans, create a non-admin local scanner account with Browse and Execute Analysis permissions on `nedelko`, generate a **user token** for that account, and replace the setup token in `static-analysis/.env`. Revoke the temporary admin setup token after verifying the scanner account. The pinned SonarQube 26.9 server rejects project analysis tokens on `qualitygates/get_by_project` with HTTP 403, so this wrapper needs a user token to read and validate the gate before scanning. Keep administration credentials out of routine use; use an admin setup token again when reconciling the project or gate.
 
 Sonar’s new-code metric combines line/condition coverage and can be stricter than the local line threshold. The inherited Sonar way rules also check new issues, duplication and security review. Existing findings must be assessed; a green test suite does not imply a green Sonar gate. No blanket suppressions or silent missing-token skip are configured.
+
+For an existing analysis project using another identifier, preserve its history by renaming it with an administrator before scanning: `POST /api/projects/update_key` takes `from` (the current key) and `to=nedelko`; `POST /api/qualitygates/rename` takes `currentName` and `name=Nedelko`. Check the installed server's API documentation and confirm the current project/gate before changing them. Keep existing permissions and volumes, then run the normal gate; the scanner applies the `Nedelko` display name. Do not create a replacement empty project merely to obtain a passing new baseline.
 
 ```sh
 npm run verify

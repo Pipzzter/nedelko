@@ -3,12 +3,43 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm, rmdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openStore } from '../storage/database.js';
+import { databaseFilename, openStore } from '../storage/database.js';
 import { register, createSession, tokenHash } from '../services/auth.js';
 import { randomUUID } from 'node:crypto';
 
+test('Nedelko selects a new database or preserves an existing account store without guessing between files', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'nedelko-database-name-'));
+  const previous = join(directory, 'previous.sqlite');
+  const second = join(directory, 'second.sqlite');
+  const preferred = join(directory, 'nedelko.sqlite');
+  t.after(async () => {
+    for (const filename of [previous, second, preferred]) {
+      for (const suffix of ['', '-wal', '-shm']) await rm(filename + suffix, { force: true });
+    }
+    await rmdir(directory);
+  });
+  assert.equal(databaseFilename(join(directory, 'new-installation'), ''), join(directory, 'new-installation', 'nedelko.sqlite'));
+  assert.equal(databaseFilename(directory, ''), preferred);
+  assert.equal(databaseFilename(directory, `  ${previous}  `), previous);
+  let store = openStore(previous);
+  store.addUser({ id: 'owner', username: 'owner@example.test', displayName: 'Synthetic owner', hash: 'fixture' });
+  store.saveWeek('owner', { weekStart: '2026-09-21', days: [], marker: 'preserved-private-plan' }, 0);
+  store.close();
+  assert.equal(databaseFilename(directory, ''), previous);
+  store = openStore(databaseFilename(directory, ''));
+  assert.equal(store.week('owner', '2026-09-21').marker, 'preserved-private-plan');
+  assert.equal(store.week('another-owner', '2026-09-21'), null);
+  store.close();
+  openStore(second).close();
+  assert.throws(() => databaseFilename(directory, ''), /NEDELKO_DATABASE_PATH/);
+  assert.equal(databaseFilename(directory, previous), previous);
+  openStore(preferred).close();
+  assert.equal(databaseFilename(directory, ''), preferred);
+  assert.throws(() => databaseFilename(previous, ''));
+});
+
 test('accounts, session hashes and private plans persist after closing and reopening SQLite', async t => {
-  const directory = await mkdtemp(join(tmpdir(), 'ekocuvar-storage-test-'));
+  const directory = await mkdtemp(join(tmpdir(), 'nedelko-storage-test-'));
   const filename = join(directory, 'test.sqlite'); let store = openStore(filename);
   t.after(async () => {
     store.close();
@@ -17,7 +48,7 @@ test('accounts, session hashes and private plans persist after closing and reope
     await rmdir(directory);
   });
   const user = await register(store, { email: 'persistence@test.mk', password: 'OnlyForAutomatedTests23', displayName: 'Test fixture', kindergarten: 'Persistence kindergarten', ageGroup: '4-5', locationId: 'centar' });
-  const cookie = createSession(store, user); const token = cookie.match(/eko_session=([a-f0-9]+)/)[1];
+  const cookie = createSession(store, user); const token = cookie.match(/nedelko_session=([a-f0-9]+)/)[1];
   store.saveWeek(user.id, { weekStart: '2026-09-21', days: [], marker: 'private-fixture' }, 0);
   const noteId = store.addParentNote(user.id, '2026-09-21', { date: null, text: 'A synthetic persistent note.', nonce: randomUUID() });
   store.close(); store = openStore(filename);
@@ -32,7 +63,7 @@ test('accounts, session hashes and private plans persist after closing and reope
 });
 
 test('read refresh persists notice invalidation without changing revision or crossing owners and tombstones', async t => {
-  const directory = await mkdtemp(join(tmpdir(), 'ekocuvar-refresh-test-'));
+  const directory = await mkdtemp(join(tmpdir(), 'nedelko-refresh-test-'));
   const filename = join(directory, 'test.sqlite'); let store = openStore(filename);
   t.after(async () => {
     store.close();

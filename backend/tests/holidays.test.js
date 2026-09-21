@@ -53,8 +53,8 @@ test('a missing paragraph year is inferred only from the same article’s dated 
 });
 
 test('holiday refresh is shared, persisted and cached; failure never renews an old successful fetch', async t => {
-  const directory = await mkdtemp(join(tmpdir(), 'eko-holidays-'));
-  t.after(() => { assert.ok(directory.startsWith(join(tmpdir(), 'eko-holidays-'))); return rm(directory, { recursive: true, force: true }); });
+  const directory = await mkdtemp(join(tmpdir(), 'nedelko-holidays-'));
+  t.after(() => { assert.ok(directory.startsWith(join(tmpdir(), 'nedelko-holidays-'))); return rm(directory, { recursive: true, force: true }); });
   let now = Date.parse('2026-09-20T10:00:00Z'); let fail = false; let calls = 0;
   const importer = createHolidayImporter({ cacheDir: pathToFileURL(directory + sep), now: () => now,
     fetcher: async source => { calls++; if (fail) throw new Error('offline'); return html(source === ANNOUNCEMENTS ? index : announcement()); } });

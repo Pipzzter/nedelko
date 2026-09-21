@@ -29,21 +29,21 @@ const currentPage = () => {
 
 const initialLanguage = () => {
   try {
-    return localStorage.getItem('eko-language') === 'en' ? 'en' : 'mk';
+    return localStorage.getItem('nedelko-language') === 'en' ? 'en' : 'mk';
   } catch {
     return 'mk';
   }
 };
 const firstVisit = () => {
   try {
-    return !localStorage.getItem('eko-visited');
+    return !localStorage.getItem('nedelko-visited');
   } catch {
     return false;
   }
 };
 const markVisited = () => {
   try {
-    localStorage.setItem('eko-visited', '1');
+    localStorage.setItem('nedelko-visited', '1');
   } catch {}
 };
 function App() {
@@ -163,7 +163,7 @@ function App() {
     document.documentElement.lang = lang;
     document.title = `${t('brand', lang)} · ${t('yourWeek', lang)}`;
     try {
-      localStorage.setItem('eko-language', lang);
+      localStorage.setItem('nedelko-language', lang);
     } catch {}
   }, [lang]);
   useEffect(() => {
