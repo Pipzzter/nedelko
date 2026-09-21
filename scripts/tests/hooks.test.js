@@ -13,7 +13,10 @@ test('hook installation ignores PATH executables and preserves an existing custo
   const systemConfig = join(directory, 'gitconfig-system');
   await writeFile(globalConfig, '');
   await writeFile(systemConfig, '');
-  const env = { ...process.env, GIT_CONFIG_GLOBAL: globalConfig, GIT_CONFIG_SYSTEM: systemConfig };
+  // A pre-push hook inherits GIT_DIR and related variables. Never let a temporary
+  // fixture's git init/config commands resolve back to the checkout being pushed.
+  const isolatedEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.toUpperCase().startsWith('GIT_')));
+  const env = { ...isolatedEnv, GIT_CONFIG_GLOBAL: globalConfig, GIT_CONFIG_SYSTEM: systemConfig };
   const git = args => spawnSync(gitExecutable, args, { cwd: directory, env, encoding: 'utf8' });
   assert.equal(git(['init', '--quiet']).status, 0);
   for (const child of ['scripts/lib', '.githooks', 'untrusted']) await mkdir(join(directory, child), { recursive: true });
