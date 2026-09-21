@@ -11,6 +11,7 @@
     "start": "node --env-file-if-exists=.env backend/server.js",
     "dev": "node --watch --env-file-if-exists=.env backend/server.js",
     "test": "node scripts/test.js",
+    "test:api": "npm --prefix api-tests test",
     "test:coverage": "node scripts/test.js --coverage",
     "check": "node scripts/check.js && node scripts/check-docs.js",
     "verify": "npm run check && npm run test:coverage",

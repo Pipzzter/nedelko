@@ -60,6 +60,7 @@ services:
       - ../frontend/index.html:/usr/src/frontend/index.html:ro
       - ../frontend/tests:/usr/src/frontend/tests:ro
       - ../scripts:/usr/src/scripts:ro
+      - ../api-tests/scripts:/usr/src/api-tests/scripts:ro
       - ../coverage:/usr/src/coverage:ro
       - ./sonar-project.properties:/usr/src/sonar-project.properties:ro
       - ../Dockerfile:/usr/src/Dockerfile:ro

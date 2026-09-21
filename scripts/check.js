@@ -6,7 +6,7 @@ async function files(directory) {
   return (await Promise.all(entries.map((entry) => entry.isDirectory() ? files(join(directory, entry.name)) : [join(directory, entry.name)]))).flat();
 }
 let failed = false; let count = 0;
-for (const directory of ['backend', 'frontend', 'scripts', 'static-analysis']) for (const file of await files(directory)) {
+for (const directory of ['backend', 'frontend', 'scripts', 'static-analysis', 'api-tests/scripts']) for (const file of await files(directory)) {
   if (!file.endsWith('.js')) continue;
   count++;
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });

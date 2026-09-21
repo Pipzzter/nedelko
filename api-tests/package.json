@@ -1,0 +1,18 @@
+{
+  "name": "api-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Postman API regression collection and isolated CLI runner for Nedelko.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node scripts/run.js",
+    "test:local": "node scripts/run.js --local",
+    "check": "node --check scripts/run.js"
+  },
+  "devDependencies": {
+    "postman-cli": "1.59.0"
+  }
+}
