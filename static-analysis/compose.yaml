@@ -6,8 +6,8 @@ services:
     environment:
       POSTGRES_DB: sonar
       POSTGRES_USER: sonar
-      # Local-only development DB, with no published port. Override before first boot.
-      POSTGRES_PASSWORD: ${SONAR_DB_PASSWORD:-ekocuvar-local-development}
+      # Local-only development DB, with no published port. Set before first boot.
+      POSTGRES_PASSWORD: ${SONAR_DB_PASSWORD:?set SONAR_DB_PASSWORD in static-analysis/.env}
     volumes:
       - sonar_db:/var/lib/postgresql/data
     healthcheck:
@@ -27,7 +27,7 @@ services:
     environment:
       SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5432/sonar
       SONAR_JDBC_USERNAME: sonar
-      SONAR_JDBC_PASSWORD: ${SONAR_DB_PASSWORD:-ekocuvar-local-development}
+      SONAR_JDBC_PASSWORD: ${SONAR_DB_PASSWORD:?set SONAR_DB_PASSWORD in static-analysis/.env}
     volumes:
       - sonar_data:/opt/sonarqube/data
       - sonar_extensions:/opt/sonarqube/extensions

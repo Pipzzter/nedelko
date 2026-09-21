@@ -1,6 +1,12 @@
 import { relative, isAbsolute } from 'node:path';
 
 export const MINIMUM_LINES = 91;
+export const CRITICAL_MINIMUM_LINES = 90;
+export const CRITICAL_FILES = [
+  'backend/services/auth.js', 'backend/http/app.js', 'backend/http/security.js',
+  'backend/domain/week.js', 'backend/domain/settings.js', 'backend/domain/constraints.js',
+  'backend/domain/preferences.js', 'backend/domain/qc.js', 'backend/domain/aqi.js'
+];
 export function checkCoverage(lcov, expectedFiles, root) {
   const records = new Map();
   for (const block of lcov.split('end_of_record')) {
@@ -22,7 +28,12 @@ export function checkCoverage(lcov, expectedFiles, root) {
     const percent = found ? 100 * hit / found : 0;
     return { scope: prefix, hit, found, percent, passed: found > 0 && percent >= MINIMUM_LINES };
   });
-  return { groups, passed: groups.every(group => group.passed) };
+  const criticalFiles = expected.filter(path => CRITICAL_FILES.includes(path)).map(path => {
+    const { hit, found } = records.get(path);
+    const percent = 100 * hit / found;
+    return { path, hit, found, percent, minimumLines: CRITICAL_MINIMUM_LINES, passed: percent >= CRITICAL_MINIMUM_LINES };
+  });
+  return { groups, criticalFiles, passed: groups.every(group => group.passed) && criticalFiles.every(file => file.passed) };
 }
 
 export function relativeLcov(lcov, root) {

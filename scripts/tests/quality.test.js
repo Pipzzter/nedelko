@@ -25,6 +25,23 @@ test('coverage paths are relative for scanner containers and Windows separators 
   assert.equal(checkCoverage(input, expected, '/repo').passed, true);
 });
 
+test('critical module coverage cannot be hidden by a passing area total or rounded up', () => {
+  const critical = 'backend/services/auth.js';
+  const inventory = [...expected, critical];
+  const covered = record(expected[0], 2000, 2000) + record(expected[1], 100);
+  const failed = checkCoverage(covered + record(critical, 89), inventory, '/repo');
+  assert.equal(failed.groups.every(group => group.passed), true);
+  assert.equal(failed.passed, false);
+  assert.equal(failed.criticalFiles[0].path, critical);
+  assert.equal(failed.criticalFiles[0].minimumLines, 90);
+  assert.equal(checkCoverage(covered + record(critical, 90), inventory, '/repo').passed, true);
+  const nearBoundary = checkCoverage(covered + record(critical, 899, 999), inventory, '/repo');
+  assert.equal(nearBoundary.groups.every(group => group.passed), true);
+  assert.equal(nearBoundary.passed, false, '89.99% must not round up to the critical 90% floor');
+  const ordinary = 'backend/ordinary.js';
+  assert.equal(checkCoverage(covered + record(ordinary, 70), [...expected, ordinary], '/repo').passed, true);
+});
+
 test('pushes validate every source tip, allow annotated tags at HEAD and identify deletion-only pushes', () => {
   const head = 'a'.repeat(40); const other = 'b'.repeat(40); const zero = '0'.repeat(40);
   assert.deepEqual(pushedCommits(`refs/heads/main ${head} refs/heads/main ${zero}\nrefs/heads/old ${zero} refs/heads/old ${other}`), [head]);
