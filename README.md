@@ -12,6 +12,10 @@
 
 The GitHub repository is named `gun-mayhem-repo` for administrative reasons; the product is Nedelko (Неделко).
 
+**Ready and tested on phone and desktop.** Nedelko is a responsive web app for teachers and parents, in Macedonian and English.
+
+**Подготвена и тестирана на телефон и компјутер.** Неделко е приспособлива веб-апликација за воспитувачи и родители, на македонски и англиски.
+
 ## Teacher pilot feedback
 
 The product owner reports a pilot session with a practising kindergarten teacher. In the owner's account, the teacher found Nedelko interesting and promising, liked the AI's suggestions for a whole week, and expected the combined weather, air-pollution and holiday information to save planning time. This is an attributed paraphrase of one session, not a verbatim quotation or measured time saving. See [pilot feedback and proposed research](docs/product/research.md).
@@ -28,7 +32,7 @@ A [real authenticated generation on 21 September 2026](docs/evidence/live-ai-202
 
 - **Plan Monday–Friday.** Reuse the kindergarten’s meals and rest times, then create bilingual activities with indoor and outdoor versions. Earlier days remain empty when generating midweek.
 - **Adapt to current evidence.** Deterministic PM2.5 and weather checks can move activities indoors. Weather limits are editable logistics preferences.
-- **Keep teachers in control.** Edit an activity, review a proposed timetable, and recheck the same morning before approving a parent notice.
+- **Keep teachers in control.** Edit an activity or submit a timetable change, review parent-note suggestions before applying them, and recheck the same morning before approving a parent notice.
 - **Share a family view.** Parents follow a revocable link to view the week and submit notes. Teacher accounts own private plans; there is no formal Parent/Teacher RBAC system.
 - **Explore without credentials.** Isolated synthetic demos include different seasons, holidays, pollution, stale readings and unavailable sensors. They never overwrite an account’s plan.
 
@@ -73,7 +77,7 @@ Validated model output supplies educational content; the server owns air-quality
 - PM2.5-only screening omits other pollutants and individual health needs. Future outdoor drafts require complete air forecasts; unavailable forecasts leave an indoor provisional plan.
 - A parent URL grants bearer access, not verified identity. Anyone holding an active link can view the shared plan and submit a private note.
 - Live observations depend on pulse.eco and forecasts on Open-Meteo. Failed or stale evidence cannot renew approval. The live AI proof used synthetic conditions, so it does not certify these providers.
-- A fresh setup on a teammate's machine and their repository access remain unverified. The [verification record](docs/development/verification-status.md) separates current results from pending checks and historical attempts.
+- Separate GitHub-account access and fresh-machine installation remain unverified. The [verification record](docs/development/verification-status.md) separates current results from historical checks.
 
 ## Develop and verify
 

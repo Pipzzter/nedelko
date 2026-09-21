@@ -2,6 +2,12 @@
 
 This file records actual execution limits, separately from configured targets. Historical reports are preserved in [the archive](../archive/verification-notes.md).
 
+## 2026-09-22 audit corrections
+
+The web app is ready and tested on phone and desktop. The [audit-fix record](../evidence/audit-fixes-2026-09-22.md) describes the current local corrections and their verification. All entries below describe their stated source versions; statements such as “the only later change” apply to those historical checkpoints, not the current checkout.
+
+The corrected source passed 213 tests, with 98.48% backend and 95.57% frontend line coverage, all critical-file floors and the live SonarQube quality gate (0 open issues). Both isolated and running-app Postman checks passed 63 requests and 319 assertions each. The record links the command output and exact source hashes.
+
 Retired branding identifiers have been omitted from historical entries and redacted in the linked command transcript. Their timestamps, results and limitations remain historical; renaming the product does not rerun those checks. Original identifiers remain in Git history.
 
 ## 2026-09-21 final main checks and fresh AI replay

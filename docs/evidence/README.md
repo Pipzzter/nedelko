@@ -1,5 +1,7 @@
 # Verification evidence
 
+[Audit corrections, 22 September 2026](audit-fixes-2026-09-22.md) records the follow-up fixes and current automated checks. The web app is ready and tested on phone and desktop. Earlier recordings and reports below retain their original source versions.
+
 [Teacher-authored timetable checks, 21 September 2026](teacher-timetable-2026-09-21.md) record the scheduling update, current deterministic checks, and real model generation, day editing and parent-note editing with synthetic environmental inputs.
 
 The [archived repository audit](repository-audit-2026-09-21.md) describes the earlier, uncommitted state at `ac1d473`. Its findings and scores are historical; retired product identifiers are redacted so Nedelko remains the sole product name.
@@ -29,4 +31,4 @@ The [21 September release record](release-2026-09-21.md) contains the scope, obs
 - [Browser polling and focus report](browser-polling-2026-09-21/smoke.json), with screenshots in the same directory
 - [Final English/Macedonian parent rendering check](parent-render-2026-09-21/parent-render-summary.json) and [390-pixel screenshot](parent-render-2026-09-21/parent-390px.png) after the cosmetic label correction
 
-The fresh AI replay and recording ran at main commit `a07fdd83ec018b5dea7d4aef6e57d8048b73cdaf`; the only later application change is a one-line cosmetic occasion-label correction. The backend and AI verification script are unchanged between those commits. Temporary accounts and SQLite databases were in memory. The original checkout's private plans were not opened by these checks.
+At the 21 September release checkpoint, the fresh AI replay and recording ran at main commit `a07fdd83ec018b5dea7d4aef6e57d8048b73cdaf`; the only subsequent application change included in that checkpoint was a one-line cosmetic occasion-label correction. The backend and AI verification script were unchanged between those release commits. Later timetable work and audit corrections have separate records above. Temporary accounts and SQLite databases were in memory. The original checkout's private plans were not opened by those checks.

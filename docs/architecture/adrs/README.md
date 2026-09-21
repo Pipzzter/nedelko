@@ -18,5 +18,6 @@ Record 0006 separately documents the existing SQLite database choice, also retro
 | [0008](0008-critical-coverage-and-analysis-secrets.md) | Critical-file coverage floors and required private Sonar database password | Accepted |
 | [0009](0009-nedelko-product-identity.md) | Sole Nedelko identity with preserved account data and analysis history | Accepted |
 | [0010](0010-teacher-authored-timetables.md) | Per-day teacher-authored timelines with automatic overlap resolution | Accepted |
+| [0011](0011-audit-corrections.md) | Mode-specific instructions, conservative refresh display and complete quality policy | Accepted |
 
 Use the [template](template.md). Number records sequentially. Preserve accepted records; supersede a decision with a new linked record when its premise changes.

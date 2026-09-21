@@ -4,6 +4,8 @@
 
 **Date:** 2026-09-21
 
+**Implementation follow-up:** The combined-file premise below is historical. Application and analysis now use separate Compose files and startup commands; see the current [Docker operation](../../operations/docker.md) and [quality-gate setup](../../development/quality-gates.md). The persistence and loopback decisions remain in force.
+
 ## Context
 
 The requested stack starts the app and SonarQube through one Compose file. The reference project keeps Sonar outside Compose; that choice does not meet this project’s explicit requirement.

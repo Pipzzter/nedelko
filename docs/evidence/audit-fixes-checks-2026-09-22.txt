@@ -1,0 +1,1699 @@
+# npm.cmd run gate
+
+
+> nedelko@1.0.0 gate
+> node --env-file-if-exists=static-analysis/.env scripts/gate.js
+
+122 JavaScript files checked.
+38 documentation files checked for local links.
+✔ low reasoning preserves the configured model and is omitted for other model families (36.3695ms)
+✔ oversized provider responses are cancelled before parsing (4.0223ms)
+✔ Responses API uses strict JSON schema, store:false, and keeps credentials in the header (1.2174ms)
+✔ incomplete and refusal responses are never accepted as structured output (1.2419ms)
+✔ provider authentication failure is reported without exposing provider text or credentials (2.6007ms)
+✔ disconnecting generation aborts its request context and never saves a late provider result (271.2601ms)
+✔ holiday endpoint needs a session or valid isolated demo, and cannot accept source URLs (139.3773ms)
+✔ weekly generation allows six owner attempts per hour, isolates accounts and leaves demos uncapped (869.4579ms)
+✔ failed weekly AI retries consume the owner budget without replacing the saved plan (167.4995ms)
+✔ holiday requests stop at thirty per owner and hour, including isolated demos (206.0811ms)
+✔ rate buckets reset at the boundary without extending the window on rejected calls (0.787ms)
+✔ registration normalizes the kindergarten email, hashes passwords, stores the profile and manages sessions (239.4942ms)
+✔ weak passwords, invalid emails, incomplete kindergarten details and cross-origin writes are rejected (14.1017ms)
+✔ legacy username accounts can still sign in through the email field (114.2241ms)
+✔ new accounts start empty; one-click generation persists only to the owner (142.803ms)
+✔ AI retry preserves the saved week on failure and replaces it only after successful validated generation (179.8899ms)
+✔ demo is isolated, editable and cannot bypass fresh recheck before approving (39.7531ms)
+✔ core dated demo weeks and six air scenarios keep fixed dates, closures and account isolation (341.0746ms)
+✔ failed recheck invalidates a previously approved notice (29.8579ms)
+✔ elapsed edits fail without corrupting the saved plan; future schedules and revision checks remain editable (37.6733ms)
+✔ saved day location choices update notices, invalidate approval and cannot override server observations (44.2609ms)
+✔ auth rate limits block repeated password attempts (628.8769ms)
+✔ only frontend files are served and configuration never leaks secrets (19.6228ms)
+✔ deleting and regenerating a week is authenticated, revision checked, isolated and resistant to stale tabs (214.3233ms)
+✔ changing city fetches that city and adapts learning choices and outdoor days without regenerating (26.5996ms)
+✔ direct day edits enforce ownership, revisions and parent read-only boundaries and survive refresh (156.1842ms)
+✔ registration normalizes addresses and rejects missing or repeated separators and embedded whitespace (4.1585ms)
+✔ several authored eco activities keep distinct bilingual mode variants in parent notices and projection (43.8533ms)
+✔ authored holiday lessons receive server-owned occasion markers without rewriting their rows (9.0753ms)
+✔ timeline integrity permits long, overlapping, reordered and empty days and rejects malformed rows (1.1025ms)
+✔ assembly retains each authored day and every label through weather refresh and parent projection (24.0145ms)
+✔ all remaining outdoor rows require hourly evidence, including an extended afternoon slot (10.7961ms)
+✔ elapsed integrity is enforced for manual edits, removed rows, proposals and changes at apply time (26.9313ms)
+✔ custom materials validate, remain available to model lessons and appear on the shared parent view (7.1727ms)
+✔ authenticated generation saves the five-hour Monday and Tuesday breakfast and edits the day without 503 (388.5724ms)
+✔ cache deduplicates concurrent cold requests, persists responses and never renews failed evidence (159.2129ms)
+✔ allowlists, status errors, invalid JSON and oversized bodies fail without clean-air data (25.6647ms)
+✔ unwritable cache does not discard a live response and expired memory entries refetch (19.0731ms)
+✔ live projection uses validated nearby sensors and separates observations from forecasts (63.5161ms)
+✔ malformed provider rows and forecast timestamps produce unknown evidence, never a 500 or clean air (3.5238ms)
+✔ failed refresh, stale forecasts and missing responses never become clean-air approval (4.6559ms)
+✔ demo never fetches upstream and validates location, mode and scenario before access (3.2838ms)
+✔ daily topics are never assigned to an undefined date after the planning week has elapsed (3.9283ms)
+✔ a valid week arriving after the former 45-second deadline is accepted; the new deadline stays bounded (47.3249ms)
+✔ bilingual curriculum generation ranks server-eligible outdoor days and keeps identity out of the request (3.3336ms)
+✔ missing holiday content cannot be accepted as an AI plan in either language or activity version (7.2694ms)
+✔ invalid or duplicated model outdoor dates reject the whole model result (2.2015ms)
+✔ an invalid bilingual model lesson becomes an explicit local-library week (2.721ms)
+✔ API credit failure is visible without exposing credentials or raw provider messages (3.0049ms)
+✔ quota, spend, rate and configuration failures retain their distinct cause instead of claiming exhausted credits (15.6681ms)
+✔ unrecognized provider fields and private error bodies cannot escape through generation diagnostics (1.915ms)
+✔ generated whole-day activities are validated, and regeneration can vary the local library (3.4663ms)
+✔ each model day authors a full bilingual timeline instead of filling fixed session keys (8.2836ms)
+✔ one activity changes without rewriting other rows, lesson, days or times (109.3293ms)
+✔ schedules can replace routines, omit meals, contain gaps and extend beyond defaults (34.387ms)
+✔ a selected main lesson changes both variants but leaves all supporting sessions intact (41.5694ms)
+✔ only started rows are immutable through proposals and direct week edits (57.268ms)
+✔ week edits accept zero or several eco rows without dropping a day (70.3637ms)
+✔ AI schedule proposals unlock upcoming routines without exposing identity (95.2363ms)
+✔ default routines are optional at generation (0.4502ms)
+✔ EPA PM2.5 breakpoints, decimal truncation, and above-scale extrapolation (1.5288ms)
+✔ NowCast has zero handling and needs two valid hours among the latest three (0.3589ms)
+✔ NowCast weights missing hours by their real age, not compressed array position (0.1161ms)
+✔ location distance and Skopje winter/summer time are explicit (19.99ms)
+✔ a fresh plausible sensor with enough history passes (1.009ms)
+✔ staleness is based on measurement time, including the 60-minute boundary (0.3893ms)
+✔ even a one-millisecond future observation makes the local assessment unknown (1.2399ms)
+✔ 999 and 2000 readings block a positive decision even with two low neighbors (0.6393ms)
+✔ an extreme historical value cannot be silently discarded from NowCast (0.2998ms)
+✔ malformed newest data cannot expose a previous low reading as current (1.2651ms)
+✔ negative readings, future timestamps, stuck signals, and thin history are rejected (0.6109ms)
+✔ sudden rise is treated as uncertain evidence, never simply removed as a glitch (0.4172ms)
+✔ disagreeing neighbors and missing coverage prevent an outside plan (0.4205ms)
+✔ settings enforce canonical comfort bounds and strict numeric types (4.5737ms)
+✔ planning week starts on Monday and contains five workdays (1.4059ms)
+✔ open activity windows respect current time, future dates and fully occupied days (7.109ms)
+✔ indoor activity time is deterministic and never overlaps the fixed rhythm (3.1452ms)
+✔ shared time arithmetic rejects malformed hours and formats day boundaries (0.2533ms)
+✔ kindergarten and teaching brief validate and keep one canonical location (5.1003ms)
+✔ two dashboard reads preserve the editor revision for both accounts and isolated demos (504.3526ms)
+✔ a failed dashboard refresh durably clears approval without renewing evidence or changing revision (164.6664ms)
+✔ dashboard cached refresh keeps measurement timestamps and marks unavailable air as unknown (139.6582ms)
+✔ public parent reads serve a conservative stored snapshot during writes and still honor revocation (136.9897ms)
+✔ parent link gives a stable read-only projection; revocation and ownership are enforced (184.4312ms)
+✔ demo links are isolated and immediately show adapted pollution messages (47.6483ms)
+✔ sharing survives dashboard reads, explicit rechecks and expiry renewal without changing the URL (158.947ms)
+✔ demo and account parent pages share a read-only contract; retired classroom routes cannot mutate either plan (152.295ms)
+✔ refreshing a week preserves newer group preferences and an empty dashboard restores their location (99.9112ms)
+✔ single-day suggestions require a separate apply and cannot overwrite other days or cross accounts (151.619ms)
+✔ failed AI day generation and stale previews preserve the existing plan (100.7731ms)
+✔ automatic refresh adapts an active week and messages without a browser or model call (16.2158ms)
+✔ background refresh catches queue and per-plan failures, reports only fixed codes and retries (1.0177ms)
+✔ day replacement preserves custom rows and refuses elapsed eco lessons (14.5417ms)
+✔ day AI receives teaching preferences but not kindergarten or group identity; incomplete output stays explicit (14.8613ms)
+✔ generation rejects missing required teacher details before contacting providers or changing a plan (89.8368ms)
+✔ explicit daily topics cannot silently save an unrelated library fallback (90.9431ms)
+✔ targeted edit proposals enforce owner, revision, timeline integrity and single-use application (209.9555ms)
+✔ scraper imports an official moving Easter date and validates date, weekday, scope and source (5.2882ms)
+✔ discovery ignores injected or off-site URLs and deduplicates official article links (1.2888ms)
+✔ an explicit Sunday-to-Monday substitute resolves the programme typo without guessing (0.7545ms)
+✔ a missing paragraph year is inferred only from the same article’s dated listing within 45 days (2.8104ms)
+✔ holiday refresh is shared, persisted and cached; failure never renews an old successful fetch (95.2352ms)
+✔ oversized, non-HTML and changed upstream pages fall back to dated evidence (15.5227ms)
+✔ unknown years do not inherit the 2026 religious dates or claim a complete calendar (0.8625ms)
+✔ Easter and Halloween change the correct day’s lessons without inventing closures (6.0185ms)
+✔ year-crossing weeks preserve the correct year and a sourced announcement corrects the PDF typo (0.5488ms)
+✔ moving a row retains saved occasion discussion and ignores forged metadata (101.9381ms)
+✔ manual meal/rest/occasion details persist through adaptation without changing times or evidence (63.0214ms)
+✔ content cannot inject times and validates bilingual descriptions, material IDs and elapsed rows (39.5509ms)
+✔ reordering propagates times through meals and rest while preserving every duration and identity (41.8186ms)
+✔ explicit start edits preserve duration, leave gaps and resolve overlaps without a day-end clamp (37.2121ms)
+✔ parent notes arrive unread, are private to the owner and never authorize plan edits (537.9148ms)
+✔ informational care notes bypass AI and cannot acquire an apply action (235.4608ms)
+✔ a note suggestion applies only after owner confirmation and rejects stale or reused proposals (223.122ms)
+✔ a parent note can move a whole group day outside without flipping any other day (166.777ms)
+✔ demo notes stay in memory and deleting a plan clears its notes (191.9026ms)
+✔ the sidebar retains older notes and meal changes use the same schedule proposal path (163.7041ms)
+✔ parent-note model output is bilingual, validated, group-scoped and sanitized on provider failure (126.7498ms)
+✔ day model validates real activity and schedule branches, including unsupported authority claims (49.6426ms)
+✔ disconnect cancellation reaches the model and rejects late results from an uncancellable provider (27.642ms)
+✔ native startup stays on loopback; container binding and ports are explicit and validated (11.522ms)
+✔ startup enables refresh, hides internal errors and closes on either termination signal (1.0215ms)
+✔ library days never reuse a generated title around meals or the eco lesson (75.2997ms)
+✔ whole-day session output must cover exact slots once with distinct bilingual activities (92.6046ms)
+✔ createWeek rejects unfiltered session text and invalid slot coverage at its own boundary (326.5423ms)
+✔ createWeek validates sessions only for upcoming activity slots when generation begins midweek (39.8597ms)
+✔ activity details reject one-line summaries and library games use available supplies (0.6962ms)
+✔ structured session sentences retain quoted punctuation and require four substantial steps in each language (1.0034ms)
+✔ Nedelko selects a new database or preserves an existing account store without guessing between files (90.5922ms)
+✔ accounts, session hashes and private plans persist after closing and reopening SQLite (183.582ms)
+✔ read refresh persists notice invalidation without changing revision or crossing owners and tombstones (106.5809ms)
+✔ all five requested daily topics survive newlines and legacy flattened briefs (5.6525ms)
+✔ a model response that ignores a requested topic cannot be accepted as an AI plan (58.8019ms)
+✔ fallback slots and model planning context avoid the resolved routine, and generated play stays within 90 minutes (113.9138ms)
+✔ mode-specific instructions override an outdoor generic note in both parent languages (56.7645ms)
+✔ adjacent duplicate activities merge while fixed routines, gaps and distinct translations remain intact (70.2891ms)
+✔ pollution moves today indoors and reallocates an outdoor day without changing meals or rest (57.4254ms)
+✔ AI outdoor ranking chooses among eligible days while deterministic gates retain final authority (60.2108ms)
+✔ midweek creation leaves Monday and Tuesday empty and keeps Friday visible (23.7769ms)
+✔ stale, failed refresh and disagreeing evidence cannot schedule outside today (123.6134ms)
+✔ future outdoor drafts require available air forecasts even when weather is favourable (96.1013ms)
+✔ each hour of a future eco slot needs a finite nonnegative air forecast and missing coverage invalidates approval (52.0699ms)
+✔ rain, wind, freezing precipitation and storms override an otherwise attractive day (83.674ms)
+✔ closure and teacher indoor preference prevent automatic outdoor allocation (18.1545ms)
+✔ parent messages have both languages, no em dash, and only call out clothing outliers (24.107ms)
+✔ parent projections preserve unknown weather and clothing exceptions name weekend days (14.4901ms)
+✔ curriculum follows the season and an educational national date without inventing closures (0.3359ms)
+✔ injection-like lesson text cannot affect the recommendation or become accepted model output (19.7953ms)
+✔ default routines may overlap or occupy the whole day (0.3361ms)
+✔ snow forecasts suggest a snow lesson without treating forecast snow as observed ground cover (15.1742ms)
+✔ a generated Bosniak preparation lesson reaches parent messages and survives weather adaptation without closing Friday (25.7655ms)
+✔ elapsed outdoor slots do not get reassigned to an extra future day (20.3513ms)
+✔ a legacy plan with no eco slot cannot advertise that lesson in the parent notice (26.1255ms)
+✔ city weather changes upcoming learning choices, preserves routines and keeps indoor backups (35.8467ms)
+✔ weather changes preserve manual activity edits and never rewrite elapsed activity text (23.8652ms)
+✔ community holidays have a bilingual discussion in an existing slot without replacing the eco lesson or closing the day (15.7084ms)
+✔ indoor alerts persist only while relevant and never recommend an ineligible replacement (26.9074ms)
+✔ pollution detected during an outdoor lesson switches its remaining plan indoors without moving routines (18.5762ms)
+✔ per-day outdoor choices outrank AI allocation, persist on refresh, and can be switched back indoors or to automatic (27.1488ms)
+✔ explicit outdoor choices can exceed the weekly target while held automatic days keep their mode (29.7928ms)
+✔ an outside preference cannot bypass air, weather, closure or missing-slot gates and survives a blocked refresh (54.3572ms)
+✔ future outdoor requests cannot bypass missing air forecasts, and elapsed choices cannot rewrite history (16.3183ms)
+✔ holiday discussion adapts saved plans without overwriting manual text, duplicating events or changing times (28.3223ms)
+✔ a later refresh does not schedule the same holiday discussion again or rewrite its elapsed text (15.2891ms)
+✔ a warmer Friday can remain indoors because outdoor allocation follows the eligible activity ranking and day target (13.5731ms)
+✔ longer activity blocks fill the day without overlaps, gaps or changes to fixed routines (58.4292ms)
+✔ older short generated blocks consolidate once, retaining edited blocks and fixed times (27.6179ms)
+✔ week edits resolve overlaps, allow changed times and retain replacement durations (26.7575ms)
+✔ generation selects a weather-compatible free slot when the usual late-morning slot is unsuitable (11.4606ms)
+✔ missing temperatures never masquerade as a cold-weather learning forecast (15.1271ms)
+✔ the browser accepts generation past the old one-minute limit including environmental request time (51.2547ms)
+✔ generation still expires and tells the caller to check the saved plan before retrying (1.2565ms)
+✔ ordinary requests keep their shorter deadline (0.4796ms)
+✔ DOM integration: empty account, create kindergarten, one-page management, live step, bilingual messages and isolated demo (1332.5001ms)
+✔ a rendering failure offers a bilingual recovery control without exposing raw exception text (39.74ms)
+✔ live AQI expires without a refresh, keeps its measurement time, and demo readings use the example clock (1099.079ms)
+✔ an older inbox poll cannot undo marking a note read or populate another demo inbox (212.0023ms)
+✔ welcome dialog traps keyboard focus, dismisses with Escape and restores the underlying control (124.0722ms)
+✔ teachers add and select a custom classroom tool with Enter without submitting the plan (30.7478ms)
+✔ week deletion requires confirmation and cancellation preserves the plan (46.2285ms)
+✔ bilingual inputs preserve the other translation and form errors expand nested details before focus (2.2234ms)
+✔ teacher registration requires kindergarten details while parents receive link-only guidance (14.9958ms)
+✔ pencil editor saves bilingual meal details without time fields and retains a draft after errors (14.5986ms)
+✔ eco detail editing exposes both alternatives, goals, materials and holiday discussion (16.2283ms)
+✔ teacher and parent activity details select the row variant, including the matching indoor backup (11.7228ms)
+✔ top-level dragging and keyboard movement send complete row order; parent view exposes neither (34.7618ms)
+✔ empty upcoming days retain the prompt so a teacher can add activities again (15.3738ms)
+✔ parent notes mount without randomUUID and preserve a valid nonce when retrying a failed submission (63.4296ms)
+✔ weather controls use every canonical range, expose precipitation and add routines without randomUUID (7.9453ms)
+✔ parent sharing uses Skopje-local expiry dates and omits unsafe server links (5.675ms)
+✔ live air sources retain safe links and the calendar preserves five selectable weekdays and attribution (6.0557ms)
+✔ demo uses the planner and shared parent page; links, languages and isolated deep links work (815.4595ms)
+✔ Macedonian dates stay translated and use the Skopje date across midnight (24.1249ms)
+✔ UI identifiers survive unavailable crypto methods and stay distinct with a frozen clock (3.1752ms)
+✔ server links allow HTTP(S) and same-origin root paths but reject executable and ambiguous URLs (1.0242ms)
+✔ first-time planning identifies every missing essential and requires an explicit timetable review (21.0894ms)
+✔ every canonical preference bound accepts and rejects the same values in the form and server (23.2704ms)
+✔ form validation reads the supplied configuration instead of retaining literal weather limits (1.4487ms)
+✔ planning validates translations and time integrity while allowing any default routine (0.8709ms)
+✔ all AI and apply requests report progress without retaining private input, and failures release it (38.5738ms)
+✔ bodyless, non-JSON and empty JSON errors retain HTTP status for expired-session handling (1.554ms)
+✔ explicit background requests cannot acquire the waiting dialog even when their path has an AI phase (0.4721ms)
+✔ modal request progress preserves the form, uses real elapsed time and restores interaction (265.8018ms)
+✔ teacher and parent response shapes validate before state changes; malformed nesting is rejected (101.5692ms)
+✔ hook installation ignores PATH executables and preserves an existing custom hook (546.2552ms)
+✔ coverage requires strictly above 90% in each layer and cannot hide an unimported file (10.9195ms)
+✔ coverage paths are relative for scanner containers and Windows separators normalize (1.767ms)
+✔ critical module coverage cannot be hidden by a passing area total or rounded up (5.5006ms)
+✔ pushes validate every source tip, allow annotated tags at HEAD and identify deletion-only pushes (4.2739ms)
+✔ local link checks find Markdown and HTML paths but ignore URLs, anchors and code examples (0.9894ms)
+✔ Sonar credentials are required, loopback-only, sent in headers and never copied into errors (38.4726ms)
+✔ Sonar policy rejects missing or weakened server coverage conditions (2.3072ms)
+✔ Sonar setup creates a private project once, copies the standard gate and reconciles thresholds on repeat (5.1402ms)
+ℹ tests 213
+ℹ suites 0
+ℹ pass 213
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4053.3053
+ℹ start of coverage report
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ file                      | line % | branch % | funcs % | uncovered lines
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ backend                   |        |          |         |
+ℹ  config                   |        |          |         |
+ℹ   demo.js                 | 100.00 |   100.00 |  100.00 |
+ℹ   holiday-snapshot.js     | 100.00 |   100.00 |  100.00 |
+ℹ   index.js                | 100.00 |   100.00 |  100.00 |
+ℹ   locations.js            | 100.00 |   100.00 |  100.00 |
+ℹ  domain                   |        |          |         |
+ℹ   aqi.js                  | 100.00 |    91.18 |  100.00 |
+ℹ   constraints.js          | 100.00 |   100.00 |  100.00 |
+ℹ   curriculum.js           |  94.82 |    91.80 |  100.00 | 221-235 247-248
+ℹ   day-activities.js       |  97.92 |    96.67 |   85.71 | 25 39
+ℹ   day-edit.js             | 100.00 |    94.81 |  100.00 |
+ℹ   demo-week.js            | 100.00 |   100.00 |  100.00 |
+ℹ   holidays.js             | 100.00 |    94.29 |  100.00 |
+ℹ   manual-day-edit.js      | 100.00 |    97.83 |  100.00 |
+ℹ   messages.js             |  98.84 |    96.30 |  100.00 | 104-105
+ℹ   occasion-activities.js  | 100.00 |    96.83 |  100.00 |
+ℹ   parent-notes.js         | 100.00 |    90.32 |  100.00 |
+ℹ   parent-view.js          | 100.00 |    77.42 |  100.00 |
+ℹ   planner.js              | 100.00 |   100.00 |  100.00 |
+ℹ   play-ideas.js           | 100.00 |   100.00 |  100.00 |
+ℹ   preferences.js          | 100.00 |   100.00 |  100.00 |
+ℹ   qc.js                   | 100.00 |    97.26 |  100.00 |
+ℹ   session-plan.js         |  90.20 |    95.12 |   94.44 | 28-32
+ℹ   settings.js             | 100.00 |    89.53 |  100.00 |
+ℹ   teaching-brief.js       | 100.00 |    96.00 |  100.00 |
+ℹ   timeline.js             | 100.00 |   100.00 |  100.00 |
+ℹ   week.js                 |  98.25 |    96.85 |   97.74 | 15-16 27-28 292-295 380-382
+ℹ  http                     |        |          |         |
+ℹ   app.js                  |  99.11 |    88.69 |   96.34 | 164-166 306-308 904-905 916
+ℹ   security.js             |  94.74 |    78.95 |  100.00 | 25-26
+ℹ  server.js                | 100.00 |    94.74 |  100.00 |
+ℹ  services                 |        |          |         |
+ℹ   ai-errors.js            | 100.00 |   100.00 |  100.00 |
+ℹ   ai.js                   | 100.00 |    91.30 |  100.00 |
+ℹ   auth.js                 | 100.00 |    94.12 |  100.00 |
+ℹ   auto-refresh.js         | 100.00 |    93.33 |   83.33 |
+ℹ   conditions.js           |  99.15 |    93.64 |   97.50 | 54-55 116
+ℹ   curriculum.js           |  97.54 |    88.61 |  100.00 | 103-105
+ℹ   day-plan.js             |  89.91 |    86.67 |   90.91 | 75-85
+ℹ   holidays.js             |  98.05 |    91.80 |   89.66 | 70-71 96-97 305-306
+ℹ   learning-guidance.js    | 100.00 |   100.00 |  100.00 |
+ℹ   parent-notes.js         | 100.00 |    77.27 |  100.00 |
+ℹ   request-context.js      | 100.00 |   100.00 |  100.00 |
+ℹ  storage                  |        |          |         |
+ℹ   database.js             |  99.19 |    93.75 |   95.24 | 91
+ℹ   parent-notes.js         | 100.00 |    88.24 |   87.50 |
+ℹ frontend                  |        |          |         |
+ℹ  src                      |        |          |         |
+ℹ   app.js                  |  90.60 |    90.48 |   86.25 | 38-39 45-46 89 107-110 208 234-250 400-402 469-471 486-495 525-540 552-554 629-630 674-682
+ℹ   components              |        |          |         |
+ℹ    ActivityEditor.js      | 100.00 |    92.11 |  100.00 |
+ℹ    AirCard.js             |  95.19 |    90.00 |  100.00 | 92-96
+ℹ    AppBoundary.js         | 100.00 |    88.89 |  100.00 |
+ℹ    BrandMark.js           | 100.00 |   100.00 |  100.00 |
+ℹ    Calendar.js            | 100.00 |    72.00 |  100.00 |
+ℹ    ChangeAssistant.js     |  88.17 |    88.89 |   87.50 | 38 79 85-93
+ℹ    DayPlan.js             |  97.46 |    87.77 |   90.00 | 74-75 208 383-385 430 487 563-564 569-570 707-713
+ℹ    DemoControls.js        | 100.00 |   100.00 |   80.00 |
+ℹ    DemoIntro.js           | 100.00 |    90.48 |   88.89 |
+ℹ    Holidays.js            |  96.43 |    95.00 |  100.00 | 43-44
+ℹ    Icon.js                | 100.00 |   100.00 |  100.00 |
+ℹ    Messages.js            |  92.36 |    65.85 |   87.50 | 25-26 65-66 70-75 102
+ℹ    ParentNoteForm.js      |  98.20 |    95.00 |   87.50 | 63-64
+ℹ    ParentNotes.js         |  92.80 |    70.77 |   92.31 | 27-28 59 79-81 99 113 201-204 230 240-244
+ℹ    ParentShare.js         |  96.51 |    88.24 |   85.71 | 15-16 75
+ℹ    PlanChanges.js         |  98.00 |    63.64 |   80.00 | 49
+ℹ    RequestProgress.js     | 100.00 |   100.00 |  100.00 |
+ℹ    SettingsForm.js        | 100.00 |    83.33 |   77.78 |
+ℹ    WeekActions.js         | 100.00 |   100.00 |  100.00 |
+ℹ   lib                     |        |          |         |
+ℹ    api.js                 | 100.00 |    97.30 |  100.00 |
+ℹ    plan-form.js           | 100.00 |    86.67 |  100.00 |
+ℹ    request-progress.js    | 100.00 |   100.00 |  100.00 |
+ℹ    ui.js                  | 100.00 |    92.31 |  100.00 |
+ℹ    view-data.js           | 100.00 |   100.00 |  100.00 |
+ℹ   locales                 |        |          |         |
+ℹ    features.js            | 100.00 |   100.00 |  100.00 |
+ℹ    index.js               | 100.00 |    85.71 |  100.00 |
+ℹ    loading.js             | 100.00 |   100.00 |  100.00 |
+ℹ    notes.js               | 100.00 |   100.00 |  100.00 |
+ℹ    planning.js            | 100.00 |   100.00 |  100.00 |
+ℹ   pages                   |        |          |         |
+ℹ    Auth.js                |  96.77 |    95.92 |   77.78 | 41-43 152-153
+ℹ    CreatePlan.js          |  85.88 |    70.45 |   83.33 | 28-30 37-41 53-68
+ℹ    ParentWeek.js          |  96.89 |    78.57 |   92.86 | 17-18 48-49 53
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ all files                 |  97.14 |    91.27 |   94.70 |
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report
+backend/ 98.48% lines (4660/4732); required 91%.
+frontend/src/ 95.57% lines (3860/4039); required 91%.
+npm.cmd :  Container ekocuvar-sonar-db-1 Running
+At line:2 char:1
++ npm.cmd run gate *> .local/audit-fixes-gate.log; Get-Content -Encodin ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( Container ekocuvar-sonar-db-1 Running :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ Container ekocuvar-sonarqube-1 Running
+ Container ekocuvar-sonar-db-1 Waiting
+ Container ekocuvar-sonar-db-1 Healthy
+ Container ekocuvar-sonar-db-1 Waiting
+ Container ekocuvar-sonarqube-1 Waiting
+ Container ekocuvar-sonar-db-1 Healthy
+ Container ekocuvar-sonarqube-1 Healthy
+ Container ekocuvar-sonar-scanner-run-163408a1fcae Creating
+ Container ekocuvar-sonar-scanner-run-163408a1fcae Created
+23:16:39.976 WARN  Property 'sonar.working.directory' with value '/tmp/.scannerwork' is overridden with value '/tmp/analysis'
+23:16:39.981 INFO  Scanner configuration file: /opt/sonar-scanner/conf/sonar-scanner.properties
+23:16:39.982 INFO  Project root configuration file: /usr/src/sonar-project.properties
+23:16:39.993 INFO  SonarScanner CLI 8.1.0.6389
+23:16:39.999 INFO  Linux 6.6.87.2-microsoft-standard-WSL2 amd64
+23:16:40.680 INFO  Communicating with SonarQube Community Build 26.9.0.129388
+23:16:40.681 INFO  JRE provisioning: os[linux], arch[x86_64]
+23:16:40.965 INFO  Starting SonarScanner Engine...
+23:16:40.965 INFO  Java 21.0.11 Eclipse Adoptium (64-bit)
+23:16:41.878 INFO  Load global settings
+23:16:41.938 INFO  Load global settings (done) | time=58ms
+23:16:41.941 INFO  Server id: 303924D4-AaDFhEZdaOqJyQWEX7kR
+23:16:41.951 INFO  Loading required plugins
+23:16:41.951 INFO  Load plugins index
+23:16:41.961 INFO  Load plugins index (done) | time=11ms
+23:16:41.962 INFO  Load/download plugins
+23:16:41.982 INFO  Load/download plugins (done) | time=20ms
+23:16:42.199 INFO  Process project properties
+23:16:42.212 INFO  Process project properties (done) | time=13ms
+23:16:42.221 INFO  Project key: nedelko
+23:16:42.221 INFO  Base dir: /usr/src
+23:16:42.221 INFO  Working dir: /tmp/analysis
+23:16:42.229 INFO  Load project settings for component key: 'nedelko'
+23:16:42.239 INFO  Load project settings for component key: 'nedelko' (done) | time=10ms
+23:16:42.268 INFO  Load quality profiles
+23:16:42.298 INFO  Load quality profiles (done) | time=31ms
+23:16:42.337 INFO  Load active rules
+23:16:42.485 INFO  Load active rules (done) | time=147ms
+23:16:42.494 INFO  Load analysis cache
+23:16:42.518 INFO  Load analysis cache | time=24ms
+23:16:42.592 INFO  Preprocessing files...
+23:16:42.923 INFO  5 languages detected in 126 preprocessed files (done) | time=330ms
+23:16:42.923 INFO  1 file ignored because of inclusion/exclusion patterns
+23:16:42.923 INFO  3 directories skipped because of exclusion patterns (content not counted)
+23:16:42.925 INFO  Loading plugins for detected languages
+23:16:42.925 INFO  Load/download plugins
+23:16:42.929 INFO  Load/download plugins (done) | time=5ms
+23:16:43.024 INFO  Load project repositories
+23:16:43.102 INFO  Load project repositories (done) | time=78ms
+23:16:43.119 INFO  Indexing files...
+23:16:43.119 INFO  Project configuration:
+23:16:43.120 INFO    Excluded sources: backend/tests/**, scripts/tests/**, static-analysis/tests/**, **/AGENTS.md
+23:16:43.120 INFO    Excluded sources for coverage: scripts/**, static-analysis/**, api-tests/scripts/**, frontend/styles/**
+23:16:43.305 INFO  126 files indexed (done) | time=186ms
+23:16:43.306 INFO  Quality profile for css: Sonar way
+23:16:43.306 INFO  Quality profile for docker: Sonar way
+23:16:43.307 INFO  Quality profile for js: Sonar way
+23:16:43.307 INFO  Quality profile for web: Sonar way
+23:16:43.307 INFO  Quality profile for yaml: Sonar way
+23:16:43.307 INFO  ------------- Run sensors on module Nedelko
+23:16:43.333 INFO  Load metrics repository
+23:16:43.347 INFO  Load metrics repository (done) | time=15ms
+23:16:43.614 INFO  Reflections took 54 ms to scan 1 urls, producing 30 keys and 295 values
+23:16:43.703 INFO  Sensor IaC YAML File Type Classification Sensor [iac]
+23:16:43.726 INFO  Sensor IaC YAML File Type Classification Sensor [iac] (done) | time=22ms
+23:16:43.726 INFO  Sensor IaC CloudFormation Sensor [iac]
+23:16:43.726 INFO  There are no files to be analyzed for the CloudFormation language
+23:16:43.726 INFO  Sensor IaC CloudFormation Sensor [iac] (done) | time=0ms
+23:16:43.726 INFO  Sensor IaC cfn-lint report Sensor [iac]
+23:16:43.726 INFO  Sensor IaC cfn-lint report Sensor [iac] (done) | time=0ms
+23:16:43.727 INFO  Sensor IaC Kustomization Sensor [iac]
+23:16:43.727 INFO  Sensor IaC Kustomization Sensor [iac] (done) | time=0ms
+23:16:43.727 INFO  Sensor IaC hadolint report Sensor [iac]
+23:16:43.727 INFO  Sensor IaC hadolint report Sensor [iac] (done) | time=0ms
+23:16:43.727 INFO  Sensor Java Config Sensor [iac]
+23:16:43.727 INFO  There are no files to be analyzed for the Java language
+23:16:43.727 INFO  Sensor Java Config Sensor [iac] (done) | time=0ms
+23:16:43.728 INFO  Sensor IaC Docker Sensor [iac]
+23:16:43.781 INFO  1 source file to be analyzed
+23:16:43.840 INFO  1/1 source file has been analyzed
+23:16:43.840 INFO  Sensor IaC Docker Sensor [iac] (done) | time=112ms
+23:16:43.841 INFO  Sensor HTML [web]
+23:16:43.894 INFO  Sensor HTML [web] (done) | time=53ms
+23:16:43.894 INFO  Sensor JavaScript/TypeScript Coverage [javascript]
+23:16:43.896 INFO  Analysing [/usr/src/coverage/lcov.info]
+23:16:44.194 INFO  Sensor JavaScript/TypeScript Coverage [javascript] (done) | time=299ms
+23:16:44.195 INFO  Sensor IaC Kubernetes Sensor [iac]
+23:16:44.258 INFO  There are no files to be analyzed for the Kubernetes language
+23:16:44.259 INFO  Sensor IaC Kubernetes Sensor [iac] (done) | time=64ms
+23:16:44.259 INFO  Sensor TextAndSecretsSensor [text]
+23:16:44.275 INFO  Available processors: 20
+23:16:44.276 INFO  Using 20 threads for analysis.
+23:16:44.498 INFO  Start fetching files for the text and secrets analysis
+23:16:44.509 INFO  Using Git CLI to retrieve dirty files
+23:16:44.511 WARN  Retrieving only language associated files, make sure to run the analysis inside a git repository to make use of inclusions specified via "sonar.text.inclusions"
+23:16:44.511 INFO  Starting the text and secrets analysis
+23:16:44.513 INFO  126 source files to be analyzed for the text and secrets analysis
+23:16:44.711 INFO  126/126 source files have been analyzed for the text and secrets analysis
+23:16:44.714 INFO  Sensor TextAndSecretsSensor [text] (done) | time=455ms
+23:16:44.716 INFO  ------------- Run sensors on project
+23:16:44.860 INFO  Sensor JavaScript/TypeScript/CSS analysis [javascript]
+23:16:45.056 INFO  Detected os: Linux arch: amd64 alpine: false. Platform: LINUX_X64
+23:16:45.057 INFO  Deploy location /opt/sonar-scanner/.sonar/js/node-runtime, tagetRuntime: /opt/sonar-scanner/.sonar/js/node-runtime/node,  version: /opt/sonar-scanner/.sonar/js/node-runtime/version.txt
+23:16:47.157 INFO  Using embedded Node.js runtime.
+23:16:47.158 INFO  Using Node.js executable: '/opt/sonar-scanner/.sonar/js/node-runtime/node'.
+23:16:48.558 INFO  Memory configuration: OS (15881 MB), Node.js (4288 MB).
+23:16:48.568 INFO  gRPC analyze-project server listening on 127.0.0.1:36647
+23:16:48.677 INFO  Plugin version: [13.8.0.44569]
+23:16:50.150 INFO  Found 0 tsconfig.json file(s): []
+23:16:58.126 INFO  121 source files to be analyzed
+23:16:58.127 INFO  Analyzing 117 file(s) using default options [lib: lib.esnext.d.ts, lib.dom.d.ts]
+23:16:58.127 INFO  121/121 source files have been analyzed
+23:16:58.135 INFO  Hit the cache for 0 out of 120
+23:16:58.136 INFO  Miss the cache for 120 out of 120: ANALYSIS_MODE_INELIGIBLE [120/120]
+23:16:58.136 INFO  Sensor JavaScript/TypeScript/CSS analysis [javascript] (done) | time=13276ms
+23:16:58.136 INFO  Sensor IaC Project Sensor [iac]
+23:16:58.137 INFO  Sensor IaC Project Sensor [iac] (done) | time=1ms
+23:16:58.137 INFO  Sensor Zero Coverage Sensor
+23:16:58.138 INFO  Sensor Zero Coverage Sensor (done) | time=0ms
+23:16:58.138 INFO  ------------- Gather SCA dependencies on project
+23:16:58.142 INFO  Dependency analysis skipped
+23:16:58.142 INFO  SCM Publisher is disabled
+23:16:58.151 INFO  CPD Executor 12 files had no CPD blocks
+23:16:58.151 INFO  CPD Executor Calculating CPD for 80 files
+23:16:58.186 INFO  CPD Executor CPD calculation finished (done) | time=35ms
+23:16:58.589 INFO  Analysis report generated in 395ms, dir size=2.4 MB
+23:16:58.696 INFO  Analysis report compressed in 106ms, zip size=1.2 MB
+23:16:58.819 INFO  Analysis report uploaded in 123ms
+23:16:58.820 INFO  ------------- Check Quality Gate status
+23:16:58.820 INFO  Waiting for the analysis report to be processed (max 300s)
+23:17:03.842 INFO  QUALITY GATE STATUS: PASSED - View details on http://sonarqube:9000/dashboard?id=nedelko
+23:17:03.974 INFO  Analysis total time: 21.964 s
+23:17:03.989 INFO  SonarScanner Engine completed successfully
+23:17:04.009 INFO  EXECUTION SUCCESS
+23:17:04.009 INFO  Total time: 24.031s
+Local gate passed: syntax, documentation, tests, coverage and SonarQube.
+
+# npm.cmd run test:api (isolated)
+
+
+> nedelko@1.0.0 test:api
+> npm --prefix api-tests test
+
+
+> api-tests@1.0.0 test
+> node scripts/run.js
+
+Testing an isolated app with in-memory SQLite and synthetic demos.
+No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+Nedelko local API regression tests
+
+Folder 01 Public API and request boundaries
+Sub-folder Read configuration and initialize this run
+
+  GET http://127.0.0.1:56608/api/config [200 OK, 6.41 KB, 13 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Locations and demo choices are available
+  Pass  Configuration contains no provider credentials
+
+Sub-folder Anonymous session is empty
+
+  GET http://127.0.0.1:56608/api/auth/me [200 OK, 562 B, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  No signed-in user
+
+Sub-folder Dashboard requires authentication
+
+  GET http://127.0.0.1:56608/api/dashboard [401 Unauthorized, 587 B, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 401
+  Pass  Error code: sign_in_required
+
+Sub-folder Account generation requires authentication
+
+  POST http://127.0.0.1:56608/api/week/generate [401 Unauthorized, 587 B, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 401
+  Pass  Error code: sign_in_required
+
+Sub-folder Calendar requires authentication or a demo
+
+  GET http://127.0.0.1:56608/api/holidays?year=2026 [401 Unauthorized, 587 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 401
+  Pass  Error code: sign_in_required
+
+Sub-folder Unknown parent link is unavailable
+
+  GET http://127.0.0.1:56608/api/parents/[revoked-synthetic-link] [404 Not Found, 635 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 404
+  Pass  Error code: parent_link_unavailable
+
+Sub-folder Unsupported HTTP method is rejected
+
+  PUT http://127.0.0.1:56608/api/config [405 Method Not Allowed, 595 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 405
+  Pass  Error code: method_not_allowed
+
+Sub-folder Malformed JSON is rejected
+
+  POST http://127.0.0.1:56608/api/demo [400 Bad Request, 582 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: invalid_json
+
+Sub-folder Non-JSON request is rejected
+
+  POST http://127.0.0.1:56608/api/demo [415 Unsupported Media Type, 594 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 415
+  Pass  Error code: json_required
+
+Sub-folder Cross-origin mutation is rejected
+
+  POST http://127.0.0.1:56608/api/demo [403 Forbidden, 580 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 403
+  Pass  Error code: cross_origin
+
+Sub-folder Unknown demo week is rejected
+
+  POST http://127.0.0.1:56608/api/demo [400 Bad Request, 587 B, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: invalid_demo_week
+
+Sub-folder Unknown location is rejected
+
+  POST http://127.0.0.1:56608/api/demo [400 Bad Request, 586 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: unexpected_error
+
+Folder 02 Account sessions
+Sub-folder Invalid registration email is rejected
+
+  POST http://127.0.0.1:56608/api/auth/register [400 Bad Request, 582 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: email_format
+
+Sub-folder Register disposable teacher account
+
+  POST http://127.0.0.1:56608/api/auth/register [200 OK, 851 B, 54 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Public account matches registration
+  Pass  Session cookie has security attributes
+
+Sub-folder Read authenticated account
+
+  GET http://127.0.0.1:56608/api/auth/me [200 OK, 706 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Session belongs to the created account
+
+Sub-folder Duplicate account is rejected
+
+  POST http://127.0.0.1:56608/api/auth/register [409 Conflict, 578 B, 53 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: email_taken
+
+Sub-folder Log out registered session
+
+  POST http://127.0.0.1:56608/api/auth/logout [200 OK, 636 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Logout acknowledged
+
+Sub-folder Revoked session cannot authenticate
+
+  GET http://127.0.0.1:56608/api/auth/me [200 OK, 551 B, 1 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Revoked session is anonymous
+
+Sub-folder Wrong password is rejected
+
+  POST http://127.0.0.1:56608/api/auth/login [401 Unauthorized, 583 B, 52 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 401
+  Pass  Error code: login_failed
+
+Sub-folder Log in with generated credentials
+
+  POST http://127.0.0.1:56608/api/auth/login [200 OK, 851 B, 52 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Login returns the same account
+
+Folder 03 Synthetic week lifecycle and approval
+Sub-folder Create isolated synthetic demo
+
+  POST http://127.0.0.1:56608/api/demo [201 Created, 76.86 KB, 36 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 201
+  Pass  Demo has five ordered weekdays and bilingual messages
+
+Sub-folder Read synthetic holiday calendar
+
+  GET http://127.0.0.1:56608/api/holidays?year=2026&demoId=[synthetic-id] [200 OK, 8.69 KB, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Calendar uses the approved source
+
+Sub-folder Invalid calendar year is rejected
+
+  GET http://127.0.0.1:56608/api/holidays?year=-1&demoId=[synthetic-id] [400 Bad Request, 591 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: invalid_calendar_year
+
+Sub-folder Unknown demo scenario is rejected
+
+  GET http://127.0.0.1:56608/api/dashboard?demoId=[synthetic-id]&scenario=not-a-scenario [400 Bad Request, 586 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: invalid_scenario
+
+Sub-folder Notice cannot be approved before recheck
+
+  POST http://127.0.0.1:56608/api/week/approve [409 Conflict, 583 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: recheck_required
+
+Sub-folder Recheck synthetic same-day conditions
+
+  POST http://127.0.0.1:56608/api/week/recheck [200 OK, 76.93 KB, 5 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Recheck records the demo date
+
+Sub-folder Approve server-generated demo notice
+
+  POST http://127.0.0.1:56608/api/week/approve [200 OK, 76.05 KB, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Approval uses server messages with demo provenance
+
+Sub-folder Old revision cannot overwrite an approved plan
+
+  POST http://127.0.0.1:56608/api/week/recheck [409 Conflict, 579 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: plan_changed
+
+Sub-folder Pollution refresh moves today indoors and invalidates approval
+
+  GET http://127.0.0.1:56608/api/dashboard?demoId=[synthetic-id]&scenario=polluted&fresh=1 [200 OK, 77.33 KB, 6 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Pollution cannot leave today outdoors or approved
+  Pass  Dashboard reads preserve the editor revision
+
+Sub-folder Refresh normal synthetic conditions
+
+  GET http://127.0.0.1:56608/api/dashboard?demoId=[synthetic-id]&scenario=normal [200 OK, 76.9 KB, 6 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Refresh leaves approval empty
+  Pass  Dashboard reads preserve the editor revision
+
+Sub-folder Change demo city
+
+  POST http://127.0.0.1:56608/api/week/location [200 OK, 76.89 KB, 5 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Selected city is applied
+
+Sub-folder Regenerate the demo from its saved settings
+
+  POST http://127.0.0.1:56608/api/week/generate [201 Created, 76.86 KB, 26 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 201
+  Pass  Generation preserves demo isolation and clears approval
+
+Folder 04 Teacher edits and proposals
+Sub-folder Save a bilingual weekly theme edit
+
+  POST http://127.0.0.1:56608/api/week/edit [200 OK, 76.89 KB, 8 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Weekly edit updates the selected theme
+
+Sub-folder Save a direct bilingual day edit
+
+  POST http://127.0.0.1:56608/api/week/day/edit [200 OK, 76.99 KB, 6 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Direct edit persists both languages
+
+Sub-folder Reorder the complete day while preserving durations
+
+  POST http://127.0.0.1:56608/api/week/day/edit [200 OK, 77.02 KB, 6 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Saved row order matches the drag or arrow request
+
+Sub-folder Save reviewed timetable boundaries
+
+  POST http://127.0.0.1:56608/api/week/day/edit [200 OK, 77.16 KB, 5 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Reviewed times preserve durations, allow gaps and shift collisions
+
+Sub-folder Refresh preserves edited content, order and times
+
+  GET http://127.0.0.1:56608/api/dashboard?demoId=[synthetic-id]&fresh=1 [200 OK, 77.16 KB, 5 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Teacher content and timeline survive refresh
+
+Sub-folder Preview a replacement eco theme
+
+  POST http://127.0.0.1:56608/api/week/day/suggest [200 OK, 2.13 KB, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Theme preview needs teacher application
+
+Sub-folder Apply the reviewed eco theme
+
+  POST http://127.0.0.1:56608/api/week/day/apply [200 OK, 77.38 KB, 6 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Theme change invalidates approval
+
+Sub-folder Applied theme proposal cannot be reused
+
+  POST http://127.0.0.1:56608/api/week/day/apply [409 Conflict, 583 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: proposal_expired
+
+Sub-folder Preview an activity change
+
+  POST http://127.0.0.1:56608/api/week/change/suggest [200 OK, 9.59 KB, 4 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Activity preview is ready for teacher review
+
+Sub-folder Apply the reviewed activity change
+
+  POST http://127.0.0.1:56608/api/week/change/apply [200 OK, 77.37 KB, 6 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Activity change invalidates approval
+
+Sub-folder Applied activity proposal cannot be reused
+
+  POST http://127.0.0.1:56608/api/week/change/apply [409 Conflict, 583 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: proposal_expired
+
+Folder 05 Parent sharing and notes
+Sub-folder Enable parent sharing
+
+  POST http://127.0.0.1:56608/api/week/share [200 OK, 75.39 KB, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Share link contains an opaque token
+
+Sub-folder Read the anonymous parent projection
+
+  GET http://127.0.0.1:56608/api/parents/[revoked-synthetic-link] [200 OK, 61.83 KB, 4 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Parent view is bilingual, synthetic and contains no private plan fields
+
+Sub-folder Parent token cannot authorize teacher edits
+
+  POST http://127.0.0.1:56608/api/week/day/edit [401 Unauthorized, 587 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 401
+  Pass  Error code: sign_in_required
+
+Sub-folder Submit a synthetic group note anonymously
+
+  POST http://127.0.0.1:56608/api/parents/[revoked-synthetic-link]/notes [201 Created, 615 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 201
+  Pass  Parent submission acknowledged
+
+Sub-folder Repeated note nonce does not duplicate the demo note
+
+  POST http://127.0.0.1:56608/api/parents/[revoked-synthetic-link]/notes [200 OK, 610 B, 1 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Duplicate acknowledged
+
+Sub-folder Read the teacher demo inbox
+
+  GET http://127.0.0.1:56608/api/parent-notes?demoId=[synthetic-id] [200 OK, 794 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Exactly one unread note and no private nonce
+
+Sub-folder Demo notes do not appear in the account inbox
+
+  GET http://127.0.0.1:56608/api/parent-notes [200 OK, 572 B, 1 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Account inbox remains empty
+
+Sub-folder Mark the demo note as read
+
+  POST http://127.0.0.1:56608/api/parent-notes/read [200 OK, 816 B, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  No unread notes remain
+
+Sub-folder Preview a response to the group note
+
+  POST http://127.0.0.1:56608/api/parent-notes/suggest [200 OK, 9.86 KB, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Group note produces a reviewable demo proposal
+
+Sub-folder Apply the reviewed parent-note proposal
+
+  POST http://127.0.0.1:56608/api/parent-notes/apply [200 OK, 77.49 KB, 5 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Applied note invalidates approval
+
+Sub-folder Verify the note was applied
+
+  GET http://127.0.0.1:56608/api/parent-notes?demoId=[synthetic-id] [200 OK, 1.1 KB, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Note status is applied
+
+Sub-folder Applied parent-note proposal cannot be reused
+
+  POST http://127.0.0.1:56608/api/parent-notes/apply [409 Conflict, 583 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: proposal_expired
+
+Sub-folder Account session cannot edit a demo as an account plan
+
+  POST http://127.0.0.1:56608/api/week/delete [404 Not Found, 575 B, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 404
+  Pass  Error code: no_plan
+
+Sub-folder Revoke the parent link
+
+  POST http://127.0.0.1:56608/api/week/share [200 OK, 75.28 KB, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Sharing disabled
+
+Sub-folder Revoked parent link is unavailable
+
+  GET http://127.0.0.1:56608/api/parents/[revoked-synthetic-link] [404 Not Found, 635 B, 1 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 404
+  Pass  Error code: parent_link_unavailable
+
+Sub-folder Revoked parent link cannot receive notes
+
+  POST http://127.0.0.1:56608/api/parents/[revoked-synthetic-link]/notes [404 Not Found, 635 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 404
+  Pass  Error code: parent_link_unavailable
+
+Folder 06 Cleanup
+Sub-folder Delete this run’s synthetic week
+
+  POST http://127.0.0.1:56608/api/week/delete [200 OK, 1.65 KB, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Demo week removed
+
+Sub-folder Confirm the demo week is empty
+
+  GET http://127.0.0.1:56608/api/dashboard?demoId=[synthetic-id] [200 OK, 2.67 KB, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Deleted demo stays empty
+
+Sub-folder Log out the test account
+
+  POST http://127.0.0.1:56608/api/auth/logout [200 OK, 636 B, 1 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Logout acknowledged
+
+Sub-folder Confirm logout and clear runtime variables
+
+  GET http://127.0.0.1:56608/api/auth/me [200 OK, 562 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Session is anonymous
+
+--------------------------------------------------------------------
+|                         |           executed |            failed |
+--------------------------+--------------------+--------------------
+|              iterations |                  1 |                 0 |
+--------------------------+--------------------+--------------------
+|                requests |                 63 |                 0 |
+--------------------------+--------------------+--------------------
+|            test-scripts |                126 |                 0 |
+--------------------------+--------------------+--------------------
+|      prerequest-scripts |                  6 |                 0 |
+--------------------------+--------------------+--------------------
+|              assertions |                319 |                 0 |
+--------------------------------------------------------------------
+| total run duration: 6 s                                          |
+--------------------------------------------------------------------
+| total data received: 1.36 MB (approx)                            |
+--------------------------------------------------------------------
+| average response time: 7 ms [min: 1 ms, max: 54 ms, s.d.: 13 ms] |
+--------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command
+
+# npm.cmd --prefix api-tests run test:local (127.0.0.1:4173)
+
+
+> api-tests@1.0.0 test:local
+> node scripts/run.js --local
+
+Testing running app at http://127.0.0.1:4173
+No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+Nedelko local API regression tests
+
+Folder 01 Public API and request boundaries
+Sub-folder Read configuration and initialize this run
+
+  GET http://127.0.0.1:4173/api/config [200 OK, 6.41 KB, 12 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Locations and demo choices are available
+  Pass  Configuration contains no provider credentials
+
+Sub-folder Anonymous session is empty
+
+  GET http://127.0.0.1:4173/api/auth/me [200 OK, 562 B, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  No signed-in user
+
+Sub-folder Dashboard requires authentication
+
+  GET http://127.0.0.1:4173/api/dashboard [401 Unauthorized, 587 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 401
+  Pass  Error code: sign_in_required
+
+Sub-folder Account generation requires authentication
+
+  POST http://127.0.0.1:4173/api/week/generate [401 Unauthorized, 587 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 401
+  Pass  Error code: sign_in_required
+
+Sub-folder Calendar requires authentication or a demo
+
+  GET http://127.0.0.1:4173/api/holidays?year=2026 [401 Unauthorized, 587 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 401
+  Pass  Error code: sign_in_required
+
+Sub-folder Unknown parent link is unavailable
+
+  GET http://127.0.0.1:4173/api/parents/[revoked-synthetic-link] [404 Not Found, 635 B, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 404
+  Pass  Error code: parent_link_unavailable
+
+Sub-folder Unsupported HTTP method is rejected
+
+  PUT http://127.0.0.1:4173/api/config [405 Method Not Allowed, 595 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 405
+  Pass  Error code: method_not_allowed
+
+Sub-folder Malformed JSON is rejected
+
+  POST http://127.0.0.1:4173/api/demo [400 Bad Request, 582 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: invalid_json
+
+Sub-folder Non-JSON request is rejected
+
+  POST http://127.0.0.1:4173/api/demo [415 Unsupported Media Type, 594 B, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 415
+  Pass  Error code: json_required
+
+Sub-folder Cross-origin mutation is rejected
+
+  POST http://127.0.0.1:4173/api/demo [403 Forbidden, 580 B, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 403
+  Pass  Error code: cross_origin
+
+Sub-folder Unknown demo week is rejected
+
+  POST http://127.0.0.1:4173/api/demo [400 Bad Request, 587 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: invalid_demo_week
+
+Sub-folder Unknown location is rejected
+
+  POST http://127.0.0.1:4173/api/demo [400 Bad Request, 586 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: unexpected_error
+
+Folder 02 Account sessions
+Sub-folder Invalid registration email is rejected
+
+  POST http://127.0.0.1:4173/api/auth/register [400 Bad Request, 582 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: email_format
+
+Sub-folder Register disposable teacher account
+
+  POST http://127.0.0.1:4173/api/auth/register [200 OK, 851 B, 60 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Public account matches registration
+  Pass  Session cookie has security attributes
+
+Sub-folder Read authenticated account
+
+  GET http://127.0.0.1:4173/api/auth/me [200 OK, 706 B, 1 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Session belongs to the created account
+
+Sub-folder Duplicate account is rejected
+
+  POST http://127.0.0.1:4173/api/auth/register [409 Conflict, 578 B, 55 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: email_taken
+
+Sub-folder Log out registered session
+
+  POST http://127.0.0.1:4173/api/auth/logout [200 OK, 636 B, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Logout acknowledged
+
+Sub-folder Revoked session cannot authenticate
+
+  GET http://127.0.0.1:4173/api/auth/me [200 OK, 551 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Revoked session is anonymous
+
+Sub-folder Wrong password is rejected
+
+  POST http://127.0.0.1:4173/api/auth/login [401 Unauthorized, 583 B, 55 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 401
+  Pass  Error code: login_failed
+
+Sub-folder Log in with generated credentials
+
+  POST http://127.0.0.1:4173/api/auth/login [200 OK, 851 B, 57 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Login returns the same account
+
+Folder 03 Synthetic week lifecycle and approval
+Sub-folder Create isolated synthetic demo
+
+  POST http://127.0.0.1:4173/api/demo [201 Created, 76.86 KB, 22 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 201
+  Pass  Demo has five ordered weekdays and bilingual messages
+
+Sub-folder Read synthetic holiday calendar
+
+  GET http://127.0.0.1:4173/api/holidays?year=2026&demoId=[synthetic-id] [200 OK, 8.69 KB, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Calendar uses the approved source
+
+Sub-folder Invalid calendar year is rejected
+
+  GET http://127.0.0.1:4173/api/holidays?year=-1&demoId=[synthetic-id] [400 Bad Request, 591 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: invalid_calendar_year
+
+Sub-folder Unknown demo scenario is rejected
+
+  GET http://127.0.0.1:4173/api/dashboard?demoId=[synthetic-id]&scenario=not-a-scenario [400 Bad Request, 586 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 400
+  Pass  Error code: invalid_scenario
+
+Sub-folder Notice cannot be approved before recheck
+
+  POST http://127.0.0.1:4173/api/week/approve [409 Conflict, 583 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: recheck_required
+
+Sub-folder Recheck synthetic same-day conditions
+
+  POST http://127.0.0.1:4173/api/week/recheck [200 OK, 76.93 KB, 5 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Recheck records the demo date
+
+Sub-folder Approve server-generated demo notice
+
+  POST http://127.0.0.1:4173/api/week/approve [200 OK, 76.05 KB, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Approval uses server messages with demo provenance
+
+Sub-folder Old revision cannot overwrite an approved plan
+
+  POST http://127.0.0.1:4173/api/week/recheck [409 Conflict, 579 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: plan_changed
+
+Sub-folder Pollution refresh moves today indoors and invalidates approval
+
+  GET http://127.0.0.1:4173/api/dashboard?demoId=[synthetic-id]&scenario=polluted&fresh=1 [200 OK, 77.33 KB, 5 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Pollution cannot leave today outdoors or approved
+  Pass  Dashboard reads preserve the editor revision
+
+Sub-folder Refresh normal synthetic conditions
+
+  GET http://127.0.0.1:4173/api/dashboard?demoId=[synthetic-id]&scenario=normal [200 OK, 76.9 KB, 5 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Refresh leaves approval empty
+  Pass  Dashboard reads preserve the editor revision
+
+Sub-folder Change demo city
+
+  POST http://127.0.0.1:4173/api/week/location [200 OK, 76.89 KB, 5 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Selected city is applied
+
+Sub-folder Regenerate the demo from its saved settings
+
+  POST http://127.0.0.1:4173/api/week/generate [201 Created, 76.86 KB, 28 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 201
+  Pass  Generation preserves demo isolation and clears approval
+
+Folder 04 Teacher edits and proposals
+Sub-folder Save a bilingual weekly theme edit
+
+  POST http://127.0.0.1:4173/api/week/edit [200 OK, 76.89 KB, 7 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Weekly edit updates the selected theme
+
+Sub-folder Save a direct bilingual day edit
+
+  POST http://127.0.0.1:4173/api/week/day/edit [200 OK, 76.99 KB, 6 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Direct edit persists both languages
+
+Sub-folder Reorder the complete day while preserving durations
+
+  POST http://127.0.0.1:4173/api/week/day/edit [200 OK, 77.02 KB, 7 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Saved row order matches the drag or arrow request
+
+Sub-folder Save reviewed timetable boundaries
+
+  POST http://127.0.0.1:4173/api/week/day/edit [200 OK, 77.16 KB, 7 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Reviewed times preserve durations, allow gaps and shift collisions
+
+Sub-folder Refresh preserves edited content, order and times
+
+  GET http://127.0.0.1:4173/api/dashboard?demoId=[synthetic-id]&fresh=1 [200 OK, 77.16 KB, 5 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Teacher content and timeline survive refresh
+
+Sub-folder Preview a replacement eco theme
+
+  POST http://127.0.0.1:4173/api/week/day/suggest [200 OK, 2.13 KB, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Theme preview needs teacher application
+
+Sub-folder Apply the reviewed eco theme
+
+  POST http://127.0.0.1:4173/api/week/day/apply [200 OK, 77.38 KB, 6 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Theme change invalidates approval
+
+Sub-folder Applied theme proposal cannot be reused
+
+  POST http://127.0.0.1:4173/api/week/day/apply [409 Conflict, 583 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: proposal_expired
+
+Sub-folder Preview an activity change
+
+  POST http://127.0.0.1:4173/api/week/change/suggest [200 OK, 9.59 KB, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Activity preview is ready for teacher review
+
+Sub-folder Apply the reviewed activity change
+
+  POST http://127.0.0.1:4173/api/week/change/apply [200 OK, 77.37 KB, 5 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Activity change invalidates approval
+
+Sub-folder Applied activity proposal cannot be reused
+
+  POST http://127.0.0.1:4173/api/week/change/apply [409 Conflict, 583 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: proposal_expired
+
+Folder 05 Parent sharing and notes
+Sub-folder Enable parent sharing
+
+  POST http://127.0.0.1:4173/api/week/share [200 OK, 75.39 KB, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Share link contains an opaque token
+
+Sub-folder Read the anonymous parent projection
+
+  GET http://127.0.0.1:4173/api/parents/[revoked-synthetic-link] [200 OK, 61.83 KB, 4 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Parent view is bilingual, synthetic and contains no private plan fields
+
+Sub-folder Parent token cannot authorize teacher edits
+
+  POST http://127.0.0.1:4173/api/week/day/edit [401 Unauthorized, 587 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 401
+  Pass  Error code: sign_in_required
+
+Sub-folder Submit a synthetic group note anonymously
+
+  POST http://127.0.0.1:4173/api/parents/[revoked-synthetic-link]/notes [201 Created, 615 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 201
+  Pass  Parent submission acknowledged
+
+Sub-folder Repeated note nonce does not duplicate the demo note
+
+  POST http://127.0.0.1:4173/api/parents/[revoked-synthetic-link]/notes [200 OK, 610 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Duplicate acknowledged
+
+Sub-folder Read the teacher demo inbox
+
+  GET http://127.0.0.1:4173/api/parent-notes?demoId=[synthetic-id] [200 OK, 794 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Exactly one unread note and no private nonce
+
+Sub-folder Demo notes do not appear in the account inbox
+
+  GET http://127.0.0.1:4173/api/parent-notes [200 OK, 572 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Account inbox remains empty
+
+Sub-folder Mark the demo note as read
+
+  POST http://127.0.0.1:4173/api/parent-notes/read [200 OK, 816 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  No unread notes remain
+
+Sub-folder Preview a response to the group note
+
+  POST http://127.0.0.1:4173/api/parent-notes/suggest [200 OK, 9.86 KB, 4 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Group note produces a reviewable demo proposal
+
+Sub-folder Apply the reviewed parent-note proposal
+
+  POST http://127.0.0.1:4173/api/parent-notes/apply [200 OK, 77.49 KB, 6 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Applied note invalidates approval
+
+Sub-folder Verify the note was applied
+
+  GET http://127.0.0.1:4173/api/parent-notes?demoId=[synthetic-id] [200 OK, 1.1 KB, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Note status is applied
+
+Sub-folder Applied parent-note proposal cannot be reused
+
+  POST http://127.0.0.1:4173/api/parent-notes/apply [409 Conflict, 583 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 409
+  Pass  Error code: proposal_expired
+
+Sub-folder Account session cannot edit a demo as an account plan
+
+  POST http://127.0.0.1:4173/api/week/delete [404 Not Found, 575 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 404
+  Pass  Error code: no_plan
+
+Sub-folder Revoke the parent link
+
+  POST http://127.0.0.1:4173/api/week/share [200 OK, 75.28 KB, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Sharing disabled
+
+Sub-folder Revoked parent link is unavailable
+
+  GET http://127.0.0.1:4173/api/parents/[revoked-synthetic-link] [404 Not Found, 635 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 404
+  Pass  Error code: parent_link_unavailable
+
+Sub-folder Revoked parent link cannot receive notes
+
+  POST http://127.0.0.1:4173/api/parents/[revoked-synthetic-link]/notes [404 Not Found, 635 B, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 404
+  Pass  Error code: parent_link_unavailable
+
+Folder 06 Cleanup
+Sub-folder Delete this run’s synthetic week
+
+  POST http://127.0.0.1:4173/api/week/delete [200 OK, 1.65 KB, 2 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Demo week removed
+
+Sub-folder Confirm the demo week is empty
+
+  GET http://127.0.0.1:4173/api/dashboard?demoId=[synthetic-id] [200 OK, 2.67 KB, 3 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Deleted demo stays empty
+
+Sub-folder Log out the test account
+
+  POST http://127.0.0.1:4173/api/auth/logout [200 OK, 636 B, 145 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Logout acknowledged
+
+Sub-folder Confirm logout and clear runtime variables
+
+  GET http://127.0.0.1:4173/api/auth/me [200 OK, 562 B, 1 ms]
+  Pass  Response is JSON
+  Pass  Response cannot be cached
+  Pass  Content sniffing is disabled
+  Pass  HTTP 200
+  Pass  Session is anonymous
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                 63 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                126 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  6 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                319 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 6.2 s                                         |
+---------------------------------------------------------------------
+| total data received: 1.36 MB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 9 ms [min: 1 ms, max: 145 ms, s.d.: 21 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command

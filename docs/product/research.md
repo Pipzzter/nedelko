@@ -27,13 +27,13 @@ These sources support design principles and comparisons. They do not establish d
 
 - Kindergarten name and selected location, one group, and reusable planning preferences.
 - A teacher-written brief for weekly generation.
-- A single-day AI request, a preview, and a separate Apply action.
+- Selected-activity and full-day AI changes applied when the teacher submits the request; parent-note suggestions retain a separate preview and Apply action.
 - Visible AI/library provenance and distinct failure handling.
 - A read-only parent week with day navigation, Macedonian/English copy and printing.
 - Revocable, expiring links; a dedicated control copies just the URL, while weekly and daily notice copies include the notice and enabled link.
 - Private parent notes through the shared link, a teacher inbox and teacher-confirmed suggestions; a note cannot edit the plan itself.
 - A server worker that revisits active plans every minute, selecting indoor alternatives and rebuilding parent drafts when conditions change.
-- Responsive parent and teacher improvements while retaining Nedelko’s identity.
+- A responsive teacher and parent web app, ready and tested on phone and desktop.
 
 Current boundaries: the app runs on localhost; family links work on this computer. A link grants access to anyone holding it, without verifying parent identity. There is no email, push or SMS delivery. Both account and demo modes focus on planning, editing and read-only parent sharing. The earlier classroom simulation has been removed: neither mode offers two-way family conversations, child rosters, attendance, individual learning records or packing acknowledgements. The implemented private parent-note submission is a narrower teacher-review workflow. Demo examples remain synthetic and isolated from account data. Automatic checks require the server and computer to be running. The opportunities below are proposals, not implemented features or evidence of demand.
 

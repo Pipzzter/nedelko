@@ -9,4 +9,4 @@ The browser ships local ES modules, without runtime CDN requests:
 
 Files were obtained from version-pinned npm distributions through jsDelivr on 2026-09-20. Preact hooks’ bare `preact` import is rewritten to the adjacent `./preact.js`; source-map references are removed. Together the three JavaScript files are approximately 16.5 KB before compression. No React compatibility layer or bundler is included.
 
-`linkedom` 0.18.12 is a development-only dependency for repeatable DOM integration tests; it is not imported by the app. Exact dependency versions are recorded in package-lock.json. Illustrations in frontend/assets are original code-native SVGs.
+`linkedom` 0.18.12 is a development-only dependency for repeatable DOM integration tests; it is not imported by the app. Exact dependency versions are recorded in package-lock.json. The assets include original code-native SVG illustrations and the AI-generated PNG mascot and favicon. They are project artwork, separate from the licensed browser libraries above.
