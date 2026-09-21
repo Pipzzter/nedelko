@@ -78,7 +78,7 @@ test('parent link gives a stable read-only projection; revocation and ownership 
   await teacher('/api/week/share', { action: 'revoke', revision: week.revision });
   assert.equal((await parent(`/api/parents/${token}`)).status, 404);
   const renewed = (await teacher('/api/week/share', { action: 'enable', revision: week.revision })).body.share;
-  await teacher('/api/week/delete', { revision: week.revision });
+  await teacher('/api/week/delete', { revision: (await teacher('/api/dashboard')).body.week.revision });
   assert.equal((await parent(`/api/parents/${renewed.path.split('/').at(-1)}`)).status, 404);
   assert.equal(store.profile(user.id).groupName, 'Sunflowers', 'profile survives deleting a week');
 });

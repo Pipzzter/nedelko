@@ -27,12 +27,14 @@ const currentPage = () => {
 };
 
 const initialLanguage = () => { try { return localStorage.getItem('eko-language') === 'en' ? 'en' : 'mk'; } catch { return 'mk'; } };
+const firstVisit = () => { try { return !localStorage.getItem('eko-visited'); } catch { return false; } };
+const markVisited = () => { try { localStorage.setItem('eko-visited', '1'); } catch {} };
 function App() {
   const [lang, setLang] = useState(initialLanguage); const [config, setConfig] = useState(null); const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false); const [data, setData] = useState(null); const [busy, setBusy] = useState(false);
   const [error, setError] = useState(''); const [page, setPage] = useState(currentPage);
   const [resetSettings, setResetSettings] = useState(null);
-  const [notesOpen, setNotesOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false); const [demoIntro, setDemoIntro] = useState(false);
   const [selected, setSelected] = useState(null); const [demoId, setDemoId] = useState(() => demoRoute()?.[1] || null); const [scenario, setScenario] = useState('normal');
   const [location, setLocation] = useState(null); const [clock, setClock] = useState(new Date().toISOString());
   const running = useRef(false);
@@ -63,7 +65,17 @@ function App() {
   const action = (path, body = {}, propagate = false) => run(async () => { const result = await api(path, { ...body, ...(demoId ? { demoId, scenario } : {}), revision: data?.week?.revision }); if (result.environment) accept(result); else setData(previous => ({ ...previous, ...result })); return result; }, propagate);
   useEffect(() => { document.documentElement.lang = lang; document.title = `${t('brand', lang)} · ${t('yourWeek', lang)}`; try { localStorage.setItem('eko-language', lang); } catch {} }, [lang]);
   useEffect(() => {
-    run(async () => { const [configuration, auth] = await Promise.all([api('/config'), api('/auth/me')]); setConfig(configuration); setUser(auth.user); setReady(true); if (demoId) await load(demoId, null, null); else if (auth.user) await load(null); });
+    run(async () => {
+      const [configuration, auth] = await Promise.all([api('/config'), api('/auth/me')]); setConfig(configuration); setUser(auth.user);
+      if (demoId) { setReady(true); await load(demoId, null, null); }
+      else if (auth.user) { setReady(true); await load(null); }
+      else if (firstVisit()) {
+        markVisited();
+        const result = await api('/demo', { locationId: location, demoWeek: configuration.defaultDemoWeek });
+        setDemoId(result.demoId); setScenario('normal'); accept(result); setSelected(result.today);
+        locationHash(`demo/${result.demoId}/home`); setDemoIntro(true); setReady(true);
+      } else setReady(true);
+    });
   }, []);
   useEffect(() => {
     const interval = setInterval(() => { if (!demoId) setClock(new Date().toISOString()); }, 30000);
@@ -119,7 +131,15 @@ function App() {
         setResetSettings(result.settings); setData(previous => ({ ...previous, week: null, share: null })); navigate('home');
       })}/>
     `}
-    </main></div></div>`;
+    </main></div>
+    ${demoIntro && demoId && html`<div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="demo-intro-title" onClick=${e => { if (e.target === e.currentTarget) setDemoIntro(false); }}>
+      <div class="modal-card"><span class="modal-icon"><${Icon} name="leaf" size=${26}/></span>
+        <h2 id="demo-intro-title">${t('demoIntroTitle', lang)}</h2>
+        <p>${t('demoIntroBody', lang)}</p><p class="soft-note">${t('demoIntroToggle', lang)}</p>
+        <div class="modal-actions"><button class="button primary" onClick=${() => setDemoIntro(false)}>${t('demoIntroExplore', lang)}<${Icon} name="arrow" size=${18}/></button>
+          <button class="button secondary" onClick=${() => { setDemoIntro(false); toggleDemo(); }}>${t('demoIntroLeave', lang)}</button></div>
+      </div></div>`}
+    </div>`;
 }
 function locationHash(next) { if (window.location.hash !== `#${next}`) window.history.pushState(null, '', `#${next}`); }
 function Root() {

@@ -102,6 +102,24 @@ test('a note suggestion applies only after owner confirmation and rejects stale 
   assert.equal((await teacher('/api/parent-notes/apply', { proposalId: suggestion.proposal.proposalId, revision: applied.body.week.revision })).status, 409);
 });
 
+test('a parent note can move a whole group day outside without flipping any other day', async t => {
+  const { teacher, parent, data, path } = await fixture(t, {
+    noteAdviceProvider: async note => ({ kind: 'actionable', date: note.date, scope: 'outside', rowId: null,
+      instruction: 'The group would enjoy an outdoor day.', explanation: pair('Предлог за ден надвор.', 'A suggestion for an outdoor day.') }),
+  });
+  const day = data.week.days[1].date;
+  const priorOutside = data.week.days.filter(item => item.mode === 'outside').map(item => item.date);
+  await parent(path + '/notes', { text: 'Could Tuesday be an outdoor day for everyone?', date: day, nonce: randomUUID() });
+  const noteId = (await teacher('/api/parent-notes')).body.notes[0].id;
+  const suggestion = (await teacher('/api/parent-notes/suggest', { noteId, revision: data.week.revision })).body;
+  assert.equal(suggestion.proposal.scope, 'outside');
+  const applied = await teacher('/api/parent-notes/apply', { proposalId: suggestion.proposal.proposalId, revision: data.week.revision });
+  assert.equal(applied.status, 200);
+  assert.equal(applied.body.week.days.find(item => item.date === day).outdoorPreference, 'outside');
+  assert.ok(priorOutside.every(date => applied.body.week.days.find(item => item.date === date).mode === 'outside'), 'previously outdoor days stay outside');
+  assert.equal((await teacher('/api/parent-notes')).body.notes[0].status, 'applied');
+});
+
 test('demo notes stay in memory and deleting a plan clears its notes', async t => {
   const { teacher, parent, store, data } = await fixture(t);
   const demo = (await teacher('/api/demo', {})).body;

@@ -54,6 +54,7 @@ export function DayPlan({ day, data, lang, clock, materials, busy, onPlace, onSu
       ${isEco && html`${day.mode === 'outside' && html`<details class="indoor-backup" open><summary>${t('indoorBackup', lang)}</summary><p>${text(day.theme.inside, lang)}</p></details>`}<div class="lesson-detail"><span>${t('goal', lang)}</span><p>${text(day.theme.goal, lang)}</p></div><div class="lesson-detail"><span>${t('materials', lang)}</span><div class="material-tags">${day.theme.materials.map(id => html`<span key=${id}>${text(materials.find(m => m.id === id)?.label, lang)}</span>`)}</div></div>${day.snow && html`<p class="soft-note">${t('snowNote', lang)}</p>`}<div class="habit"><${Icon} name="leaf" size=${18}/><p>${text(day.theme.habit, lang)}</p></div>`}
       ${onSuggest && (editable ? html`<${ChangeAssistant} key=${`${day.date}/${selected.id}`} day=${day} row=${selected} scope="activity" lang=${lang} busy=${busy} demo=${demo} onSuggest=${onSuggest} onApply=${onApply}/>` : html`<p class="locked-activity"><${Icon} name="clock" size=${14}/>${t(upcoming(selected) ? 'protectedActivity' : 'activityAlreadyStarted', lang)}</p>`)}
     </aside>`}</div>
-    ${onSuggest && day.timeline.some(upcoming) && html`<${ChangeAssistant} key=${day.date} day=${day} scope="schedule" lang=${lang} busy=${busy} demo=${demo} onSuggest=${onSuggest} onApply=${onApply}/>`}`}
+    ${onSuggest && day.timeline.some(upcoming) && html`<${ChangeAssistant} key=${day.date} day=${day} scope="schedule" lang=${lang} busy=${busy} demo=${demo} onSuggest=${onSuggest} onApply=${onApply}
+      onPlace=${onPlace} placeDisabled=${day.date < now.date || today && day.timeline.some(row => row.kind === 'eco' && row.end <= now.time)}/>`}`}
   </section>`;
 }

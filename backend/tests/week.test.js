@@ -249,10 +249,12 @@ test('per-day outdoor choices outrank AI allocation, persist on refresh, and can
   const c = suitableConditions(); const dates = planningWeekDates(c.clock);
   const week = createWeek(DEFAULT_SETTINGS, { themes: localCurriculum(dates, DEFAULT_SETTINGS), source: 'ai', outdoorOrder: dates }, c);
   assert.equal(week.days[4].mode, 'inside');
+  const priorOutside = week.days.filter(day => day.mode === 'outside').map(day => day.date);
   const input = structuredClone(week); input.days[4].outdoorPreference = 'outside';
   let saved = editWeek({ ...week, approval: { date: week.today }, checkedAt: c.clock }, input, c);
   assert.equal(saved.days[4].mode, 'outside');
-  assert.equal(saved.days.filter(day => day.mode === 'outside').length, 2);
+  assert.ok(priorOutside.every(date => saved.days.find(day => day.date === date).mode === 'outside'));
+  assert.equal(saved.days.filter(day => day.mode === 'outside').length, priorOutside.length + 1);
   assert.equal(saved.approval, null); assert.equal(saved.checkedAt, null);
   assert.deepEqual(saved.days[4].activity, saved.days[4].theme.outside);
   assert.match(saved.messages.daily[dates[4]].en, /\(outside\)/);
@@ -269,14 +271,16 @@ test('per-day outdoor choices outrank AI allocation, persist on refresh, and can
   }
 });
 
-test('explicit outdoor choices can exceed the weekly target while automatic days use only the remaining allowance', () => {
+test('explicit outdoor choices can exceed the weekly target while held automatic days keep their mode', () => {
   const c = suitableConditions();
   for (const outdoorDays of [0, 2]) {
     const week = makeWeek(c, { ...DEFAULT_SETTINGS, outdoorDays });
+    const priorOutside = week.days.filter(day => day.mode === 'outside').map(day => day.date);
     const input = structuredClone(week);
     input.days.slice(2).forEach(day => { day.outdoorPreference = 'outside'; });
     const saved = editWeek(week, input, c);
-    assert.deepEqual(saved.days.filter(day => day.mode === 'outside').map(day => day.date), week.days.slice(2).map(day => day.date));
+    const expected = new Set([...priorOutside, ...week.days.slice(2).map(day => day.date)]);
+    assert.deepEqual(saved.days.filter(day => day.mode === 'outside').map(day => day.date), week.days.filter(day => expected.has(day.date)).map(day => day.date));
     assert.equal(saved.settings.outdoorDays, outdoorDays);
     assert.ok(saved.days.slice(2).every(day => day.provisional));
   }

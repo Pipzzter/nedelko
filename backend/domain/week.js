@@ -252,7 +252,13 @@ export function editWeek(previous, input, conditions) {
     });
     return { ...day, closed: edit.closed, outdoorPreference: edit.outdoorPreference, theme, themePinned: day.themePinned || themeChanged, timeline };
   });
-  return adaptWeek({ ...previous, settings, days }, conditions);
+  const changedPreference = days.some((day, index) => day.outdoorPreference !== previous.days[index].outdoorPreference);
+  const held = !changedPreference ? days : days.map((day, index) => {
+    const before = previous.days[index];
+    return day.outdoorPreference === 'auto' && before.outdoorPreference === 'auto' && before.theme && !day.closed && day.date >= today && ['inside', 'outside'].includes(before.mode)
+      ? { ...day, outdoorPreference: before.mode } : day;
+  });
+  return adaptWeek({ ...previous, settings, days: held }, conditions);
 }
 
 export function dashboard(week, conditions) {
