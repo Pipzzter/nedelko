@@ -22,12 +22,11 @@ export function RequestProgress() {
     };
   }, [request?.id]);
   if (!progress.count) return null;
-  if (!request) return html`<div class="network-progress" role="progressbar" aria-label=${t('loading', lang)}><span/></div>`;
   const duration = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
-  const title = request.phase === 'applying' ? 'applyingChange' : request.phase === 'generation' ? 'generating' : 'suggestingDay';
+  const title = request.phase === 'applying' ? 'applyingChange' : request.phase === 'generation' ? 'generating' : request.phase === 'loading' ? 'loading' : 'suggestingDay';
   return html`<section ref=${panel} class="ai-loading-screen" role="dialog" aria-modal="true" aria-labelledby="ai-loading-title" aria-describedby="ai-loading-description" tabIndex="-1" onKeyDown=${event => { if (event.key === 'Tab') event.preventDefault(); }}>
     <div class="ai-loading-content"><span class="loading-mark"><${Icon} name=${request.phase === 'applying' ? 'check' : 'leaf'} size=${38}/></span><span class="eyebrow">${t('brand', lang)}</span>
-      <h1 id="ai-loading-title" role="status">${t(title, lang)}</h1><p id="ai-loading-description">${t(request.phase === 'applying' ? 'applyingChangeHelp' : request.demo ? 'demoLoadingHelp' : 'aiLoadingHelp', lang)}</p>
+      <h1 id="ai-loading-title" role="status">${t(title, lang)}</h1><p id="ai-loading-description">${t(request.phase === 'applying' ? 'applyingChangeHelp' : request.phase === 'loading' ? 'requestLoadingHelp' : request.demo ? 'demoLoadingHelp' : 'aiLoadingHelp', lang)}</p>
       <div class="ai-progress-track" role="progressbar" aria-label=${t(title, lang)}><span/></div>
       <p class="elapsed-time">${t('elapsedTime', lang)} <time>${duration}</time></p>
       ${elapsed >= 45 && html`<p class="loading-patience">${t('stillWorking', lang)}</p>`}

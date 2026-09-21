@@ -3,7 +3,7 @@ const phases = {
   '/week/generate': 'generation', '/week/day/suggest': 'suggestion', '/week/change/suggest': 'suggestion',
   '/parent-notes/suggest': 'noteSuggestion', '/week/day/apply': 'applying', '/week/change/apply': 'applying', '/parent-notes/apply': 'applying',
 };
-export const requestProgress = () => ({ count: requests.size, foreground: [...requests.values()].find(request => request.phase !== 'loading') || null });
+export const requestProgress = () => ({ count: requests.size, foreground: [...requests.values()].find(request => request.phase !== 'loading') || [...requests.values()][0] || null });
 const notify = () => { const snapshot = requestProgress(); for (const listener of listeners) listener(snapshot); };
 export function watchRequests(listener) { listeners.add(listener); listener(requestProgress()); return () => listeners.delete(listener); }
 export function beginRequest(path, demo = false) {

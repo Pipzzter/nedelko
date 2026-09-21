@@ -7,6 +7,7 @@ const copy = {
   ...featureCopy,
   ...notesCopy,
   ...loadingCopy,
+  requestLoadingHelp: ['Почекајте да заврши барањето за да продолжите.', 'Please wait for this request to finish before continuing.'],
   editTimes: ['Уреди времиња', 'Edit times'], startsAt: ['Почеток', 'Starts at'], endsAt: ['Крај', 'Ends at'],
   editTimesHelp: ['Променете го почетокот на активноста. Претходната ќе заврши во новото време, без празнини. Прегледајте ги сите термини пред зачувување.', 'Change an activity’s start. The preceding activity ends at that time, leaving no gaps. Review all times before saving.'],
   reviewTimes: ['Прегледајте ги прикажаните времиња и потврдете ја промената.', 'Review the displayed times and confirm your change.'],

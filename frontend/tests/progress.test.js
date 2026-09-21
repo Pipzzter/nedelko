@@ -18,7 +18,7 @@ test('all AI and apply requests report progress without retaining private input,
   assert.doesNotMatch(JSON.stringify(snapshots), /PRIVATE/);
 });
 
-test('full-screen AI waiting preserves the form, uses real elapsed time and restores interaction', async t => {
+test('modal request progress preserves the form, uses real elapsed time and restores interaction', async t => {
   const { window } = parseHTML('<html lang="en"><body><div id="root"></div></body></html>');
   globalThis.window = window; globalThis.document = window.document;
   globalThis.requestAnimationFrame = fn => setTimeout(fn, 0); globalThis.cancelAnimationFrame = clearTimeout;
@@ -42,7 +42,10 @@ test('full-screen AI waiting preserves the form, uses real elapsed time and rest
   assert.equal(document.querySelector('.ai-loading-screen'), null);
   assert.equal(document.querySelector('input').value, 'Keep my draft');
   const endBackground = beginRequest('/dashboard');
-  await wait(() => document.querySelector('.network-progress'));
-  assert.equal(document.getElementById('app-screen').hasAttribute('inert'), false, 'background refresh does not blank the page');
-  endBackground(); await wait(() => !document.querySelector('.network-progress'));
+  await wait(() => document.querySelector('.ai-loading-screen'));
+  await wait(() => document.getElementById('app-screen').hasAttribute('inert'));
+  assert.equal(document.querySelector('input').value, 'Keep my draft');
+  assert.equal(document.querySelector('#ai-loading-title').textContent, 'Loading…');
+  endBackground(); await wait(() => !document.querySelector('.ai-loading-screen'));
+  await wait(() => !document.getElementById('app-screen').hasAttribute('inert'));
 });
