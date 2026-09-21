@@ -1,4 +1,5 @@
 import { DEFAULT_COMFORT } from '../config/index.js';
+import { validatePreferences as validateComfortPreferences } from './preferences.js';
 
 export const DEFAULT_TEXT =
   'Појадуваме од 10:00 до 10:30. Спиеме од 12:00 до 14:00. Сакаме 30 минути игра надвор, без делење на групата.';
@@ -94,32 +95,7 @@ export function timeLabel(value) {
   return `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
 }
 export function validatePreferences(value = DEFAULT_COMFORT) {
-  if (!value || typeof value !== 'object' || Array.isArray(value))
-    throw Object.assign(new Error('Недостасуваат условите за игра надвор.'), { status: 400 });
-  const result = {
-    minApparentC: Number(value.minApparentC),
-    maxApparentC: Number(value.maxApparentC),
-    maxPrecipProbability: Number(value.maxPrecipProbability),
-    maxPrecipitationMm: Number(value.maxPrecipitationMm),
-    maxWindKmh: Number(value.maxWindKmh)
-  };
-  if (
-    !Object.values(result).every(Number.isFinite) ||
-    result.minApparentC < -15 ||
-    result.minApparentC > 20 ||
-    result.maxApparentC < 15 ||
-    result.maxApparentC > 45 ||
-    result.minApparentC >= result.maxApparentC ||
-    result.maxPrecipProbability < 0 ||
-    result.maxPrecipProbability > 100 ||
-    result.maxPrecipitationMm < 0 ||
-    result.maxPrecipitationMm > 20 ||
-    result.maxWindKmh < 5 ||
-    result.maxWindKmh > 80
-  ) {
-    throw Object.assign(new Error('Проверете ги границите за температура, дожд и ветер.'), { status: 400 });
-  }
-  return result;
+  return validateComfortPreferences(value);
 }
 export function validateSchedule(input) {
   if (!input || typeof input !== 'object') throw Object.assign(new Error('Недостасува распоред.'), { status: 400 });
@@ -155,12 +131,6 @@ export function validateSchedule(input) {
     blocks,
     preferences: validatePreferences(input.preferences)
   };
-}
-export function validateWeeklySchedule(input) {
-  const schedule = validateSchedule(input);
-  const materials = validateMaterials(input.materials);
-  const ageGroup = validateAgeGroup(input.ageGroup);
-  return { ...schedule, ageGroup, materials, themes: validateThemes(input.themes, materials) };
 }
 const INSTRUCTION_PATTERNS = [
   /ignore\s+(?:all\s+)?instructions|system\s+prompt|developer\s+message/iu,

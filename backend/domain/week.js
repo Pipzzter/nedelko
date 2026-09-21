@@ -7,7 +7,8 @@ import { compactTimeline } from './timeline.js';
 import { occasionsForWeek, calendarSnapshot } from './holidays.js';
 import { activityRole, activityText, adaptActivities, diversifyActivities } from './day-activities.js';
 import { adaptOccasionActivities } from './occasion-activities.js';
-import { protectedActivity, validateDayChange } from './day-edit.js';
+import { protectedActivity, validateDayChange, validateEcoSlot } from './day-edit.js';
+import { validateSessions } from './session-plan.js';
 
 export const weatherKind = (code) => {
   if (!Number.isFinite(code)) {
@@ -89,6 +90,7 @@ function windowEvidence(day, conditions, settings) {
   )
     return { eligible: false, reason: 'weather' };
   const completeAir = conditions.forecastAvailable && air.every((r) => Number.isFinite(r?.pm25) && r.pm25 >= 0);
+  if (day.date > local.date && !completeAir) return { eligible: false, reason: 'air_forecast_unavailable' };
   if (conditions.forecastAvailable && air.some((r) => Number.isFinite(r?.pm25) && r.pm25 > 35.4))
     return { eligible: false, reason: 'air_forecast' };
   const avg = (key) => weather.reduce((sum, r) => sum + r[key], 0) / weather.length;
@@ -208,6 +210,12 @@ export function createWeek(input, curriculum, conditions, calendars) {
   calendars ||= [...new Set(dates.map((date) => Number(date.slice(0, 4))))].map(calendarSnapshot);
   const occasions = occasionsForWeek(dates, calendars);
   const variant = Number.isInteger(curriculum.variant) ? curriculum.variant : 0;
+  const timelines = dates.map((date, index) =>
+    date < today ? [] : createTimeline(settings, themes[index], conditions, date, (index + variant) % 5)
+  );
+  const sessions = curriculum.sessions === undefined ? [] : validateSessions(
+    curriculum.sessions, dates.map((date, index) => ({ date, slots: timelines[index] })), themes, dates
+  );
   const outdoorOrder =
     Array.isArray(curriculum.outdoorOrder) &&
     curriculum.outdoorOrder.length === dates.length &&
@@ -230,15 +238,12 @@ export function createWeek(input, curriculum, conditions, calendars) {
       date,
       theme: date < today ? null : themes[i],
       baseTheme: date < today ? null : themes[i],
-      timeline:
-        date < today
-          ? []
-          : createTimeline(settings, themes[i], conditions, date, (i + variant) % 5).map((row) => {
-              const session = curriculum.sessions?.find((item) => item.date === date && item.slotId === row.id);
-              return session && row.kind === 'activity'
-                ? { ...row, label: session.title, note: session.description, plannedSession: true }
-                : row;
-            }),
+      timeline: timelines[i].map((row) => {
+        const session = sessions.find((item) => item.date === date && item.slotId === row.id);
+        return session && row.kind === 'activity'
+          ? { ...row, label: session.title, note: session.description, plannedSession: true }
+          : row;
+      }),
       themePinned: !!curriculum.topicAssignments?.some((topic) => topic.date === date),
       occasions: occasions[i],
       closed: false,
@@ -311,7 +316,7 @@ export function adaptWeek(input, conditions) {
   }
   const removed = [...previous].filter((date) => date >= today && date !== finishedToday?.date && !chosen.has(date));
   const added = [...chosen].filter((date) => !previous.has(date));
-  const blockedReasons = new Set(['pollution', 'unknown_air', 'weather', 'air_forecast', 'unknown_weather']);
+  const blockedReasons = new Set(['pollution', 'unknown_air', 'weather', 'air_forecast', 'air_forecast_unavailable', 'unknown_weather']);
   const changes = new Map((week.changes || []).map((change) => [change.from, change]));
   removed.forEach((from, i) => changes.set(from, { from, to: added[i] ?? null }));
   const replacements = new Set();
@@ -412,6 +417,7 @@ export function editWeek(previous, input, conditions) {
     const themeChanged =
       JSON.stringify(theme) !== JSON.stringify(validateCurriculum(new Array(5).fill(day.theme), settings)[0]);
     const validatedRows = validateTimeline(edit.timeline, settings);
+    validateEcoSlot(validatedRows, day.timeline.find((row) => row.kind === 'eco'));
     if (themeChanged && day.timeline.some((row) => row.kind === 'eco' && protectedActivity(row)))
       throw invalid('protected_activity');
     for (const original of day.timeline.filter(protectedActivity)) {

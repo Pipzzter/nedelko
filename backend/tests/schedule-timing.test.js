@@ -34,11 +34,25 @@ test('duration parsing separates unrelated quantities and handles long text with
     ['1 час и 30 минути, потоа 20 минути игра', [90, 20]],
     ['1 hour of drawing, then 30 minutes outside', [60, 30]],
     ['2 hours and 5 minutes; 1,5 часа', [125, 90]],
-    ['1 hour and 1.5 minutes', [60, 5]],
+    ['1 hour and 1.5 minutes', [61.5]],
+    ['1.5 minutes', [1.5]],
+    ['1,5 минути', [1.5]],
+    ['half minute', [0.5]],
+    ['1 час и 0,5 минути', [60.5]],
     ['15:30, 2 groups, 6 books, 45 min', [45]],
     ['9'.repeat(2000) + ' children', []],
     ['1 hour' + ' '.repeat(2000) + 'later', [60]]
   ]) assert.deepEqual(explicitDurations(instruction), expected, instruction.slice(0, 80));
+});
+
+test('fractional-minute requests cannot silently become a different whole-minute schedule', () => {
+  const { day, row, week, conditions } = fixture();
+  for (const durationMinutes of [5, 15]) {
+    assert.throws(() => validateTimingIntent([{ ...target(row), position: 'any', durationMinutes }], day, week.settings,
+      'Make it 1.5 minutes', conditions.clock), { code: 'timing_not_satisfied' });
+  }
+  assert.throws(() => validateTimingIntent([{ ...target(row), position: 'any', durationMinutes: 1.5 }], day, week.settings,
+    'Make it 1.5 minutes', conditions.clock), { code: 'invalid_duration' });
 });
 test('two hours at closing explains the 105-minute limit instead of returning 45 minutes', () => {
   const { day, row, week, conditions } = fixture();

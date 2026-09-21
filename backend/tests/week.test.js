@@ -8,6 +8,7 @@ import { createWeek, adaptWeek, editWeek, outdoorPlanningContext } from '../doma
 import { localCurriculum, validateCurriculum, holidayLesson } from '../domain/curriculum.js';
 import { parentMessages } from '../domain/messages.js';
 import { compactTimeline } from '../domain/timeline.js';
+import { parentView } from '../domain/parent-view.js';
 const conditions = () => demoConditions(LOCATIONS[0], 'normal', Date.parse('2026-09-21T06:45:00Z'));
 const makeWeek = (c = conditions(), settings = DEFAULT_SETTINGS) => createWeek(settings, { themes: localCurriculum(planningWeekDates(c.clock), settings), source: 'library' }, c);
 const suitableConditions = () => {
@@ -75,11 +76,44 @@ test('stale, failed refresh and disagreeing evidence cannot schedule outside tod
   }
   const c = conditions(); c.failedRefresh = true; assert.equal(makeWeek(c).days[0].mode, 'inside');
 });
-test('weather-only future outdoor days are provisional; missing weather is never a favourable forecast', () => {
-  const c = conditions(); c.forecast = []; c.forecastAvailable = false;
-  const week = makeWeek(c); assert.ok(week.days.some(d => d.mode === 'outside' && d.reason === 'weather_only'));
-  assert.ok(week.days.filter(d => d.date > week.today).every(d => d.provisional));
-  c.weatherAvailable = false; assert.equal(makeWeek(c).days.filter(d => d.mode === 'outside').length, 0);
+test('future outdoor drafts require available air forecasts even when weather is favourable', () => {
+  for (const missing of [c => { c.forecastAvailable = false; }, c => { c.forecast = []; }]) {
+    const c = suitableConditions(); missing(c);
+    const week = makeWeek(c);
+    const future = week.days.filter(day => day.date > week.today);
+    assert.ok(future.every(day => day.mode === 'inside' && day.reason === 'air_forecast_unavailable' && day.provisional));
+    assert.ok(outdoorPlanningContext(future.map(day => day.date), DEFAULT_SETTINGS, c).every(day => !day.serverEligible));
+    assert.match(week.messages.weekly.en, /About 1 outdoor activity day\./);
+    for (const day of future) {
+      assert.match(week.messages.daily[day.date].en, /\(indoors\)/);
+      assert.match(week.messages.daily[day.date].en, /complete air forecast is unavailable/);
+      assert.match(week.messages.daily[day.date].mk, /Нема целосна прогноза за воздухот/);
+    }
+    assert.equal(week.days[0].mode, 'outside', 'the same-day live observation policy remains unchanged');
+    assert.equal(week.days[0].reason, 'weather_only');
+    c.weatherAvailable = false;
+    assert.equal(makeWeek(c).days.filter(day => day.mode === 'outside').length, 0);
+  }
+});
+
+test('each hour of a future eco slot needs a finite nonnegative air forecast and missing coverage invalidates approval', () => {
+  const c = suitableConditions(); const settings = { ...DEFAULT_SETTINGS, duration: 60, outdoorDays: 5 };
+  const week = makeWeek(c, settings); const day = week.days[1]; const slot = day.timeline.find(row => row.kind === 'eco');
+  const firstHour = Math.floor(minutes(slot.start) / 60) * 60;
+  const secondHour = firstHour + 60;
+  assert.ok(secondHour < minutes(slot.end), 'the fixture crosses an hourly boundary');
+  for (const value of [undefined, null, NaN, -1, '10']) {
+    const missing = structuredClone(c);
+    const index = missing.forecast.findIndex(row => row.local.date === day.date && row.local.minutes === secondHour);
+    if (value === undefined) missing.forecast.splice(index, 1);
+    else missing.forecast[index].pm25 = value;
+    const changed = adaptWeek({ ...week, checkedAt: c.clock, approval: { date: week.today } }, missing);
+    assert.equal(changed.days[1].mode, 'inside');
+    assert.equal(changed.days[1].reason, 'air_forecast_unavailable');
+    assert.ok(changed.changes.some(change => change.from === day.date && change.reason === 'air_forecast_unavailable'));
+    assert.equal(changed.approval, null); assert.equal(changed.checkedAt, null);
+  }
+  assert.equal(adaptWeek(week, c).days[1].mode, 'outside');
 });
 test('rain, wind, freezing precipitation and storms override an otherwise attractive day', () => {
   for (const patch of [{ precipitationProbability: 95 }, { apparentTemperature: -5 }, { windSpeed: 45 }, { weatherCode: 95 }, { weatherCode: 66 }]) {
@@ -106,6 +140,24 @@ test('parent messages have both languages, no em dash, and only call out clothin
   assert.match(messages.weekly.en, /Tuesday:.*raincoat/); assert.doesNotMatch(messages.weekly.en, /Monday:/);
   assert.doesNotMatch(JSON.stringify(messages), /\u2014/);
   assert.ok(Object.values(messages.daily).every(v => v.mk && v.en));
+});
+
+test('parent projections preserve unknown weather and clothing exceptions name weekend days', () => {
+  const week = makeWeek();
+  for (const summary of [undefined, null, {}]) {
+    week.days[0].summary = summary;
+    const view = parentView(week, '2026-09-28T00:00:00Z');
+    assert.deepEqual(view.days[0].summary, { kind: 'unknown', min: null, max: null });
+  }
+  week.days.forEach(day => { day.summary = { min: 15, max: 22, rain: 10, wind: 8, kind: 'sun' }; });
+  for (const [date, en, mk] of [['2026-09-26', 'Saturday', 'сабота'], ['2026-09-27', 'Sunday', 'недела']]) {
+    week.days[4].date = date;
+    week.days[4].summary = { min: 15, max: 22, rain: 80, wind: 8, kind: 'rain' };
+    const messages = parentMessages(week);
+    assert.match(messages.weekly.en, new RegExp(`${en}:.*raincoat`));
+    assert.match(messages.weekly.mk, new RegExp(`${mk}:.*кабаница`));
+    assert.doesNotMatch(JSON.stringify(messages), /undefined/);
+  }
 });
 test('curriculum follows the season and an educational national date without inventing closures', () => {
   const dates = ['2026-09-07', '2026-09-08', '2026-09-09', '2026-09-10', '2026-09-11'];
@@ -155,10 +207,10 @@ test('elapsed outdoor slots do not get reassigned to an extra future day', () =>
   assert.equal(adapted.days[0].mode, 'outside'); assert.equal(adapted.days.filter(d => d.mode === 'outside').length, 2);
   assert.equal(adapted.changes.length, 0);
 });
-test('deleting the eco slot also removes its activity from the parent notice', () => {
-  const c = conditions(); const week = makeWeek(c); const input = structuredClone(week);
-  input.days[0].timeline = input.days[0].timeline.filter(row => row.kind !== 'eco');
-  const updated = editWeek(week, input, c); assert.equal(updated.days[0].activity, null);
+test('a legacy plan with no eco slot cannot advertise that lesson in the parent notice', () => {
+  const c = conditions(); const week = makeWeek(c);
+  week.days[0].timeline = week.days[0].timeline.filter(row => row.kind !== 'eco');
+  const updated = adaptWeek(week, c); assert.equal(updated.days[0].activity, null);
   assert.doesNotMatch(updated.messages.daily[updated.days[0].date].en, /autumn colour hunt|A little habit for home/i);
 });
 
@@ -314,17 +366,18 @@ test('an outside preference cannot bypass air, weather, closure or missing-slot 
   const closed = structuredClone(input); closed.days[0].closed = true;
   assert.equal(editWeek(week, closed, c).days[0].mode, 'closed');
   const noSlot = structuredClone(input); noSlot.days[0].timeline = noSlot.days[0].timeline.filter(row => row.kind !== 'eco');
-  assert.equal(editWeek(week, noSlot, c).days[0].reason, 'no_slot');
+  assert.throws(() => editWeek(week, noSlot, c), { code: 'one_eco_slot' });
+  assert.equal(adaptWeek(noSlot, c).days[0].reason, 'no_slot');
   const unknown = structuredClone(input); unknown.days[0].outdoorPreference = 'force-outside';
   assert.throws(() => editWeek(week, unknown, c), /invalid_plan/);
 });
 
-test('future outdoor requests without air forecasts remain provisional, and elapsed choices cannot rewrite history', () => {
+test('future outdoor requests cannot bypass missing air forecasts, and elapsed choices cannot rewrite history', () => {
   const c = suitableConditions(); const week = makeWeek(c); const input = structuredClone(week);
   input.days[4].outdoorPreference = 'outside';
   c.forecastAvailable = false; c.forecast = [];
   const saved = editWeek(week, input, c);
-  assert.equal(saved.days[4].mode, 'outside'); assert.equal(saved.days[4].reason, 'weather_only');
+  assert.equal(saved.days[4].mode, 'inside'); assert.equal(saved.days[4].reason, 'air_forecast_unavailable');
   assert.equal(saved.days[4].provisional, true); assert.equal(saved.checkedAt, null);
   c.clock = '2026-09-21T15:00:00Z';
   const pastEdit = structuredClone(saved); pastEdit.days[0].outdoorPreference = 'inside';
@@ -364,9 +417,8 @@ test('a later refresh does not schedule the same holiday discussion again or rew
 });
 
 test('a warmer Friday can remain indoors because outdoor allocation follows the eligible activity ranking and day target', () => {
-  const c = conditions(); const dates = planningWeekDates(c.clock);
+  const c = suitableConditions(); const dates = planningWeekDates(c.clock);
   for (const row of c.weather) Object.assign(row, { weatherCode: 1, temperature: row.local.date === dates[4] ? 26 : 22, apparentTemperature: 22, precipitation: 0, precipitationProbability: 5, windSpeed: 5 });
-  c.forecast = []; c.forecastAvailable = false;
   const week = createWeek(DEFAULT_SETTINGS, { source: 'ai', themes: localCurriculum(dates, DEFAULT_SETTINGS), outdoorOrder: [dates[2], dates[3], dates[4], dates[1], dates[0]] }, c);
   assert.deepEqual(week.days.filter(day => day.mode === 'outside').map(day => day.date), [dates[2], dates[3]]);
   assert.equal(week.days[4].reason, 'ai_plan');

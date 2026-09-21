@@ -9,6 +9,19 @@ import { PLAY_IDEAS, playChoices } from '../domain/play-ideas.js';
 import { LOCATIONS } from '../config/index.js';
 import { planningWeekDates } from '../domain/planner.js';
 
+function sessionFixture(clock = Date.parse('2026-09-21T06:45:00Z')) {
+  const conditions = demoConditions(LOCATIONS[0], 'normal', clock);
+  conditions.clock = new Date(clock).toISOString();
+  const dates = planningWeekDates(conditions.clock);
+  const themes = localCurriculum(dates, DEFAULT_SETTINGS);
+  const planningDays = dailyPlanningContext(dates, DEFAULT_SETTINGS, conditions);
+  const sessions = planningDays.flatMap(day => day.slots.filter(row => row.kind === 'activity').map((row, i) => ({
+    date: day.date, slotId: row.id, title: pair(`Игра ${day.date} ${i}`, `Game ${day.date} ${i}`),
+    description: structuredClone(PLAY_IDEAS[i % PLAY_IDEAS.length].note)
+  })));
+  return { conditions, dates, themes, planningDays, sessions };
+}
+
 test('library days never reuse a generated title around meals or the eco lesson', () => {
   const conditions = demoConditions(LOCATIONS[0], 'normal');
   const dates = planningWeekDates(conditions.clock);
@@ -23,10 +36,7 @@ test('library days never reuse a generated title around meals or the eco lesson'
 });
 
 test('whole-day session output must cover exact slots once with distinct bilingual activities', () => {
-  const conditions = demoConditions(LOCATIONS[0], 'normal'); const dates = planningWeekDates(conditions.clock);
-  const themes = localCurriculum(dates, DEFAULT_SETTINGS); const planningDays = dailyPlanningContext(dates, DEFAULT_SETTINGS, conditions);
-  const sessions = planningDays.flatMap(day => day.slots.filter(row => row.kind === 'activity').map((row, i) => ({ date: day.date, slotId: row.id,
-    title: pair(`Игра ${day.date} ${i}`, `Game ${day.date} ${i}`), description: structuredClone(PLAY_IDEAS[i % PLAY_IDEAS.length].note) })));
+  const { conditions, dates, themes, planningDays, sessions } = sessionFixture();
   const validated = validateSessions(sessions, planningDays, themes, dates);
   assert.throws(() => validateSessions(sessions.slice(1), planningDays, themes, dates));
   const duplicate = structuredClone(sessions); duplicate[1].title.en = duplicate[0].title.en;
@@ -34,12 +44,45 @@ test('whole-day session output must cover exact slots once with distinct bilingu
   const extra = structuredClone(sessions); extra[0].slotId = 'breakfast';
   assert.throws(() => validateSessions(extra, planningDays, themes, dates));
   const week = createWeek(DEFAULT_SETTINGS, { themes, sessions: validated, source: 'ai' }, conditions);
-  const refreshed = adaptWeek(week, demoConditions(LOCATIONS[0], 'polluted'));
+  assert.deepEqual(createWeek(DEFAULT_SETTINGS, { themes, sessions, source: 'ai' }, conditions), week);
+  const refreshed = adaptWeek(week, demoConditions(LOCATIONS[0], 'polluted', Date.parse(conditions.clock)));
   for (const item of sessions) {
     const row = refreshed.days.find(day => day.date === item.date).timeline.find(row => row.id === item.slotId);
     if (row.occasionIds?.length) continue;
     assert.deepEqual(row.label, item.title); assert.deepEqual(row.note, item.description);
   }
+});
+
+test('createWeek rejects unfiltered session text and invalid slot coverage at its own boundary', () => {
+  const { conditions, themes, sessions } = sessionFixture();
+  const create = value => createWeek(DEFAULT_SETTINGS, { themes, sessions: value, source: 'ai' }, conditions);
+  for (const mutate of [
+    row => { row.title.en = 'The air is clean'; },
+    row => { row.description.mk = 'Безбедно надвор. ' + row.description.mk; },
+    row => { row.title.mk = '<script>Игра</script>'; },
+    row => { row.description.en = '<b>Play</b>' + row.description.en; },
+    row => { delete row.title.mk; },
+    row => { row.description.en = 'a'.repeat(1201); },
+    row => { row.title.en = 'a'.repeat(101); },
+    row => { row.slotId = 'breakfast'; }
+  ]) {
+    const untrusted = structuredClone(sessions); mutate(untrusted[0]);
+    assert.throws(() => create(untrusted), { status: 400 });
+  }
+  for (const value of [null, {}, [], sessions.slice(1), [...sessions, sessions[0]]]) {
+    assert.throws(() => create(value), { code: 'invalid_curriculum' });
+  }
+  const duplicate = structuredClone(sessions); duplicate[1].title = duplicate[0].title;
+  assert.throws(() => create(duplicate), { code: 'duplicate_activity' });
+});
+
+test('createWeek validates sessions only for upcoming activity slots when generation begins midweek', () => {
+  const { conditions, dates, themes, sessions } = sessionFixture(Date.parse('2026-09-23T06:45:00Z'));
+  const week = createWeek(DEFAULT_SETTINGS, { themes, sessions, source: 'ai' }, conditions);
+  assert.deepEqual(week.days.slice(0, 2).map(day => day.timeline), [[], []]);
+  assert.ok(week.days.slice(2).every(day => day.timeline.some(row => row.plannedSession)));
+  const past = structuredClone(sessions); past[0].date = dates[0];
+  assert.throws(() => createWeek(DEFAULT_SETTINGS, { themes, sessions: past, source: 'ai' }, conditions), { code: 'invalid_curriculum' });
 });
 
 test('activity details reject one-line summaries and library games use available supplies', () => {

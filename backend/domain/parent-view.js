@@ -22,7 +22,7 @@ export function parentView(week, expiresAt, conditions) {
       outdoorPreference: day.outdoorPreference, snow: day.snow,
       occasions: (day.occasions || []).map(occasion), preparationFor: occasion(day.preparationFor),
       activity: day.activity || null, habit: day.theme?.habit || null,
-      summary: { kind: day.summary.kind, min: day.summary.min, max: day.summary.max },
+      summary: { kind: day.summary?.kind ?? 'unknown', min: day.summary?.min ?? null, max: day.summary?.max ?? null },
       message: week.messages.daily[day.date] || null,
       timeline: day.timeline.map(row => ({ id: row.id, start: row.start, end: row.end,
         kind: row.kind, label: row.label, note: row.note || null,

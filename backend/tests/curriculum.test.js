@@ -4,7 +4,16 @@ import { createCurriculum } from '../services/curriculum.js';
 import { localCurriculum } from '../domain/curriculum.js';
 import { occasionsForWeek } from '../domain/holidays.js';
 import { DEFAULT_SETTINGS, pair } from '../domain/settings.js';
+import { assignDailyTopics } from '../domain/teaching-brief.js';
 const dates = ['2026-09-21', '2026-09-22', '2026-09-23', '2026-09-24', '2026-09-25'];
+
+test('daily topics are never assigned to an undefined date after the planning week has elapsed', () => {
+  const brief = 'Day 1: Gardening. Day 2: Water.';
+  assert.deepEqual(assignDailyTopics(brief, []), []);
+  assert.deepEqual(assignDailyTopics(brief, dates, '2026-09-26'), []);
+  assert.deepEqual(assignDailyTopics(brief, dates, dates[4]).map(topic => topic.date), [dates[4], dates[4]]);
+  assert.throws(() => assignDailyTopics('<invalid>', []), { code: 'invalid_instruction' });
+});
 // Synthetic model responses, not evidence of a real model run.
 function modelThemes() {
   return occasionsForWeek(dates).map((events, i) => {

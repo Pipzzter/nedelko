@@ -33,14 +33,14 @@ export function explicitDurations(instruction) {
     const suffix = normalized.slice(unitStart).trimStart();
     const hours = /^(?:hours?|hrs?|h\b|час(?:а|ови)?)/u.exec(suffix);
     if (!hours) {
-      if (minuteUnit(suffix)) durations.push(Number(quantity[0].split(/[.,]/u).at(-1)));
+      if (minuteUnit(suffix)) durations.push(Number(quantity[0].replace(',', '.')));
       continue;
     }
     let duration = Math.round(Number(quantity[0].replace(',', '.')) * 60);
     const next = quantities[index + 1];
     const afterHours = normalized.length - suffix.length + hours[0].length;
     if (combinedMinutes(normalized, next, afterHours)) {
-      duration += Number(next[0]);
+      duration += Number(next[0].replace(',', '.'));
       index++;
     }
     durations.push(duration);
@@ -51,7 +51,7 @@ function minuteUnit(value) {
   return /^(?:minutes?|mins?|минути|минута|мин\b)/u.test(value);
 }
 function combinedMinutes(text, quantity, start) {
-  if (!quantity || !/^\d+$/u.test(quantity[0])) return false;
+  if (!quantity) return false;
   const conjunction = text.slice(start, quantity.index).trim();
   return (
     ['', 'and', 'и'].includes(conjunction) && minuteUnit(text.slice(quantity.index + quantity[0].length).trimStart())

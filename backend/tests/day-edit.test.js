@@ -79,6 +79,24 @@ test('holiday lessons, started rows and the legacy edit endpoint cannot bypass l
   assert.throws(() => validateDayChange(day, week.settings, { scope: 'activity', rowId: row.id }, {}, `${day.date}T14:00:00Z`), { code: 'activity_finished' });
 });
 
+test('week edits preserve exactly one original eco slot even when it is not a holiday lesson', () => {
+  const { day, week, conditions } = fixture();
+  const eco = day.timeline.find(row => row.kind === 'eco');
+  assert.equal(protectedActivity(eco), false);
+  for (const mutate of [
+    rows => rows.filter(row => row.kind !== 'eco'),
+    rows => rows.map(row => row.kind === 'eco' ? { ...row, kind: 'activity' } : row),
+    rows => rows.map(row => row.kind === 'eco' ? { ...row, id: 'replacement-eco' } : row),
+    rows => rows.map(row => row.kind === 'activity' && row.id === 'play-0' ? { ...row, kind: 'eco' } : row),
+    rows => rows.map(row => row.kind === 'eco' ? { ...row, end: row.start.slice(0, 3) + '20' } : row)
+  ]) {
+    const input = structuredClone(week);
+    input.days.find(item => item.date === day.date).timeline = mutate(input.days.find(item => item.date === day.date).timeline);
+    assert.throws(() => editWeek(week, input, conditions), { code: 'one_eco_slot' });
+  }
+  assert.doesNotThrow(() => editWeek(week, structuredClone(week), conditions));
+});
+
 test('AI schedule proposals receive locked context and reject tampering without exposing identity', async t => {
   const old = process.env.OPENAI_API_KEY; process.env.OPENAI_API_KEY = 'test-only';
   t.after(() => { if (old === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = old; });

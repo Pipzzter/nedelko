@@ -1,6 +1,6 @@
 const dayNames = {
-  mk: ['понеделник', 'вторник', 'среда', 'четврток', 'петок'],
-  en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+  mk: ['понеделник', 'вторник', 'среда', 'четврток', 'петок', 'сабота', 'недела'],
+  en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 };
 export const shortDate = (date) => `${Number(date.slice(8))}.${Number(date.slice(5, 7))}`;
 function clothes(summary) {
@@ -45,7 +45,7 @@ function clothingWeek(days, lang) {
   const exceptions = usable
     .filter((d) => clothes(d.summary).join('|') !== common)
     .map((d) => {
-      const label = dayNames[lang][new Date(`${d.date}T12:00Z`).getUTCDay() - 1];
+      const label = dayNames[lang][(new Date(`${d.date}T12:00Z`).getUTCDay() + 6) % 7];
       return `${label}: ${clothes(d.summary)
         .map((k) => wardrobe[lang][k])
         .join(', ')}`;
@@ -129,6 +129,10 @@ function dailyMessage(week, day, lang, demo) {
     ],
     weather: ['Планот е приспособен на временските услови.', 'The plan has been adjusted for the weather.'],
     air_forecast: ['Прогнозата за воздухот го насочува планот внатре.', 'The air forecast points to an indoor plan.'],
+    air_forecast_unavailable: [
+      'Нема целосна прогноза за воздухот, па подготвуваме активност внатре.',
+      'A complete air forecast is unavailable, so an indoor activity is prepared.'
+    ],
     unknown_weather: [
       'Временската прогноза е недостапна, па подготвуваме активност внатре.',
       'The weather forecast is unavailable, so an indoor activity is prepared.'

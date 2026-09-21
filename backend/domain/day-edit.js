@@ -5,6 +5,17 @@ import { learningText, titleKey } from './session-plan.js';
 import { enforceTiming } from './schedule-timing.js';
 
 export const protectedActivity = (row) => ['meal', 'rest', 'routine'].includes(row.kind) || !!row.occasionIds?.length;
+export function validateEcoSlot(rows, original) {
+  const slots = rows.filter((row) => row.kind === 'eco');
+  const eco = slots[0];
+  if (
+    slots.length !== 1 ||
+    eco.id !== original?.id ||
+    minutes(eco.end) - minutes(eco.start) < 15 ||
+    minutes(eco.end) - minutes(eco.start) > 60
+  )
+    throw invalid('one_eco_slot');
+}
 export const rowContent = (row) =>
   structuredClone({
     id: row.id,
@@ -84,14 +95,7 @@ function changeSchedule({ change, settings, request, day, local, next }) {
     throw invalid('schedule_gaps');
   const [theme] = validateCurriculum([change?.theme], settings, { count: 1 });
   const oldEco = day.timeline.find((row) => row.kind === 'eco');
-  const eco = rows.find((row) => row.kind === 'eco');
-  if (
-    !eco ||
-    eco.id !== oldEco?.id ||
-    minutes(eco.end) - minutes(eco.start) < 15 ||
-    minutes(eco.end) - minutes(eco.start) > 60
-  )
-    throw invalid('one_eco_slot');
+  validateEcoSlot(rows, oldEco);
   const fixed = (row) => protectedActivity(row) || (day.date === local.date && minutes(row.start) <= local.minutes);
   for (const original of day.timeline.filter(fixed)) {
     const proposed = change.timeline.find((row) => row.id === original.id);

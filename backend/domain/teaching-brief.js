@@ -18,8 +18,10 @@ export function dailyTopics(value) {
 }
 
 export function assignDailyTopics(value, dates, today = dates[0]) {
+  const topics = dailyTopics(value);
   const upcoming = dates.filter((date) => date >= today);
-  return dailyTopics(value).map((topic, index) => ({ ...topic, date: upcoming[index % upcoming.length] }));
+  if (!upcoming.length) return [];
+  return topics.map((topic, index) => ({ ...topic, date: upcoming[index % upcoming.length] }));
 }
 
 const normalized = (text) => text.normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim();

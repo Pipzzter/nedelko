@@ -1,5 +1,6 @@
 import { DEFAULT_COMFORT, locationById } from '../config/index.js';
 import { minutes } from './constraints.js';
+import { validatePreferences } from './preferences.js';
 
 export const pair = (mk, en) => ({ mk, en });
 export const MATERIALS = [
@@ -97,7 +98,7 @@ export function validateSettings(input) {
   const materials = Array.isArray(input.materials) ? [...new Set(input.materials)] : [];
   if (!materials.length || materials.some((id) => !MATERIALS.some((m) => m.id === id)))
     throw invalid('invalid_materials');
-  const preferences = configuredPreferences(input.preferences);
+  const preferences = validatePreferences(input.preferences);
   if (!Array.isArray(input.blocks) || input.blocks.length > 10) throw invalid('invalid_timeline');
   const blocks = validateTimeline(input.blocks, { dayStart, dayEnd });
   if (blocks.some((b) => !['meal', 'rest', 'routine'].includes(b.kind))) throw invalid('invalid_timeline');
@@ -134,19 +135,3 @@ export function validateGenerationSettings(input) {
   return validateSettings(input);
 }
 export { minutes, timeLabel } from './constraints.js';
-
-function configuredPreferences(value) {
-  const preferences = {};
-  for (const [key, min, max] of [
-    ['minApparentC', -10, 20],
-    ['maxApparentC', 20, 38],
-    ['maxPrecipProbability', 0, 90],
-    ['maxPrecipitationMm', 0, 5],
-    ['maxWindKmh', 0, 50]
-  ]) {
-    const n = value?.[key];
-    if (!Number.isFinite(n) || n < min || n > max) throw invalid('invalid_preferences');
-    preferences[key] = n;
-  }
-  return preferences;
-}
