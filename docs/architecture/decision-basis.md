@@ -173,7 +173,7 @@ Native startup remains on loopback. Docker binds only within the container and p
 
 ## Direct teacher editing and Nedelko navigation
 
-Nedelko's brand mark is a hand-drawn smiling calendar mascot with a waving hand, stick limbs and red shoes. It replaces the branding leaf in headers, onboarding, loading states and the favicon. The [asset and generation prompt](../product/nedelko-mascot.md) describe its provenance. Adjacent bilingual text provides its accessible name; environmental activity icons retain their functional meaning.
+Nedelko's brand mark is a hand-drawn smiling calendar mascot with a waving hand, stick limbs and red shoes. It replaces the branding leaf in headers, onboarding and loading states. The browser favicon uses a separate calendar-only variant without limbs or shoes so its face fills more of the tab icon. The [assets and generation prompts](../product/nedelko-mascot.md) describe their provenance. Adjacent bilingual text provides its accessible name; environmental activity icons retain their functional meaning.
 
 The product is branded `Неделко` / `nedelko`, with “Вашата недела во градинка, испланирана.” / “Your kindergarten week, planned.” Teacher navigation has Home and a separate Parent notes page. Shared parent pages have no navigation or teacher message-copy/approval card; parents can still submit a private note for teacher review. A note never edits the plan automatically.
 
