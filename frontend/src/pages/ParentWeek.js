@@ -38,7 +38,7 @@ export function ParentWeek({ token }) {
       loading = true;
       setBusy(true);
       try {
-        const result = await api(`/parents/${token}`);
+        const result = await api(`/parents/${token}`, undefined, { background: true });
         if (active) {
           setData(result);
           setError('');

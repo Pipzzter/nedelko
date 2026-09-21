@@ -109,20 +109,20 @@ function App() {
       if (!background) setBusy(false);
     }
   };
-  const load = async (id = demoId, selectedLocation = location, selectedScenario = scenario, fresh = false) => {
+  const load = async (id = demoId, selectedLocation = location, selectedScenario = scenario, fresh = false, background = false) => {
     const query = new URLSearchParams({
       ...(selectedLocation ? { location: selectedLocation } : {}),
       ...(selectedScenario ? { scenario: selectedScenario } : {}),
       ...(id ? { demoId: id } : {}),
       ...(fresh ? { fresh: '1' } : {})
     });
-    accept(await api(`/dashboard?${query}`));
+    accept(await api(`/dashboard?${query}`, undefined, { background }));
   };
   const refreshDashboard = (background = false) =>
     run(async () => {
       // Clear approval in the UI immediately, including while the network is unavailable.
       setData(current => current?.week ? { ...current, week: { ...current.week, approval: null, checkedAt: null } } : current);
-      await load(demoId, location, scenario, true);
+      await load(demoId, location, scenario, true, background);
     }, false, background);
   const refresh = () => refreshDashboard();
   const beginDemo = (demoWeek = config.defaultDemoWeek) =>

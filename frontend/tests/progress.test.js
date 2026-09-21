@@ -28,6 +28,17 @@ test('bodyless, non-JSON and empty JSON errors retain HTTP status for expired-se
   }
 });
 
+test('explicit background requests cannot acquire the waiting dialog even when their path has an AI phase', async t => {
+  let finish;
+  t.mock.method(globalThis, 'fetch', () => new Promise(resolve => { finish = resolve; }));
+  const pending = api('/week/change/suggest', {}, { background: true });
+  assert.equal(blockingCount(), 0);
+  assert.equal(requestProgress().foreground, null);
+  assert.equal(backgroundActive(), true);
+  finish(Response.json({ ok: true })); await pending;
+  assert.equal(requestProgress().count, 0);
+});
+
 test('modal request progress preserves the form, uses real elapsed time and restores interaction', async t => {
   const { window } = parseHTML('<html lang="en"><body><div id="root"></div></body></html>');
   globalThis.window = window; globalThis.document = window.document;

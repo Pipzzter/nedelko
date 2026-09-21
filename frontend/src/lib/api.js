@@ -1,7 +1,7 @@
 import { beginRequest } from './request-progress.js';
 
-export async function api(path, body) {
-  const finish = beginRequest(path, Boolean(body?.demoId));
+export async function api(path, body, { background = false } = {}) {
+  const finish = beginRequest(path, Boolean(body?.demoId), { background });
   try {
     let response;
     try {

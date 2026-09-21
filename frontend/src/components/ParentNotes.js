@@ -11,7 +11,7 @@ export function ParentNotes({ demoId, week, lang, busy, onSuggest, onApply }) {
   const active = useRef(true);
   const load = async () => {
     try {
-      const result = await api(`/parent-notes${demoId ? '?demoId=' + demoId : ''}`);
+      const result = await api(`/parent-notes${demoId ? '?demoId=' + demoId : ''}`, undefined, { background: true });
       if (active.current) {
         setData(result);
         setError('');

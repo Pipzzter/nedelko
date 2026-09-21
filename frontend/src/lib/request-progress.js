@@ -14,10 +14,10 @@ export const blockingCount = (progress = requestProgress()) => progress.blocking
 export const backgroundActive = (progress = requestProgress()) => progress.backgroundCount > 0;
 const notify = () => { const snapshot = requestProgress(); for (const listener of listeners) listener(snapshot); };
 export function watchRequests(listener) { listeners.add(listener); listener(requestProgress()); return () => listeners.delete(listener); }
-export function beginRequest(path, demo = false) {
+export function beginRequest(path, demo = false, { background = false } = {}) {
   const id = ++sequence;
   const phase = phases[path.split('?')[0]] || 'loading';
   // Keep no URL, token, prompt or note text in progress state.
-  requests.set(id, { id, phase, background: backgroundPhases.has(phase), demo, startedAt: performance.now() }); notify();
+  requests.set(id, { id, phase, background: background || backgroundPhases.has(phase), demo, startedAt: performance.now() }); notify();
   return () => { requests.delete(id); notify(); };
 }
