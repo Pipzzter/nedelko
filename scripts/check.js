@@ -10,6 +10,8 @@ for (const directory of ['backend', 'frontend', 'scripts', 'static-analysis', 'a
   if (!file.endsWith('.js')) continue;
   count++;
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
-  if (result.status) { failed = true; console.error(result.stderr); }
+  if (result.error || result.signal || result.status !== 0) {
+    failed = true; console.error(result.stderr || `Syntax check could not complete: ${file}`);
+  }
 }
 console.log(`${count} JavaScript files checked.`); process.exitCode = failed ? 1 : 0;

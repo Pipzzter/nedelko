@@ -19,6 +19,8 @@ export function checkCoverage(lcov, expectedFiles, root) {
     records.set(path, { found: lines.length, hit: lines.filter(line => Number(line[2]) > 0).length });
   }
   const expected = expectedFiles.map(path => path.replaceAll('\\', '/'));
+  const absentCritical = CRITICAL_FILES.filter(path => !expected.includes(path));
+  if (absentCritical.length) throw new Error(`Coverage inventory omitted critical source files:\n${absentCritical.join('\n')}`);
   const missing = expected.filter(path => !records.has(path));
   if (missing.length) throw new Error(`Coverage omitted source files:\n${missing.join('\n')}`);
   const groups = ['backend/', 'frontend/src/'].map(prefix => {
@@ -28,7 +30,7 @@ export function checkCoverage(lcov, expectedFiles, root) {
     const percent = found ? 100 * hit / found : 0;
     return { scope: prefix, hit, found, percent, passed: found > 0 && percent >= MINIMUM_LINES };
   });
-  const criticalFiles = expected.filter(path => CRITICAL_FILES.includes(path)).map(path => {
+  const criticalFiles = CRITICAL_FILES.map(path => {
     const { hit, found } = records.get(path);
     const percent = 100 * hit / found;
     return { path, hit, found, percent, minimumLines: CRITICAL_MINIMUM_LINES, passed: percent >= CRITICAL_MINIMUM_LINES };

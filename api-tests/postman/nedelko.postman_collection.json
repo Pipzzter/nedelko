@@ -1726,6 +1726,7 @@
                   "const starts = day.timeline.map(row => row.start);",
                   "const moved = minutes(starts[index]) + 5;",
                   "starts[index] = String(Math.floor(moved / 60)).padStart(2, '0') + ':' + String(moved % 60).padStart(2, '0');",
+                  "pm.variables.set('originalTimeline', JSON.stringify(day.timeline));",
                   "pm.variables.set('expectedStarts', JSON.stringify(starts));",
                   "pm.variables.set('manualEditPayload', JSON.stringify({ demoId: pm.environment.get('demoId'), revision: week.revision, date: day.date, action: 'timing', starts }));"
                 ]
@@ -1738,15 +1739,22 @@
                 "exec": [
                   "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
                   "const body = pm.response.json();",
-                  "",
-                  "pm.test('Reviewed times are applied without gaps', () => {",
+                  "pm.test('Reviewed times preserve durations, allow gaps and shift collisions', () => {",
                   "  const day = body.week.days.find(day => day.date === pm.environment.get('editDate'));",
-                  "  pm.expect(day.timeline.map(row => row.start)).to.eql(JSON.parse(pm.variables.get('expectedStarts')));",
-                  "  for (let index = 1; index < day.timeline.length; index++) {",
-                  "    pm.expect(day.timeline[index - 1].end).to.equal(day.timeline[index].start);",
-                  "  }",
-                  "  pm.expect(day.timeline[0].start).to.equal(body.week.settings.dayStart);",
-                  "  pm.expect(day.timeline[day.timeline.length - 1].end).to.equal(body.week.settings.dayEnd);",
+                  "  const original = JSON.parse(pm.variables.get('originalTimeline'));",
+                  "  const requested = JSON.parse(pm.variables.get('expectedStarts'));",
+                  "  const minutes = time => Number(time.slice(0, 2)) * 60 + Number(time.slice(3));",
+                  "  pm.expect(day.timeline.map(row => row.id)).to.eql(original.map(row => row.id));",
+                  "  day.timeline.forEach((row, index) => {",
+                  "    pm.expect(minutes(row.end) - minutes(row.start)).to.equal(minutes(original[index].end) - minutes(original[index].start));",
+                  "    pm.expect(row.label).to.eql(original[index].label);",
+                  "    pm.expect(minutes(row.start)).to.be.at.least(minutes(requested[index]));",
+                  "    if (index) pm.expect(minutes(row.start)).to.be.at.least(minutes(day.timeline[index - 1].end));",
+                  "    if (row.start !== requested[index]) pm.expect(row.start).to.equal(day.timeline[index - 1].end);",
+                  "  });",
+                  "  const moved = requested.findIndex((start, index) => start !== original[index].start);",
+                  "  pm.expect(day.timeline[moved].start).to.equal(requested[moved]);",
+                  "  pm.expect(minutes(day.timeline[moved].start) - minutes(day.timeline[moved - 1].end)).to.equal(5);",
                   "  pm.expect(body.week.approval).to.equal(null);",
                   "});"
                 ]

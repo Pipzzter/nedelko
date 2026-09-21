@@ -65,7 +65,7 @@ npm run sonar:scan
 npm run gate
 ```
 
-The scanner starts Sonar as needed, verifies that the project’s assigned gate still enforces >=91% overall lines, uploads LCOV and waits up to 300 seconds for the quality-gate verdict. Timeout, authentication errors or a failed verdict return nonzero. `sonar:scan` consumes the most recent successful coverage run; use `gate` to guarantee tests run immediately before analysis.
+The scanner starts Sonar as needed, verifies that the assigned gate enforces >=91% overall lines and new-code coverage plus every inherited Sonar way condition, uploads LCOV and waits up to 300 seconds for the quality-gate verdict. Timeout, authentication errors or a failed verdict return nonzero. `sonar:scan` consumes the most recent successful coverage run; use `gate` to guarantee tests run immediately before analysis.
 
 The Community Build project records the latest local analysis in one project stream. This configuration does not provide separate dashboards for each Git branch. SCM integration is disabled because the scanner receives selected source mounts, not the host Git directory; do not interpret the dashboard as a Git blame/history report.
 

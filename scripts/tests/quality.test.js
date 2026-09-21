@@ -1,34 +1,38 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkCoverage, relativeLcov } from '../lib/coverage.js';
+import { checkCoverage, relativeLcov, CRITICAL_FILES } from '../lib/coverage.js';
 import { localLinks } from '../lib/docs.js';
 import { pushedCommits, assertPushMatchesHead } from '../lib/push.js';
 
 const record = (source, hit, total = 100) => `SF:${source}\n${Array.from({ length: total }, (_, index) => `DA:${index + 1},${index < hit ? 1 : 0}`).join('\n')}\nend_of_record\n`;
 const expected = ['backend/app.js', 'frontend/src/app.js'];
+const inventory = [...expected, ...CRITICAL_FILES];
+const criticalRecords = (hit = 100) => CRITICAL_FILES.map(path => record(path, hit)).join('');
 
 test('coverage requires strictly above 90% in each layer and cannot hide an unimported file', () => {
-  const passing = record(expected[0], 91) + record(expected[1], 91);
-  assert.equal(checkCoverage(passing, expected, '/repo').passed, true);
-  assert.equal(checkCoverage(record(expected[0], 100) + record(expected[1], 90), expected, '/repo').passed, false);
-  assert.equal(checkCoverage(record(expected[0], 90) + record(expected[1], 100), expected, '/repo').passed, false);
-  assert.throws(() => checkCoverage(passing, [...expected, 'backend/forgotten.js'], '/repo'), /forgotten/);
-  assert.throws(() => checkCoverage('', expected, '/repo'), /omitted/);
-  assert.throws(() => checkCoverage(passing + record(expected[0], 100), expected, '/repo'), /Duplicate/);
-  assert.throws(() => checkCoverage('SF:backend/app.js\nend_of_record', expected, '/repo'), /Empty/);
-  assert.equal(checkCoverage(record(expected[0], 90, 99) + record(expected[1], 100), expected, '/repo').passed, false, '90.91 cannot round up to 91');
+  const passing = record(expected[0], 91) + record(expected[1], 91) + criticalRecords(91);
+  assert.equal(checkCoverage(passing, inventory, '/repo').passed, true);
+  assert.equal(checkCoverage(record(expected[0], 100) + record(expected[1], 90) + criticalRecords(), inventory, '/repo').passed, false);
+  assert.equal(checkCoverage(record(expected[0], 90) + record(expected[1], 100) + criticalRecords(90), inventory, '/repo').passed, false);
+  assert.throws(() => checkCoverage(passing, [...inventory, 'backend/forgotten.js'], '/repo'), /forgotten/);
+  assert.throws(() => checkCoverage('', inventory, '/repo'), /omitted/);
+  assert.throws(() => checkCoverage(passing + record(expected[0], 100), inventory, '/repo'), /Duplicate/);
+  assert.throws(() => checkCoverage('SF:backend/app.js\nend_of_record', inventory, '/repo'), /Empty/);
+  assert.equal(checkCoverage(record(expected[0], 100) + record(expected[1], 90, 99) + criticalRecords(), inventory, '/repo').passed, false, '90.91 cannot round up to 91');
+  for (const path of CRITICAL_FILES) {
+    assert.throws(() => checkCoverage(passing, inventory.filter(file => file !== path), '/repo'), /omitted critical/);
+  }
 });
 
 test('coverage paths are relative for scanner containers and Windows separators normalize', () => {
   assert.equal(relativeLcov('SF:/repo/backend/app.js\nDA:1,1\n', '/repo'), 'SF:backend/app.js\nDA:1,1\n');
-  const input = record('backend\\app.js', 100) + record('frontend\\src\\app.js', 100);
-  assert.equal(checkCoverage(input, expected, '/repo').passed, true);
+  const input = record('backend\\app.js', 100) + record('frontend\\src\\app.js', 100) + criticalRecords();
+  assert.equal(checkCoverage(input, inventory, '/repo').passed, true);
 });
 
 test('critical module coverage cannot be hidden by a passing area total or rounded up', () => {
   const critical = 'backend/services/auth.js';
-  const inventory = [...expected, critical];
-  const covered = record(expected[0], 2000, 2000) + record(expected[1], 100);
+  const covered = record(expected[0], 2000, 2000) + record(expected[1], 100) + CRITICAL_FILES.filter(path => path !== critical).map(path => record(path, 100)).join('');
   const failed = checkCoverage(covered + record(critical, 89), inventory, '/repo');
   assert.equal(failed.groups.every(group => group.passed), true);
   assert.equal(failed.passed, false);
@@ -39,7 +43,7 @@ test('critical module coverage cannot be hidden by a passing area total or round
   assert.equal(nearBoundary.groups.every(group => group.passed), true);
   assert.equal(nearBoundary.passed, false, '89.99% must not round up to the critical 90% floor');
   const ordinary = 'backend/ordinary.js';
-  assert.equal(checkCoverage(covered + record(ordinary, 70), [...expected, ordinary], '/repo').passed, true);
+  assert.equal(checkCoverage(covered + record(critical, 100) + record(ordinary, 70), [...inventory, ordinary], '/repo').passed, true);
 });
 
 test('pushes validate every source tip, allow annotated tags at HEAD and identify deletion-only pushes', () => {

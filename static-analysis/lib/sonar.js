@@ -22,9 +22,26 @@ export async function assertQualityPolicy(request) {
   const { qualityGate } = await request('qualitygates/get_by_project', { project: PROJECT });
   if (qualityGate?.name !== GATE) throw new Error('Project must use the Nedelko quality gate. Run npm run sonar:configure.');
   const gate = await request('qualitygates/show', { name: GATE });
-  if (!gate.conditions?.some(c => c.metric === 'line_coverage' && c.op === 'LT' && Number(c.error) >= 91)) {
-    throw new Error('SonarQube must enforce overall line coverage >= 91%. Run npm run sonar:configure.');
+  for (const condition of await requiredConditions(request)) {
+    if (!gate.conditions?.some(existing => meetsCondition(existing, condition)))
+      throw new Error(`SonarQube gate must enforce ${condition.metric} ${condition.op === 'LT' ? '>=' : '<='} ${condition.error}. Run npm run sonar:configure.`);
   }
+}
+
+function meetsCondition(existing, required) {
+  if (existing.metric !== required.metric || existing.op !== required.op || !Number.isFinite(Number(existing.error))) return false;
+  return required.op === 'LT' ? Number(existing.error) >= Number(required.error) : Number(existing.error) <= Number(required.error);
+}
+
+async function requiredConditions(request) {
+  const standard = await request('qualitygates/show', { name: 'Sonar way' });
+  if (!Array.isArray(standard.conditions) || !standard.conditions.length || standard.conditions.some(c =>
+    !c.metric || !['LT', 'GT'].includes(c.op) || !Number.isFinite(Number(c.error))))
+    throw new Error('Cannot verify inherited Sonar way conditions.');
+  return [
+    ...['line_coverage', 'new_coverage'].map(metric => ({ metric, op: 'LT', error: '91' })),
+    ...standard.conditions.filter(c => !['line_coverage', 'new_coverage'].includes(c.metric))
+  ];
 }
 
 export async function configureProject(request) {
@@ -40,10 +57,11 @@ export async function configureProject(request) {
     await request('qualitygates/copy', { sourceName: 'Sonar way', name: GATE }, 'POST');
     gate = await request('qualitygates/show', { name: GATE });
   }
-  for (const metric of ['line_coverage', 'new_coverage']) {
+  for (const { metric, op, error } of await requiredConditions(request)) {
     const existing = gate.conditions.find(condition => condition.metric === metric);
+    if (existing && meetsCondition(existing, { metric, op, error })) continue;
     await request(`qualitygates/${existing ? 'update_condition' : 'create_condition'}`,
-      { ...(existing ? { id: existing.id } : { gateName: GATE }), metric, op: 'LT', error: '91' }, 'POST');
+      { ...(existing ? { id: existing.id } : { gateName: GATE }), metric, op, error }, 'POST');
   }
   await request('qualitygates/select', { gateName: GATE, projectKey: PROJECT }, 'POST');
   await assertQualityPolicy(request);
