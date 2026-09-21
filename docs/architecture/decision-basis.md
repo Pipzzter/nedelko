@@ -173,6 +173,8 @@ Native startup remains on loopback. Docker binds only within the container and p
 
 ## Direct teacher editing and Nedelko navigation
 
+Nedelko's brand mark is a hand-drawn smiling calendar mascot with a waving hand, stick limbs and red shoes. It replaces the branding leaf in headers, onboarding, loading states and the favicon. The [asset and generation prompt](../product/nedelko-mascot.md) describe its provenance. Adjacent bilingual text provides its accessible name; environmental activity icons retain their functional meaning.
+
 The product is branded `Неделко` / `nedelko`, with “Вашата недела во градинка, испланирана.” / “Your kindergarten week, planned.” Teacher navigation has Home and a separate Parent notes page. Shared parent pages have no navigation or teacher message-copy/approval card; parents can still submit a private note for teacher review. A note never edits the plan automatically.
 
 Nedelko is the sole product identity across source, tooling and documentation. New databases use `nedelko.sqlite`; existing private databases are selected without moving or resetting account data. The cookie and browser preference names use the `nedelko` prefix, so existing sessions require a fresh sign-in. Existing Docker volumes and Sonar history are preserved during the naming transition. These identity changes do not alter environmental gates, scheduling, ownership or notice approval. See [ADR-0009](adrs/0009-nedelko-product-identity.md).

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="frontend/assets/favicon.svg" alt="" width="64" height="64">
+  <img src="frontend/assets/nedelko-mascot.png" alt="" width="112" height="112">
   <h1>Неделко · nedelko</h1>
   <p>Вашата недела во градинка, испланирана. / Your kindergarten week, planned.</p>
   <p><strong>For kindergarten teachers in Skopje and other supported Macedonian cities,<br>with a shared family view for parents.</strong></p>

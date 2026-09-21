@@ -2,6 +2,7 @@ import { html, useState, useEffect, useRef } from '../lib/ui.js';
 import { requestProgress, watchRequests, blockingCount, backgroundActive } from '../lib/request-progress.js';
 import { t } from '../locales/index.js';
 import { Icon } from './Icon.js';
+import { BrandMark } from './BrandMark.js';
 
 export function RequestProgress() {
   const [progress, setProgress] = useState(requestProgress);
@@ -35,6 +36,8 @@ export function RequestProgress() {
   const duration = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
   const title =
     { applying: 'applyingChange', generation: 'generating' }[request.phase] || 'suggestingDay';
+  const applying = request.phase === 'applying';
+  const mark = applying ? html`<${Icon} name="check" size=${38} />` : html`<${BrandMark} size=${96} />`;
   return html`
     <section
       ref=${panel}
@@ -49,7 +52,7 @@ export function RequestProgress() {
       }}
     >
       <div class="ai-loading-content">
-        <span class="loading-mark"><${Icon} name=${progressIcon({ request })} size=${38} /></span
+        <span class=${applying ? 'loading-mark' : 'loading-mascot'}>${mark}</span
         ><span class="eyebrow">${t('brand', lang)}</span>
         <h1 id="ai-loading-title" role="status">${t(title, lang)}</h1>
         <p id="ai-loading-description">${t(progressHelp({ request }), lang)}</p>
@@ -62,10 +65,6 @@ export function RequestProgress() {
     </section>
 
 `;
-}
-
-function progressIcon({ request }) {
-  return request.phase === 'applying' ? 'check' : 'leaf';
 }
 
 function progressHelp({ request }) {

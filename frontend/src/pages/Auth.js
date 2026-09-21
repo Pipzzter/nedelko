@@ -1,3 +1,4 @@
+import { BrandMark } from '../components/BrandMark.js';
 import { html, useState } from '../lib/ui.js';
 import { t } from '../locales/index.js';
 import { Icon } from '../components/Icon.js';
@@ -7,7 +8,7 @@ export function Auth({ lang, setLang, onAuth, onDemo, busy, error, config }) {
     <main class="auth-page">
       <div class="auth-top">
         <a class="brand" href="#home"
-          ><span class="brand-mark"><${Icon} name="leaf" size=${23} /></span>${t('brand', lang)}<span
+          ><${BrandMark} />${t('brand', lang)}<span
             class="brand-period"
             >.</span
           ></a

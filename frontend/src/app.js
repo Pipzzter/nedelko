@@ -1,3 +1,4 @@
+import { BrandMark } from './components/BrandMark.js';
 import { html, render, useState, useEffect, useRef, localizedDate } from './lib/ui.js';
 import { api } from './lib/api.js';
 import { t, errorText } from './locales/index.js';
@@ -366,7 +367,7 @@ function renderPage({
   if (!data) {
     return html`
       <div class="card loading-card">
-        <${Icon} name="leaf" size=${36} />
+        <${BrandMark} size=${80} />
         <p>${t('loading', lang)}</p>
       </div>
 
@@ -414,7 +415,7 @@ function renderPage({
   if (!data.week) {
     return html`
       <section class="card kindergarten-empty">
-        <span class="empty-sprout"><${Icon} name="leaf" size=${32} /></span>
+        <span class="empty-mascot"><${BrandMark} size=${96} /></span>
         <h2>${t('weekEmpty', lang)}</h2>
         <p>${t('kindergartenStart', lang)}</p>
         <button class="button primary" onClick=${() => navigate('create')}>
@@ -534,7 +535,7 @@ function renderPage({
 function renderBootScreen({ lang, error }) {
   return html`
     <div class="boot">
-      ${t('brand', lang)}<span>${error ? errorText(error, lang) : t('loading', lang)}</span>${
+      <${BrandMark} size=${88} />${t('brand', lang)}<span>${error ? errorText(error, lang) : t('loading', lang)}</span>${
         error &&
         html`
  <button class="button primary" onClick=${() => window.location.reload()}>${t('retry', lang)}</button>
@@ -616,7 +617,7 @@ function renderApplicationShell({
               e.preventDefault();
               navigate('home');
             }}
-            ><span class="brand-mark"><${Icon} name="leaf" size=${23} /></span>${t('brand', lang)}</a
+            ><${BrandMark} />${t('brand', lang)}</a
           >
           <nav aria-label=${lang === 'mk' ? 'Главно мени' : 'Main navigation'}>
             ${[
@@ -757,7 +758,7 @@ function renderApplicationShell({
             }}
           >
             <div class="modal-card">
-              <span class="modal-icon"><${Icon} name="leaf" size=${26} /></span>
+              <span class="modal-mascot"><${BrandMark} size=${88} /></span>
               <h2 id="demo-intro-title">${t('demoIntroTitle', lang)}</h2>
               <p>${t('demoIntroBody', lang)}</p>
               <p class="soft-note">${t('demoIntroToggle', lang)}</p>

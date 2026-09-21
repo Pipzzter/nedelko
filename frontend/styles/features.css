@@ -189,6 +189,7 @@
   .ai-loading-screen { position: fixed; inset: 0; z-index: 1000; background: #293e3266; backdrop-filter: blur(2px); display: grid; place-items: center; padding: 30px; overflow-y: auto; outline: none; }
   .ai-loading-content { width: min(460px, 100%); text-align: center; background: var(--paper); border: 1px solid var(--line); border-radius: 24px; padding: 30px; box-shadow: 0 18px 70px #14271b33; }
   .loading-mark { display: grid; place-items: center; width: 54px; height: 54px; border: 1px solid #cad9c1; background: #e8efdf; border-radius: 27px; margin: 0 auto 30px; color: var(--forest); }
+  .loading-mascot { display: flex; justify-content: center; margin: 0 auto 24px; }
   .ai-loading-content h1 { font-size: clamp(22px, 3vw, 28px); margin: 14px 0 20px; }
   .ai-loading-content > p { color: #6d7a68; line-height: 1.8; max-width: 48ch; margin-inline: auto; }
   .ai-progress-track { height: 9px; border-radius: 20px; background: #e0e7d6; overflow: hidden; margin: 34px auto 16px; }

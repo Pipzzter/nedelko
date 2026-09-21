@@ -1,7 +1,7 @@
-﻿import { html, useState, useEffect, localizedDate } from '../lib/ui.js';
+import { BrandMark } from '../components/BrandMark.js';
+import { html, useState, useEffect, localizedDate } from '../lib/ui.js';
 import { api } from '../lib/api.js';
 import { t } from '../locales/index.js';
-import { Icon } from '../components/Icon.js';
 import { PlanChanges } from '../components/PlanChanges.js';
 import { Calendar } from '../components/Calendar.js';
 import { AirCard } from '../components/AirCard.js';
@@ -87,7 +87,7 @@ export function ParentWeek({ token }) {
       <div class="workspace">
         <header class="parent-brand-header">
           <span class="brand"
-            ><span class="brand-mark"><${Icon} name="leaf" size=${23} /></span>${t('brand', lang)}</span
+            ><${BrandMark} />${t('brand', lang)}</span
           ><span class="soft-note">${t('readOnlyPlan', lang)}</span
           ><button class="language-switch" onClick=${() => setLang(lang === 'mk' ? 'en' : 'mk')}>
             ${lang === 'mk' ? 'EN' : 'МК'}

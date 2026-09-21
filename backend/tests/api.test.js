@@ -329,6 +329,10 @@ test('only frontend files are served and configuration never leaks secrets', asy
   const page = await fetch(base); assert.equal(page.status, 200); assert.match(page.headers.get('content-security-policy'), /frame-ancestors 'none'/); assert.doesNotMatch(page.headers.get('content-security-policy'), /unsafe/);
   assert.match(await page.text(), /\/src\/app.js/);
   for (const path of ['/src/app.js', '/vendor/preact.js', '/vendor/hooks.js', '/styles/app.css', '/assets/little-gardeners.svg']) assert.equal((await fetch(base + path)).status, 200);
+  const mascot = await fetch(base + '/assets/nedelko-mascot.png');
+  assert.equal(mascot.status, 200);
+  assert.equal(mascot.headers.get('content-type'), 'image/png');
+  assert.deepEqual([...new Uint8Array(await mascot.arrayBuffer()).slice(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
 });
 
 test('deleting and regenerating a week is authenticated, revision checked, isolated and resistant to stale tabs', async t => {
