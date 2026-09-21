@@ -13,6 +13,7 @@ import { getConditions } from '../services/conditions.js';
 import { createCurriculum, createDayCurriculum } from '../services/curriculum.js';
 import { suggestDayPlan } from '../services/day-plan.js';
 import { assertUpcoming, validateDayChange } from '../domain/day-edit.js';
+import { manualDayEdit } from '../domain/manual-day-edit.js';
 import { aiStatus } from '../services/ai.js';
 import { parentView } from '../domain/parent-view.js';
 import { dailyTopics } from '../domain/teaching-brief.js';
@@ -296,6 +297,17 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
           } else if (body.action === 'revoke') store.revokeShare(user.id, week.weekStart);
           else store.shareWeek(user.id, week.weekStart);
           return send(200, { week, share: sharing(user, demoId, week) });
+      }
+      if (request.method === 'POST' && url.pathname === '/api/week/day/edit') {
+        return await withLock(demoId || user.id, async () => {
+          const week = currentWeek();
+          if (!week) throw invalid('no_plan', 404);
+          if (body.revision !== week.revision) throw invalid('plan_changed', 409);
+          const conditions = await conditionsProvider({ locationId: week.settings.locationId, mode, scenario, demoWeek, fresh: true });
+          const day = manualDayEdit(week.days.find(item => item.date === body.date), week.settings, body, conditions.clock);
+          const next = adaptWeek({ ...week, days: week.days.map(item => item.date === day.date ? day : item) }, conditions);
+          return send(200, present(save(user, demoId, next, week.revision), conditions, user, demoId));
+        });
       }
       if (request.method === 'POST' && ['/api/week/change/suggest', '/api/week/change/apply'].includes(url.pathname)) {
         return await withLock(demoId || user.id, async () => {

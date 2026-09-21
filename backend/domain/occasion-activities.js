@@ -29,11 +29,13 @@ export function adaptOccasionActivities(day, settings, today, clockMinutes) {
   const events = [...(day.preparationFor ? [day.preparationFor] : []), ...(day.occasions || [])];
   const eco = day.timeline.find(row => row.kind === 'eco');
   for (const row of day.timeline.filter(upcoming)) {
+    if (row.customized) continue;
     delete row.occasionIds;
     delete row.occasionDiscussion;
   }
   const missing = [];
   for (const event of events) {
+    if (day.timeline.some(row => row.customized && row.occasionIds?.includes(event.id))) continue;
     if (day.timeline.some(row => !upcoming(row) && row.occasionIds?.includes(event.id))) continue;
     if (eco && covers(day.theme, event, settings)) {
       eco.occasionIds = [...new Set([...(eco.occasionIds || []), event.id])];
