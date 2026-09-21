@@ -1,0 +1,424 @@
+{
+  "verifiedAt": "2026-09-21T21:51:47.814Z",
+  "model": "gpt-5.6-terra",
+  "scope": "Real configured model and authenticated HTTP handlers; isolated in-memory SQLite, synthetic environmental conditions, bundled holiday calendar. No deployment or teacher-use claim.",
+  "checks": [
+    {
+      "name": "weekly teacher brief",
+      "source": "ai",
+      "monday": [
+        {
+          "id": "mon-run",
+          "start": "09:00",
+          "end": "14:00",
+          "kind": "eco",
+          "label": {
+            "mk": "Трчање надвор",
+            "en": "Running outside"
+          },
+          "note": {
+            "mk": "Долга, надгледувана тимска тркачка игра со кругови, мирни паузи и правила што ги предлагаат децата; поврзана со Јом Кипур како заедничка прилика за внимателност и љубезност.",
+            "en": "A long, supervised team running game with rounds, calm pauses, and child-suggested rules; connected to Yom Kippur as a community occasion for attentiveness and kindness."
+          },
+          "customized": true
+        },
+        {
+          "id": "mon-snack",
+          "start": "14:00",
+          "end": "14:15",
+          "kind": "meal",
+          "label": {
+            "mk": "Овошна ужинка",
+            "en": "Fruit snack"
+          },
+          "customized": true
+        },
+        {
+          "id": "mon-lunch",
+          "start": "14:15",
+          "end": "14:45",
+          "kind": "meal",
+          "label": {
+            "mk": "Ручек",
+            "en": "Lunch"
+          },
+          "customized": true
+        },
+        {
+          "id": "mon-rest",
+          "start": "14:45",
+          "end": "16:15",
+          "kind": "rest",
+          "label": {
+            "mk": "Одмор и спиење",
+            "en": "Rest and nap"
+          },
+          "customized": true
+        },
+        {
+          "id": "mon-afternoon-snack",
+          "start": "16:15",
+          "end": "16:30",
+          "kind": "meal",
+          "label": {
+            "mk": "Попладневна ужинка",
+            "en": "Afternoon snack"
+          },
+          "customized": true
+        }
+      ],
+      "tuesday": [
+        {
+          "id": "tue-circle",
+          "start": "07:30",
+          "end": "08:15",
+          "kind": "activity",
+          "label": {
+            "mk": "Мистеријата на картонската река",
+            "en": "Mystery of the Cardboard River"
+          },
+          "note": {
+            "mk": "Приказна, предвидувања и избор на тимски правила за безбедно градење со чист картон.",
+            "en": "A story, predictions, and team rules for safe building with clean cardboard."
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-breakfast",
+          "start": "08:45",
+          "end": "09:15",
+          "kind": "meal",
+          "label": {
+            "mk": "Појадок",
+            "en": "Breakfast"
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-bridge",
+          "start": "09:15",
+          "end": "10:00",
+          "kind": "activity",
+          "label": {
+            "mk": "Испитување картонски мостови",
+            "en": "Testing Cardboard Bridges"
+          },
+          "note": {
+            "mk": "Парови градат, предвидуваат и повторно тестираат преклопени мостови за хартиени жители.",
+            "en": "Pairs build, predict, and retest folded bridges for paper residents."
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-snack",
+          "start": "10:00",
+          "end": "10:15",
+          "kind": "meal",
+          "label": {
+            "mk": "Овошна ужинка",
+            "en": "Fruit snack"
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-outdoor",
+          "start": "10:15",
+          "end": "11:00",
+          "kind": "eco",
+          "label": {
+            "mk": "Надворешна мисија за мостови",
+            "en": "Outdoor Bridge Mission"
+          },
+          "note": {
+            "mk": "Предложена надворешна верзија на мост-тестот со телесни облици, картон и хартиени фигури.",
+            "en": "A proposed outdoor version of the bridge test using body shapes, cardboard, and paper figures."
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-lunch",
+          "start": "11:30",
+          "end": "12:00",
+          "kind": "meal",
+          "label": {
+            "mk": "Ручек",
+            "en": "Lunch"
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-rest",
+          "start": "12:30",
+          "end": "14:00",
+          "kind": "rest",
+          "label": {
+            "mk": "Одмор и спиење",
+            "en": "Rest and nap"
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-afternoon-snack",
+          "start": "14:00",
+          "end": "14:15",
+          "kind": "meal",
+          "label": {
+            "mk": "Попладневна ужинка",
+            "en": "Afternoon snack"
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-reflection",
+          "start": "14:15",
+          "end": "15:00",
+          "kind": "activity",
+          "label": {
+            "mk": "Докази од мост-тестот",
+            "en": "Evidence from the Bridge Test"
+          },
+          "note": {
+            "mk": "Децата споделуваат што се сменило меѓу првиот и вториот обид.",
+            "en": "Children share what changed between their first and second attempts."
+          },
+          "customized": true
+        }
+      ]
+    },
+    {
+      "name": "prompt-only day change",
+      "source": "ai",
+      "timeline": [
+        {
+          "id": "tue-circle",
+          "start": "07:30",
+          "end": "08:15",
+          "kind": "activity",
+          "label": {
+            "mk": "Мистеријата на картонската река",
+            "en": "Mystery of the Cardboard River"
+          },
+          "note": {
+            "mk": "Приказна, предвидувања и избор на тимски правила за безбедно градење со чист картон.",
+            "en": "A story, predictions, and team rules for safe building with clean cardboard."
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-bridge",
+          "start": "09:15",
+          "end": "10:00",
+          "kind": "activity",
+          "label": {
+            "mk": "Испитување картонски мостови",
+            "en": "Testing Cardboard Bridges"
+          },
+          "note": {
+            "mk": "Парови градат, предвидуваат и повторно тестираат преклопени мостови за хартиени жители.",
+            "en": "Pairs build, predict, and retest folded bridges for paper residents."
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-snack",
+          "start": "10:00",
+          "end": "10:15",
+          "kind": "meal",
+          "label": {
+            "mk": "Овошна ужинка",
+            "en": "Fruit snack"
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-outdoor",
+          "start": "10:15",
+          "end": "11:00",
+          "kind": "eco",
+          "label": {
+            "mk": "Надворешна мисија за мостови",
+            "en": "Outdoor Bridge Mission"
+          },
+          "note": {
+            "mk": "Предложена надворешна верзија на мост-тестот со телесни облици, картон и хартиени фигури.",
+            "en": "A proposed outdoor version of the bridge test using body shapes, cardboard, and paper figures."
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-lunch",
+          "start": "11:30",
+          "end": "12:00",
+          "kind": "meal",
+          "label": {
+            "mk": "Ручек",
+            "en": "Lunch"
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-rest",
+          "start": "12:00",
+          "end": "14:00",
+          "kind": "activity",
+          "label": {
+            "mk": "Градители на картонскиот град",
+            "en": "Cardboard Town Builders"
+          },
+          "note": {
+            "mk": "По ручекот, децата мирно се собираат во мали тимови и добиваат предизвик да создадат дел од град што има пат, премин и место за хартиените жители. Со чист картон, употребена хартија и боички, секој тим избира улоги: градител, проверувач на стабилност, цртач на знаци или раскажувач на градската приказна, а возрасен внимателно ги надгледува сечењето да не е потребно и градењето да остане безбедно. Тие пробуваат преклопи, широки основи и различни распореди, па прават пауза за да проверат дали нивниот дел може да стои сам и да се поврзе со градбата на друг тим. Во последниот круг, тимовите прават кратка посета на градот и решаваат една заедничка мистерија: како жителите ќе стигнат од едниот до другиот крај без да го поместат мостот?",
+            "en": "After lunch, children gather calmly in small teams for a challenge to create one part of a town with a path, a crossing, and a place for paper residents. Using clean cardboard, used paper, and crayons, each team chooses roles such as builder, stability checker, sign designer, or town storyteller, while an adult supervises the safe, no-cutting construction. They try folds, wide bases, and different layouts, then pause to check whether their section can stand alone and connect to another team’s build. In the final round, teams visit the town and solve one shared mystery: how can the residents travel from one side to the other without moving the bridge?"
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-afternoon-snack",
+          "start": "14:00",
+          "end": "14:15",
+          "kind": "meal",
+          "label": {
+            "mk": "Попладневна ужинка",
+            "en": "Afternoon snack"
+          },
+          "customized": true
+        },
+        {
+          "id": "tue-reflection",
+          "start": "14:15",
+          "end": "15:00",
+          "kind": "activity",
+          "label": {
+            "mk": "Докази од мост-тестот",
+            "en": "Evidence from the Bridge Test"
+          },
+          "note": {
+            "mk": "Децата споделуваат што се сменило меѓу првиот и вториот обид.",
+            "en": "Children share what changed between their first and second attempts."
+          },
+          "customized": true
+        }
+      ]
+    },
+    {
+      "name": "parent note schedule change",
+      "scope": "schedule",
+      "timeline": [
+        {
+          "id": "wed-circle",
+          "start": "07:30",
+          "end": "08:15",
+          "kind": "activity",
+          "label": {
+            "mk": "Порака од сервисот",
+            "en": "Message from the Repair Shop"
+          },
+          "note": {
+            "mk": "Децата ја отвораат измислената порака и избираат улоги за првата рунда.",
+            "en": "Children open the imaginary message and choose roles for the first round."
+          },
+          "customized": true
+        },
+        {
+          "id": "wed-breakfast",
+          "start": "09:15",
+          "end": "10:00",
+          "kind": "meal",
+          "label": {
+            "mk": "Појадок",
+            "en": "Breakfast"
+          },
+          "customized": true
+        },
+        {
+          "id": "wed-shop",
+          "start": "10:00",
+          "end": "10:45",
+          "kind": "activity",
+          "label": {
+            "mk": "Сервис за поправка на приказни",
+            "en": "Story Repair Shop"
+          },
+          "note": {
+            "mk": "Претстава во тимови со менување улоги, знаци и звучни ефекти.",
+            "en": "Team pretend play with changing roles, signs, and sound effects."
+          },
+          "customized": true
+        },
+        {
+          "id": "wed-snack",
+          "start": "10:45",
+          "end": "11:00",
+          "kind": "meal",
+          "label": {
+            "mk": "Овошна ужинка",
+            "en": "Fruit snack"
+          },
+          "customized": true
+        },
+        {
+          "id": "wed-movement",
+          "start": "11:00",
+          "end": "11:45",
+          "kind": "activity",
+          "label": {
+            "mk": "Подвижни приказни со звук",
+            "en": "Moving Sound Stories"
+          },
+          "note": {
+            "mk": "Активна училничка игра во која децата менуваат правила за звук и движење.",
+            "en": "An active classroom game where children change rules for sound and movement."
+          },
+          "customized": true
+        },
+        {
+          "id": "wed-lunch",
+          "start": "11:45",
+          "end": "12:15",
+          "kind": "meal",
+          "label": {
+            "mk": "Ручек",
+            "en": "Lunch"
+          },
+          "customized": true
+        },
+        {
+          "id": "wed-rest",
+          "start": "12:30",
+          "end": "14:00",
+          "kind": "rest",
+          "label": {
+            "mk": "Одмор и спиење",
+            "en": "Rest and nap"
+          },
+          "customized": true
+        },
+        {
+          "id": "wed-afternoon-snack",
+          "start": "14:00",
+          "end": "14:15",
+          "kind": "meal",
+          "label": {
+            "mk": "Попладневна ужинка",
+            "en": "Afternoon snack"
+          },
+          "customized": true
+        },
+        {
+          "id": "wed-reflection",
+          "start": "14:15",
+          "end": "15:00",
+          "kind": "activity",
+          "label": {
+            "mk": "Најдобрата поправка денес",
+            "en": "Today’s Best Repair"
+          },
+          "note": {
+            "mk": "Тимовите покажуваат една поправка и кажуваат зошто помогнала.",
+            "en": "Teams show one repair and explain why it helped."
+          },
+          "customized": true
+        }
+      ]
+    }
+  ]
+}

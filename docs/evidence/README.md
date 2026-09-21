@@ -1,5 +1,7 @@
 # Verification evidence
 
+[Teacher-authored timetable checks, 21 September 2026](teacher-timetable-2026-09-21.md) record the scheduling update, current deterministic checks, and real model generation, day editing and parent-note editing with synthetic environmental inputs.
+
 <!-- live-ai:start -->
 Generated live by the configured OpenAI model on 2026-09-21; validated by the server before storage.
 
