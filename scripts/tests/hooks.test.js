@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, copyFile, readFile, rm } from 'node:fs/promises';
-import { tmpdir, devNull } from 'node:os';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { gitExecutable } from '../lib/git.js';
@@ -9,7 +9,11 @@ import { gitExecutable } from '../lib/git.js';
 test('hook installation ignores PATH executables and preserves an existing custom hook', async t => {
   const directory = await mkdtemp(join(tmpdir(), 'ekocuvar-hooks-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const env = { ...process.env, GIT_CONFIG_GLOBAL: devNull, GIT_CONFIG_SYSTEM: devNull };
+  const globalConfig = join(directory, 'gitconfig-global');
+  const systemConfig = join(directory, 'gitconfig-system');
+  await writeFile(globalConfig, '');
+  await writeFile(systemConfig, '');
+  const env = { ...process.env, GIT_CONFIG_GLOBAL: globalConfig, GIT_CONFIG_SYSTEM: systemConfig };
   const git = args => spawnSync(gitExecutable, args, { cwd: directory, env, encoding: 'utf8' });
   assert.equal(git(['init', '--quiet']).status, 0);
   for (const child of ['scripts/lib', '.githooks', 'untrusted']) await mkdir(join(directory, child), { recursive: true });
@@ -20,6 +24,14 @@ test('hook installation ignores PATH executables and preserves an existing custo
   await writeFile(join(directory, '.githooks/pre-push'), '#!/bin/sh\nexit 0\n');
   const marker = join(directory, 'untrusted-ran');
   await writeFile(join(directory, 'untrusted/git'), '#!/bin/sh\nprintf unsafe > untrusted-ran\nexit 97\n', { mode: 0o755 });
+  await writeFile(join(directory, 'untrusted/git.cmd'), '@echo off\r\necho unsafe>untrusted-ran\r\nexit /b 97\r\n');
+  const shim = process.platform === 'win32'
+    ? spawnSync(process.env.ComSpec || String.raw`C:\Windows\System32\cmd.exe`, ['/d', '/c', 'git.cmd'],
+      { cwd: directory, env: { ...env, PATH: join(directory, 'untrusted') }, encoding: 'utf8' })
+    : spawnSync(join(directory, 'untrusted/git'), [], { cwd: directory, env, encoding: 'utf8' });
+  assert.equal(shim.status, 97, shim.stderr);
+  assert.match(await readFile(marker, 'utf8'), /unsafe/);
+  await rm(marker);
   const install = () => spawnSync(process.execPath, ['scripts/install-hooks.js'], {
     cwd: directory, env: { ...env, PATH: join(directory, 'untrusted') }, encoding: 'utf8'
   });
