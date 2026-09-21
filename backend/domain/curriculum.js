@@ -1,4 +1,4 @@
-import { pair, textPair, invalid, MATERIALS } from './settings.js';
+import { pair, textPair, invalid, materialCatalog } from './settings.js';
 import { occasionsForWeek } from './holidays.js';
 import { defaultDayActivities } from './day-activities.js';
 
@@ -303,7 +303,7 @@ export function validateCurriculum(value, settings, { count = 5 } = {}) {
       !Array.isArray(t.materials) ||
       !t.materials.length ||
       t.materials.length > 6 ||
-      t.materials.some((id) => !settings.materials.includes(id) || !MATERIALS.some((m) => m.id === id))
+      t.materials.some((id) => !settings.materials.includes(id) || !materialCatalog(settings).some((m) => m.id === id))
     )
       throw invalid('invalid_materials');
     if (t.dayActivities !== undefined) {

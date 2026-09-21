@@ -1,6 +1,7 @@
 import { skopjeParts } from '../config/index.js';
 import { invalid, minutes, timeLabel, textPair, validateTimeline } from './settings.js';
 import { validateCurriculum } from './curriculum.js';
+import { authoredTimeline } from './day-edit.js';
 
 // Direct teacher edits are distinct from model proposals: routines and occasion
 // content can be edited, but identities, evidence and elapsed times are server-owned.
@@ -11,32 +12,39 @@ export function manualDayEdit(day, settings, request, clock) {
   if (request.action === 'content') {
     editContent({ next, request, day, local, settings });
   } else if (request.action === 'timing') {
-    editTiming({ request, day, settings, next });
+    editTiming({ request, day, next });
   } else if (request.action === 'reorder') {
     reorderActivities({ request, day, settings, next });
+  } else if (request.action === 'timeline') {
+    next.timeline = authoredTimeline(day, request.timeline, clock);
+    next.authoredTimeline = true;
   } else throw invalid('invalid_plan');
-  if (request.action !== 'content') preserveElapsedTimes({ day, next, local });
+  if (request.action !== 'content') next.timeline = authoredTimeline(day, next.timeline, clock);
   return next;
 }
 
 function editContent({ next, request, day, local, settings }) {
   const row = next.timeline.find((item) => item.id === request.rowId);
   if (!row) throw invalid('invalid_timeline');
-  if (day.date === local.date && minutes(row.end) <= local.minutes) throw invalid('activity_finished', 409);
+  if (day.date === local.date && minutes(row.start) <= local.minutes) throw invalid('activity_finished', 409);
   if (
     !request.content ||
     Object.keys(request.content).some((key) => !['label', 'note', 'theme', 'occasionDiscussion'].includes(key))
   )
-    throw invalid('fixed_times');
+    throw invalid('invalid_plan');
   if (row.kind === 'eco') {
     const [theme] = validateCurriculum(
       [{ ...request.content.theme, dayActivities: day.theme.dayActivities }],
       settings,
       { count: 1 }
     );
-    next.theme = theme;
-    next.baseTheme = structuredClone(theme);
-    next.themePinned = true;
+    if (day.timeline.filter(item => item.kind === 'eco').length === 1) {
+      next.theme = theme;
+      next.baseTheme = structuredClone(theme);
+      next.themePinned = true;
+    }
+    row.lesson = theme;
+    delete row.note;
     row.label = theme.title;
   } else {
     row.label = textPair(request.content.label, 100);
@@ -46,23 +54,19 @@ function editContent({ next, request, day, local, settings }) {
   row.customized = true;
 }
 
-function editTiming({ request, day, settings, next }) {
+function editTiming({ request, day, next }) {
   if (
     !Array.isArray(request.starts) ||
-    request.starts.length !== day.timeline.length ||
-    request.starts[0] !== settings.dayStart
+    request.starts.length !== day.timeline.length
   )
     throw invalid('invalid_timeline');
   next.timeline = day.timeline.map((row, index) => ({
     ...row,
     start: request.starts[index],
-    end: request.starts[index + 1] || settings.dayEnd,
+    end: timeLabel(minutes(request.starts[index]) + minutes(row.end) - minutes(row.start)),
     customized: true
   }));
-  validateTimeline(next.timeline, settings);
-  const eco = next.timeline.find((row) => row.kind === 'eco');
-  if (!eco || minutes(eco.end) - minutes(eco.start) < 15 || minutes(eco.end) - minutes(eco.start) > 60)
-    throw invalid('one_eco_slot');
+  validateTimeline(next.timeline);
 }
 
 function reorderActivities({ request, day, settings, next }) {
@@ -74,7 +78,7 @@ function reorderActivities({ request, day, settings, next }) {
     ids.some((id) => !day.timeline.some((row) => row.id === id))
   )
     throw invalid('invalid_timeline');
-  let cursor = minutes(settings.dayStart);
+  let cursor = minutes(day.timeline[0]?.start || settings.dayStart);
   next.timeline = ids.map((id) => {
     const row = structuredClone(day.timeline.find((item) => item.id === id));
     const duration = minutes(row.end) - minutes(row.start);
@@ -83,21 +87,5 @@ function reorderActivities({ request, day, settings, next }) {
     row.end = timeLabel(cursor);
     return { ...row, customized: true };
   });
-  validateTimeline(next.timeline, settings);
-  if (next.timeline.at(-1)?.end !== settings.dayEnd) throw invalid('schedule_gaps');
-}
-
-function preserveElapsedTimes({ day, next, local }) {
-  for (const original of day.timeline) {
-    const moved = next.timeline.find((row) => row.id === original.id);
-    if (
-      day.date === local.date &&
-      (minutes(original.start) <= local.minutes || minutes(moved.start) <= local.minutes) &&
-      (original.start !== moved.start || original.end !== moved.end)
-    )
-      throw invalid('activity_finished', 409);
-    // Do not change metadata on rows whose times have not changed.
-    if (original.start === moved.start && original.end === moved.end)
-      next.timeline[next.timeline.indexOf(moved)] = structuredClone(original);
-  }
+  validateTimeline(next.timeline);
 }

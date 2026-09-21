@@ -173,11 +173,11 @@ test('injection-like lesson text cannot affect the recommendation or become acce
   const c = conditions(); c.assessment.aqi = 200; const week = makeWeek(c, settings);
   assert.equal(week.days[0].mode, 'inside');
 });
-test('recurring schedule validation catches overlaps and a day without enough activity space', () => {
+test('default routines may overlap or occupy the whole day', () => {
   const settings = structuredClone(DEFAULT_SETTINGS); settings.blocks[1].start = '08:45';
-  assert.throws(() => validateSettings(settings), /overlapping_times/);
+  assert.doesNotThrow(() => validateSettings(settings));
   settings.blocks = [{ id: 'all', label: { mk: 'Одмор', en: 'Rest' }, kind: 'rest', start: '07:30', end: '16:00' }];
-  assert.throws(() => validateSettings(settings), /no_activity_space/);
+  assert.doesNotThrow(() => validateSettings(settings));
 });
 test('snow forecasts suggest a snow lesson without treating forecast snow as observed ground cover', () => {
   const c = conditions(); for (const row of c.weather.filter(r => r.local.date === '2026-09-23')) { row.weatherCode = 73; row.apparentTemperature = -4; }
@@ -366,7 +366,7 @@ test('an outside preference cannot bypass air, weather, closure or missing-slot 
   const closed = structuredClone(input); closed.days[0].closed = true;
   assert.equal(editWeek(week, closed, c).days[0].mode, 'closed');
   const noSlot = structuredClone(input); noSlot.days[0].timeline = noSlot.days[0].timeline.filter(row => row.kind !== 'eco');
-  assert.throws(() => editWeek(week, noSlot, c), { code: 'one_eco_slot' });
+  assert.equal(editWeek(week, noSlot, c).days[0].reason, 'no_slot');
   assert.equal(adaptWeek(noSlot, c).days[0].reason, 'no_slot');
   const unknown = structuredClone(input); unknown.days[0].outdoorPreference = 'force-outside';
   assert.throws(() => editWeek(week, unknown, c), /invalid_plan/);
@@ -457,14 +457,14 @@ test('older short generated blocks consolidate once, retaining edited blocks and
   assert.deepEqual(adaptWeek(saved, c).days[1].timeline.find(row => row.id === d.id), d);
 });
 
-test('week edits reject overlaps and changed times while a replacement uses an existing gap', () => {
+test('week edits resolve overlaps, allow changed times and retain replacement durations', () => {
   const c = conditions(); const week = makeWeek(c); const input = structuredClone(week);
   const row = input.days[1].timeline.find(row => row.kind === 'activity' && minutes(row.end) - minutes(row.start) >= 30);
   row.end = row.end.slice(0, 3) + '15';
-  assert.throws(() => editWeek(week, input, c), /fixed_times/);
+  assert.equal(editWeek(week, input, c).days[1].timeline.find(item => item.id === row.id).end, row.end);
   const overlap = structuredClone(week);
   overlap.days[1].timeline.push({ id: 'custom-overlap', kind: 'activity', start: '09:15', end: '10:00', label: { mk: 'Игра', en: 'Play' } });
-  assert.throws(() => editWeek(week, overlap, c), /overlapping_times/);
+  assert.equal(editWeek(week, overlap, c).days[1].timeline.at(-1).start, '16:00');
   const replacement = structuredClone(week);
   replacement.days[1].timeline.find(item => item.id === row.id).id = 'custom-replacement';
   const result = editWeek(week, replacement, c);

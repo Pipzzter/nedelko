@@ -142,14 +142,14 @@ function dailyMessage(week, day, lang, demo) {
   const change = week.changes?.find((item) => item.from === day.date);
   if (change) reason += replacementDay(change, label);
   const hasEco = day.timeline.some((row) => row.kind === 'eco');
-  const title = hasEco ? day.theme.title[lang] : label('Дневни активности', 'Day activities');
+  const ecoRows = day.timeline.filter(row => row.kind === 'eco');
+  const title = hasEco ? ecoRows.map(row => row.label[lang]).join(', ') : label('Дневни активности', 'Day activities');
   const what = hasEco
-    ? (day.activity?.[lang] ?? day.theme.inside[lang])
+    ? ecoRows.map(row => row.note?.[lang] || row.lesson?.[outdoors ? 'outside' : 'inside']?.[lang] || day.activity?.[lang] || day.theme.inside[lang]).join(' ')
     : day.timeline
-        .filter((row) => row.kind === 'activity')
-        .slice(0, 2)
-        .map((row) => row.label[lang])
-        .join('. ') + '.';
+        .filter((row) => ['activity', 'free', 'routine'].includes(row.kind))
+                .map((row) => row.label[lang])
+        .join('. ');
   const wear = clothes(day.summary)
     .map((k) => wardrobe[lang][k])
     .join(', ');

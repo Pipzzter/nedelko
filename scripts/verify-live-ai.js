@@ -66,7 +66,7 @@ export function assertAiWeek(result, dates) {
       assert.ok(day.theme?.[field]?.mk && day.theme[field].en,
         'Every verification lesson must contain validated Macedonian and English content.');
     }
-    assert.ok(day.timeline.some(row => row.plannedSession), 'Supporting sessions must come from the model.');
+    assert.ok(day.authoredTimeline || day.timeline.some(row => row.plannedSession), 'The timetable or supporting sessions must come from the model.');
   }
   return week;
 }
@@ -83,7 +83,7 @@ export function buildEvidence(week, model, started) {
       weekStart: week.weekStart, source: week.source, outdoorOrder: week.outdoorOrder,
       days: week.days.map(day => ({
         date: day.date, theme: day.theme,
-        sessions: day.timeline.filter(row => row.plannedSession).map(row => ({
+        sessions: day.timeline.filter(row => day.authoredTimeline || row.plannedSession).map(row => ({
           start: row.start, end: row.end, title: row.label, description: row.note
         }))
       }))

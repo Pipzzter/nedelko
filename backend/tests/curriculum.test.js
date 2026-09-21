@@ -61,7 +61,7 @@ test('bilingual curriculum generation ranks server-eligible outdoor days and kee
   const result = await createCurriculum(dates, { ...DEFAULT_SETTINGS, groupName: 'PRIVATE-GROUP-NAME' }, { outdoorContext });
   assert.equal(result.source, 'ai'); assert.equal(result.themes.length, 5);
   assert.deepEqual(result.outdoorOrder, dates); assert.equal(result.outdoorDecisionSource, 'ai');
-  assert.equal(sent.store, false); assert.equal(sent.max_output_tokens, 12000); assert.equal(sent.text.format.strict, true);
+  assert.equal(sent.store, false); assert.equal(sent.max_output_tokens, 30000); assert.equal(sent.text.format.strict, true);
   assert.deepEqual(sent.text.format.schema.properties.outdoorOrder.items.enum, dates);
   const lessonSchema = sent.text.format.schema.properties.themes.items.properties;
   assert.deepEqual(lessonSchema.materials.items.enum, DEFAULT_SETTINGS.materials);
@@ -171,50 +171,32 @@ test('generated whole-day activities are validated, and regeneration can vary th
   assert.notDeepEqual(a.themes.map(theme => theme.dayActivities), b.themes.map(theme => theme.dayActivities));
 });
 
-test('whole-week output requires every server-owned session key and validates content independently of the model schema', async t => {
-  key(t);
-  const planningDays = dates.map((date, index) => ({ date, slots: index < 2 ? [] : [
-    { id: 'play-0', kind: 'activity', start: '07:30', end: '08:30' },
-    { id: 'breakfast', kind: 'meal', start: '08:30', end: '09:00' },
-    { id: 'play-1', kind: 'activity', start: '09:00', end: '10:00' },
-  ] }));
-  const expectedKeys = dates.slice(2).flatMap(date => [`${date}/play-0`, `${date}/play-1`]);
-  let corrupt = value => value;
+test('each model day authors a full bilingual timeline instead of filling fixed session keys', async t => {
+  key(t); let mutation = value => value; let sent;
+  const timeline = [{ id: 'run', start: '09:00', end: '14:00', kind: 'eco', label: pair('Running', 'Running'), note: null }];
   t.mock.method(globalThis, 'fetch', async (_url, options) => {
-    const sent = JSON.parse(options.body); const sessionSchema = sent.text.format.schema.properties.sessions;
-    assert.equal(sessionSchema.type, 'object'); assert.equal(sessionSchema.additionalProperties, false);
-    assert.deepEqual(sessionSchema.required, expectedKeys); assert.deepEqual(Object.keys(sessionSchema.properties), expectedKeys);
-    assert.deepEqual(JSON.parse(sent.input).planningDays, planningDays);
-    const sessions = Object.fromEntries(expectedKeys.map((key, index) => [key, {
-      title: pair(`Тест игра ${index}`, `Synthetic game ${index}`), description: {
-        mk: ['Со воспитувачот замислете дека картонската кутија е мала работилница.',
-          'Поделете улоги и смислете како да изградите мост од користена хартија.',
-          'Испробајте две различни превиткувања и споредете која градба стои подобро.',
-          'На крај секој тим нека покаже едно откритие и нека ги зачува материјалите.'],
-        en: ['With adult supervision, imagine the cardboard box is a tiny workshop.',
-          'Choose team roles and build a small bridge from the available used paper.',
-          'Try two different folds and compare which design can stand by itself.',
-          'Finish with each team sharing a discovery and keeping the materials for another game.'],
-      },
-    }]));
-    return Response.json({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text',
-      text: JSON.stringify({ themes: modelThemes(), outdoorOrder: dates, sessions: corrupt(sessions) }) }] }] });
+    sent = JSON.parse(options.body);
+    const themes = modelThemes().map((theme, index) => ({ ...theme,
+      timeline: index === 0 ? mutation(structuredClone(timeline)) : [{ id: 'breakfast', start: index === 1 ? '08:45' : '08:30', end: '09:15', kind: 'meal', label: pair('Breakfast', 'Breakfast') }],
+      outdoorPreference: index === 0 ? 'outside' : 'auto' }));
+    return reply(themes);
   });
-  const result = await createCurriculum(dates, DEFAULT_SETTINGS, { planningDays, today: dates[2] });
+  const settings = { ...DEFAULT_SETTINGS, teacherPrompt: 'Monday: no breakfast, run outside 09:00?14:00. Tuesday: move breakfast to 08:45.' };
+  const result = await createCurriculum(dates, settings);
   assert.equal(result.source, 'ai');
-  assert.deepEqual(result.sessions.map(item => `${item.date}/${item.slotId}`), expectedKeys);
-  assert.ok(result.sessions.every(item => typeof item.description.en === 'string' && item.description.en.includes('Try two different folds')));
-  for (const mutation of [
-    sessions => { delete sessions[expectedKeys[0]]; return sessions; },
-    sessions => ({ ...sessions, [`${dates[2]}/breakfast`]: sessions[expectedKeys[0]] }),
-    sessions => { sessions[`${dates[0]}/play-0`] = sessions[expectedKeys[0]]; delete sessions[expectedKeys[0]]; return sessions; },
-    sessions => Object.values(sessions),
-    sessions => { sessions[expectedKeys[1]].title = sessions[expectedKeys[0]].title; return sessions; },
-    sessions => { sessions[expectedKeys[0]].description = pair('Краток текст.', 'A short summary.'); return sessions; },
-  ]) {
-    corrupt = mutation;
-    const rejected = await createCurriculum(dates, DEFAULT_SETTINGS, { planningDays, today: dates[2] });
+  assert.equal(result.timelines[0][0].end, '14:00');
+  assert.equal(result.timelines[1][0].start, '08:45');
+  assert.deepEqual(result.outdoorPreferences, ['outside', 'auto', 'auto', 'auto', 'auto']);
+  assert.equal(sent.text.format.schema.properties.sessions, undefined);
+  const schema = sent.text.format.schema.properties.themes.items;
+  assert.ok(schema.required.includes('timeline')); assert.equal(schema.properties.timeline.maxItems, 40);
+  assert.ok(schema.properties.timeline.items.properties.kind.enum.includes('free'));
+  assert.deepEqual(JSON.parse(sent.input).defaultRoutine.blocks, settings.blocks);
+  assert.match(sent.instructions, /editable starting points/);
+  assert.match(sent.instructions, /Resolve overlaps/);
+  for (const change of [rows => [...rows, rows[0]], rows => [{ ...rows[0], end: '08:00' }], rows => [{ ...rows[0], label: { en: 'Only one language' } }]]) {
+    mutation = change;
+    const rejected = await createCurriculum(dates, settings);
     assert.equal(rejected.source, 'library'); assert.equal(rejected.generationIssue, 'ai_invalid_output');
-    assert.equal(rejected.sessions, undefined);
   }
 });

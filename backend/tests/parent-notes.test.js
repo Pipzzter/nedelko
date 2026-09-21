@@ -137,10 +137,13 @@ test('demo notes stay in memory and deleting a plan clears its notes', async t =
   assert.equal(store.db.prepare('SELECT count(*) AS n FROM parent_notes').get().n, 0);
 });
 
-test('the sidebar retains unread older notes and a model cannot edit protected routines through a note', async t => {
+test('the sidebar retains older notes and meal changes use the same schedule proposal path', async t => {
   const { teacher, parent, data, path, store } = await fixture(t, {
-    noteAdviceProvider: async note => ({ kind: 'actionable', date: note.date, scope: 'activity', rowId: 'lunch', instruction: 'Replace lunch', explanation: pair('Предлог.', 'Suggestion.') }),
-    dayPlanProvider: async () => { throw new Error('protected rows must stop before generation'); },
+    noteAdviceProvider: async note => ({ kind: 'actionable', date: note.date, scope: 'schedule', rowId: null, instruction: 'Move lunch to 14:00', explanation: pair('Предлог.', 'Suggestion.') }),
+    dayPlanProvider: async (day, _settings, request) => {
+      assert.equal(request.scope, 'schedule');
+      return { source: 'ai', change: { theme: day.theme, timeline: [{ id: 'lunch', kind: 'meal', start: '14:00', end: '14:30', label: pair('Lunch', 'Lunch') }] } };
+    },
   });
   const userId = store.db.prepare('SELECT id FROM users WHERE username = ?').get('notes.teacher@test.mk').id;
   const oldId = store.addParentNote(userId, '2026-09-14', { date: '2026-09-15', text: 'A note from the previous week.', nonce: randomUUID() });
@@ -149,7 +152,12 @@ test('the sidebar retains unread older notes and a model cannot edit protected r
   assert.equal(previous.body.advice.kind, 'informational'); assert.equal(previous.body.proposal, null);
   await parent(path + '/notes', { text: 'Please change a routine.', date: data.week.days[1].date, nonce: randomUUID() });
   const noteId = (await teacher('/api/parent-notes')).body.notes.find(note => note.id !== oldId).id;
-  const refused = await teacher('/api/parent-notes/suggest', { noteId, revision: data.week.revision });
-  assert.equal(refused.status, 400); assert.equal(refused.body.error, 'protected_activity');
+  const suggested = await teacher('/api/parent-notes/suggest', { noteId, revision: data.week.revision });
+  assert.equal(suggested.status, 200);
   assert.deepEqual((await teacher('/api/week/share', { action: 'enable' })).body.week, data.week);
+  const applied = await teacher('/api/parent-notes/apply', { proposalId: suggested.body.proposal.proposalId, revision: data.week.revision });
+  assert.equal(applied.status, 200);
+  assert.equal(applied.body.week.days[1].timeline[0].start, '14:00');
+  assert.equal(applied.body.week.approval, null);
+  assert.equal((await teacher('/api/parent-notes')).body.notes.find(note => note.id === noteId).status, 'applied');
 });

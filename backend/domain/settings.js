@@ -27,6 +27,7 @@ export const DEFAULT_SETTINGS = {
   duration: 45,
   outdoorDays: 2,
   materials: ['paper', 'cardboard', 'leaves', 'crayons'],
+  customMaterials: [],
   preferences: { ...DEFAULT_COMFORT },
   blocks: [
     { id: 'breakfast', label: pair('Појадок', 'Breakfast'), start: '08:30', end: '09:00', kind: 'meal' },
@@ -43,6 +44,17 @@ export const DEFAULT_SETTINGS = {
   ]
 };
 export const invalid = (code = 'invalid_plan', status = 400) => Object.assign(new Error(code), { status, code });
+export const materialCatalog = settings => [...MATERIALS, ...(settings.customMaterials || [])];
+function validateCustomMaterials(value = []) {
+  if (!Array.isArray(value) || value.length > 30) throw invalid('invalid_materials');
+  const ids = new Set();
+  return value.map(item => {
+    if (!item || typeof item.id !== 'string' || !/^custom-[a-zA-Z0-9_-]{1,50}$/.test(item.id) || ids.has(item.id))
+      throw invalid('invalid_materials');
+    ids.add(item.id);
+    return { id: item.id, label: textPair(item.label, 80) };
+  });
+}
 export function teacherInstruction(value = '') {
   if (typeof value !== 'string' || value.length > 2000 || /[<>\u0000-\u0008\u000b-\u001f]/u.test(value))
     throw invalid('invalid_instruction');
@@ -61,25 +73,21 @@ export function validTime(value) {
   if (typeof value !== 'string' || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value)) throw invalid('invalid_time');
   return value;
 }
-export function validateTimeline(items, settings) {
-  if (!Array.isArray(items) || items.length > 30) throw invalid('invalid_timeline');
+export function validateTimeline(items) {
+  if (!Array.isArray(items) || items.length > 40) throw invalid('invalid_timeline');
   const ids = new Set();
-  let ecoCount = 0;
-  const result = items
-    .map((item) => {
+  return items.map((item) => {
+      if (!item || typeof item !== 'object') throw invalid('invalid_timeline');
       const id = cleanText(item.id, 60);
       if (!/^[a-zA-Z0-9_-]+$/.test(id) || ids.has(id)) throw invalid('invalid_timeline');
       ids.add(id);
       const start = validTime(item.start);
       const end = validTime(item.end);
-      if (end <= start || start < settings.dayStart || end > settings.dayEnd) throw invalid('time_bounds');
-      if (!['meal', 'rest', 'routine', 'eco', 'activity'].includes(item.kind)) throw invalid('invalid_timeline');
-      if (item.kind === 'eco' && ++ecoCount > 1) throw invalid('one_eco_slot');
-      return { id, start, end, kind: item.kind, label: textPair(item.label, 100) };
-    })
-    .sort((a, b) => a.start.localeCompare(b.start));
-  if (result.some((row, i) => i > 0 && row.start < result[i - 1].end)) throw invalid('overlapping_times');
-  return result;
+      if (end <= start) throw invalid('time_bounds');
+      if (!['meal', 'rest', 'routine', 'eco', 'activity', 'free'].includes(item.kind)) throw invalid('invalid_timeline');
+      return { id, start, end, kind: item.kind, label: textPair(item.label, 100),
+        ...(item.note == null ? {} : { note: textPair(item.note, 1200) }) };
+    });
 }
 export function validateSettings(input) {
   if (!input || typeof input !== 'object') throw invalid('invalid_settings');
@@ -96,20 +104,12 @@ export function validateSettings(input) {
   if (!Number.isInteger(input.outdoorDays) || input.outdoorDays < 0 || input.outdoorDays > 5)
     throw invalid('invalid_outdoor_days');
   const materials = Array.isArray(input.materials) ? [...new Set(input.materials)] : [];
-  if (!materials.length || materials.some((id) => !MATERIALS.some((m) => m.id === id)))
+  const customMaterials = validateCustomMaterials(input.customMaterials);
+  if (!materials.length || materials.some((id) => !materialCatalog({ customMaterials }).some((m) => m.id === id)))
     throw invalid('invalid_materials');
   const preferences = validatePreferences(input.preferences);
   if (!Array.isArray(input.blocks) || input.blocks.length > 10) throw invalid('invalid_timeline');
-  const blocks = validateTimeline(input.blocks, { dayStart, dayEnd });
-  if (blocks.some((b) => !['meal', 'rest', 'routine'].includes(b.kind))) throw invalid('invalid_timeline');
-  const gaps = [];
-  let cursor = minutes(dayStart);
-  for (const block of blocks) {
-    gaps.push(minutes(block.start) - cursor);
-    cursor = minutes(block.end);
-  }
-  gaps.push(minutes(dayEnd) - cursor);
-  if (!gaps.some((gap) => gap >= input.duration)) throw invalid('no_activity_space');
+  const blocks = validateTimeline(input.blocks);
   return {
     locationId,
     gradinka,
@@ -121,6 +121,7 @@ export function validateSettings(input) {
     duration: input.duration,
     outdoorDays: input.outdoorDays,
     materials,
+    customMaterials,
     preferences,
     blocks
   };
@@ -130,8 +131,6 @@ export function validateGenerationSettings(input) {
   if (typeof input.gradinka?.name !== 'string' || !input.gradinka.name.trim()) throw invalid('kindergarten_required');
   if (typeof input.groupName !== 'string' || !input.groupName.trim()) throw invalid('group_required');
   if (typeof input.teacherPrompt !== 'string' || !input.teacherPrompt.trim()) throw invalid('brief_required');
-  if (!['meal', 'rest'].every((kind) => input.blocks?.some((row) => row.kind === kind)))
-    throw invalid('daily_routines_required');
   return validateSettings(input);
 }
 export { minutes, timeLabel } from './constraints.js';

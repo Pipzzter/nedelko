@@ -39,21 +39,19 @@ test('one activity changes without rewriting other rows, lesson, days or times',
   assert.equal(changed.approval, null); assert.equal(changed.checkedAt, null);
 });
 
-test('schedule changes can resize activity times while protected routines remain exact', () => {
-  const { day, week, conditions } = fixture(); const change = movedSchedule(day);
-  const result = validateDayChange(day, week.settings, { scope: 'schedule' }, change, conditions.clock);
-  assert.ok(result.timeline.some(row => row.start === '15:00'));
-  assert.deepEqual(result.timeline.filter(protectedActivity), day.timeline.filter(protectedActivity));
-  for (const kind of ['meal', 'rest']) {
-    const invalid = structuredClone(change); const row = invalid.timeline.find(item => item.kind === kind);
-    row.label.en = 'Tampered';
-    assert.throws(() => validateDayChange(day, week.settings, { scope: 'schedule' }, invalid, conditions.clock), { code: 'protected_activity' });
-    assert.throws(() => validateDayChange(day, week.settings, { scope: 'activity', rowId: row.id }, {}, conditions.clock), { code: 'protected_activity' });
-  }
-  const gap = structuredClone(change); gap.timeline[0].start = '07:45';
-  assert.throws(() => validateDayChange(day, week.settings, { scope: 'schedule' }, gap, conditions.clock), { code: 'schedule_gaps' });
-  const overlap = structuredClone(change); overlap.timeline[1].start = overlap.timeline[0].start;
-  assert.throws(() => validateDayChange(day, week.settings, { scope: 'schedule' }, overlap, conditions.clock), { code: 'overlapping_times' });
+test('schedules can replace routines, omit meals, contain gaps and extend beyond defaults', () => {
+  const { day, week, conditions } = fixture();
+  const change = { theme: day.theme, timeline: [
+    { id: 'run', start: '09:00', end: '14:00', kind: 'eco', label: pair('Run', 'Run') },
+    { id: 'rest-new', start: '15:00', end: '18:00', kind: 'rest', label: pair('Rest', 'Rest') }
+  ] };
+  const next = validateDayChange(day, week.settings, { scope: 'schedule' }, change, conditions.clock);
+  assert.deepEqual(next.timeline.map(({ start, end }) => [start, end]), [['09:00', '14:00'], ['15:00', '18:00']]);
+  assert.equal(next.timeline.some(row => row.kind === 'meal'), false);
+  const overlap = structuredClone(change); overlap.timeline[1].start = '12:00'; overlap.timeline[1].end = '13:30';
+  const resolved = validateDayChange(day, week.settings, { scope: 'schedule' }, overlap, conditions.clock);
+  assert.deepEqual(resolved.timeline.map(({ start, end }) => [start, end]), [['09:00', '14:00'], ['14:00', '15:30']]);
+  for (const kind of ['meal', 'rest', 'routine']) assert.equal(protectedActivity({ kind }), false);
 });
 
 test('a selected main lesson changes both variants but leaves all supporting sessions intact', () => {
@@ -68,36 +66,38 @@ test('a selected main lesson changes both variants but leaves all supporting ses
   assert.deepEqual(result.theme.dayActivities, day.theme.dayActivities);
 });
 
-test('holiday lessons, started rows and the legacy edit endpoint cannot bypass locks', () => {
+test('only started rows are immutable through proposals and direct week edits', () => {
   const { day, week, conditions } = fixture();
   const eco = day.timeline.find(row => row.kind === 'eco'); eco.occasionIds = ['verified-holiday'];
-  assert.throws(() => validateDayChange(day, week.settings, { scope: 'activity', rowId: eco.id }, { theme: day.theme }, conditions.clock), { code: 'protected_activity' });
-  const draft = structuredClone(week); const changed = draft.days.find(item => item.date === day.date);
-  changed.timeline = changed.timeline.filter(row => row.kind !== 'rest');
-  assert.throws(() => editWeek(week, draft, conditions), { code: 'protected_activity' });
-  const row = day.timeline.find(item => item.kind === 'activity');
-  assert.throws(() => validateDayChange(day, week.settings, { scope: 'activity', rowId: row.id }, {}, `${day.date}T14:00:00Z`), { code: 'activity_finished' });
+  assert.doesNotThrow(() => validateDayChange(day, week.settings, { scope: 'activity', rowId: eco.id }, { theme: day.theme }, conditions.clock));
+  const draft = structuredClone(week); draft.days[3].timeline = [];
+  assert.equal(editWeek(week, draft, conditions).days[3].timeline.length, 0);
+  const row = day.timeline[0];
+  const clock = `${day.date}T07:00:00Z`;
+  assert.throws(() => validateDayChange(day, week.settings, { scope: 'activity', rowId: row.id }, {}, clock), { code: 'activity_finished' });
+  const change = { theme: day.theme, timeline: day.timeline.map(rowContent) };
+  for (const mutation of [
+    rows => rows.filter(item => item.id !== row.id),
+    rows => rows.map(item => item.id === row.id ? { ...item, label: pair('Changed', 'Changed') } : item),
+    rows => [...rows, { id: 'past', start: '06:00', end: '06:30', kind: 'free', label: pair('Past', 'Past') }]
+  ]) assert.throws(() => validateDayChange(day, week.settings, { scope: 'schedule' }, { ...change, timeline: mutation(change.timeline) }, clock), { code: 'activity_finished' });
+  assert.doesNotThrow(() => validateDayChange(day, week.settings, { scope: 'schedule' }, change, clock));
 });
 
-test('week edits preserve exactly one original eco slot even when it is not a holiday lesson', () => {
+test('week edits accept zero or several eco rows without dropping a day', () => {
   const { day, week, conditions } = fixture();
-  const eco = day.timeline.find(row => row.kind === 'eco');
-  assert.equal(protectedActivity(eco), false);
-  for (const mutate of [
-    rows => rows.filter(row => row.kind !== 'eco'),
-    rows => rows.map(row => row.kind === 'eco' ? { ...row, kind: 'activity' } : row),
-    rows => rows.map(row => row.kind === 'eco' ? { ...row, id: 'replacement-eco' } : row),
-    rows => rows.map(row => row.kind === 'activity' && row.id === 'play-0' ? { ...row, kind: 'eco' } : row),
-    rows => rows.map(row => row.kind === 'eco' ? { ...row, end: row.start.slice(0, 3) + '20' } : row)
-  ]) {
-    const input = structuredClone(week);
-    input.days.find(item => item.date === day.date).timeline = mutate(input.days.find(item => item.date === day.date).timeline);
-    assert.throws(() => editWeek(week, input, conditions), { code: 'one_eco_slot' });
+  for (const rows of [[], day.timeline.filter(row => row.kind !== 'eco'), [
+    { id: 'eco-a', start: '08:00', end: '09:30', kind: 'eco', label: pair('First', 'First') },
+    { id: 'eco-b', start: '15:00', end: '17:00', kind: 'eco', label: pair('Second', 'Second') }
+  ]]) {
+    const input = structuredClone(week); input.days[3].timeline = rows;
+    const changed = editWeek(week, input, conditions);
+    assert.equal(changed.days.length, 5); assert.equal(changed.days[3].timeline.length, rows.length);
+    assert.ok(changed.messages.daily[day.date].en);
   }
-  assert.doesNotThrow(() => editWeek(week, structuredClone(week), conditions));
 });
 
-test('AI schedule proposals receive locked context and reject tampering without exposing identity', async t => {
+test('AI schedule proposals unlock upcoming routines without exposing identity', async t => {
   const old = process.env.OPENAI_API_KEY; process.env.OPENAI_API_KEY = 'test-only';
   t.after(() => { if (old === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = old; });
   const { day, week, conditions } = fixture(); let sent; let change = movedSchedule(day);
@@ -110,12 +110,12 @@ test('AI schedule proposals receive locked context and reject tampering without 
   const options = { scope: 'schedule', instruction: 'Move the boundary to 15:00', clock: conditions.clock, weekDays: week.days };
   assert.equal((await suggestDayPlan(day, settings, options)).source, 'ai');
   assert.doesNotMatch(sent.input, /PRIVATE-NAME|PRIVATE-GROUP/);
-  assert.ok(JSON.parse(sent.input).timeline.filter(row => ['meal', 'rest'].includes(row.kind)).every(row => row.locked));
+  assert.ok(JSON.parse(sent.input).timeline.filter(row => ['meal', 'rest'].includes(row.kind)).every(row => !row.locked));
   change.timeline.find(row => row.kind === 'meal').label.en = 'Changed lunch';
-  await assert.rejects(suggestDayPlan(day, settings, options), { code: 'protected_activity' });
+  assert.equal((await suggestDayPlan(day, settings, options)).change.timeline.find(row => row.kind === 'meal').label.en, 'Changed lunch');
 });
 
-test('new kindergarten generation requires daily meals and rest', () => {
+test('default routines are optional at generation', () => {
   const settings = { ...DEFAULT_SETTINGS, gradinka: { name: 'Garden' }, groupName: 'Group', teacherPrompt: 'Nature' };
-  for (const kind of ['meal', 'rest']) assert.throws(() => validateGenerationSettings({ ...settings, blocks: settings.blocks.filter(row => row.kind !== kind) }), { code: 'daily_routines_required' });
+  for (const kind of ['meal', 'rest']) assert.doesNotThrow(() => validateGenerationSettings({ ...settings, blocks: settings.blocks.filter(row => row.kind !== kind) }));
 });

@@ -273,17 +273,17 @@ test('failed recheck invalidates a previously approved notice', async t => {
   const after = (await request(`/api/dashboard?demoId=${state.demoId}`)).body; assert.equal(after.week.approval, null); assert.equal(after.week.checkedAt, null);
 });
 
-test('overlapping edits fail without corrupting the saved plan; stale revisions cannot overwrite', async t => {
+test('elapsed edits fail without corrupting the saved plan; future schedules and revision checks remain editable', async t => {
   const { client } = await app(t); const request = client(); const state = (await request('/api/demo', {})).body;
   const days = structuredClone(state.week.days); days[0].timeline[1].start = days[0].timeline[0].start;
   const edit = await request('/api/week/edit', { ...demoBody(state), settings: state.week.settings, days });
-  assert.equal(edit.status, 400); assert.equal(edit.body.error, 'overlapping_times');
+  assert.equal(edit.status, 409); assert.equal(edit.body.error, 'activity_finished');
   const moved = structuredClone(state.week.days); moved[0].timeline[0].end = '08:15';
   const fixed = await request('/api/week/edit', { ...demoBody(state), settings: state.week.settings, days: moved });
-  assert.equal(fixed.status, 400); assert.equal(fixed.body.error, 'fixed_times');
-  const holidayEdit = structuredClone(state.week.days); holidayEdit[0].theme.title = { mk: 'Нова еко-приказна', en: 'A new eco story' };
+  assert.equal(fixed.status, 409); assert.equal(fixed.body.error, 'activity_finished');
+  const holidayEdit = structuredClone(state.week.days); holidayEdit[0].timeline[0].label = { mk: 'Нова еко-приказна', en: 'A new eco story' };
   const locked = await request('/api/week/edit', { ...demoBody(state), settings: state.week.settings, days: holidayEdit });
-  assert.equal(locked.status, 400); assert.equal(locked.body.error, 'protected_activity');
+  assert.equal(locked.status, 409); assert.equal(locked.body.error, 'activity_finished');
   const valid = structuredClone(state.week.days); valid[2].theme.title = { mk: 'Нова еко-приказна', en: 'A new eco story' };
   const saved = await request('/api/week/edit', { ...demoBody(state), settings: state.week.settings, days: valid });
   assert.equal(saved.status, 200); assert.equal(saved.body.week.days[2].theme.title.en, 'A new eco story');

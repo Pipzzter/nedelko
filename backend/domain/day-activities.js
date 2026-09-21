@@ -61,7 +61,7 @@ export function adaptActivities(day, index, today, clockMinutes) {
       row.customized ||
       row.plannedSession ||
       day.date < today ||
-      (day.date === today && minutes(row.start) < clockMinutes)
+      (day.date === today && minutes(row.start) <= clockMinutes)
     )
       return row;
     return { ...row, ...activityText(row.activityRole, index, day.summary, day.theme) };
@@ -78,7 +78,7 @@ export function diversifyActivities(day, index, today, clockMinutes) {
     !row.plannedSession &&
     !row.occasionIds?.length &&
     day.date >= today &&
-    (day.date !== today || minutes(row.start) >= clockMinutes);
+    (day.date !== today || minutes(row.start) > clockMinutes);
   day.timeline.filter((row) => !canChange(row)).forEach(remember);
   const choices = playChoices(day.theme?.materials);
   for (const row of day.timeline.filter(canChange)) {

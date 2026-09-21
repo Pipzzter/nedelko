@@ -1,13 +1,13 @@
 import { skopjeParts } from '../config/index.js';
 import { planningWeekDates, findOpenActivityWindow } from './planner.js';
-import { validateSettings, validateTimeline, minutes, timeLabel, invalid, pair } from './settings.js';
+import { validateSettings, validateTimeline, minutes, timeLabel, invalid } from './settings.js';
 import { validateCurriculum, SNOW_LESSON, holidayLesson, lessonCoversOccasion } from './curriculum.js';
 import { parentMessages } from './messages.js';
-import { compactTimeline } from './timeline.js';
+import { compactTimeline, resolveTimelineOverlaps } from './timeline.js';
 import { occasionsForWeek, calendarSnapshot } from './holidays.js';
 import { activityRole, activityText, adaptActivities, diversifyActivities } from './day-activities.js';
 import { adaptOccasionActivities } from './occasion-activities.js';
-import { protectedActivity, validateDayChange, validateEcoSlot } from './day-edit.js';
+import { validateDayChange, rowContent } from './day-edit.js';
 import { validateSessions } from './session-plan.js';
 
 export const weatherKind = (code) => {
@@ -62,7 +62,18 @@ export function weatherSummary(conditions, date, settings = DEFAULT_SUMMARY_HOUR
 }
 
 function windowEvidence(day, conditions, settings) {
-  const slot = day.timeline.find((t) => t.kind === 'eco');
+  const local = skopjeParts(new Date(conditions.clock));
+  const slots = day.timeline.filter(row => row.kind === 'eco' &&
+    (day.date !== local.date || minutes(row.end) > local.minutes));
+  if (!slots.length || day.closed || day.outdoorPreference === 'inside')
+    return { eligible: false, reason: unavailableSlotReason({ day, slot: slots[0] }) };
+  const evidence = slots.map(slot => slotEvidence(day, conditions, settings, slot));
+  const denied = evidence.find(item => !item.eligible);
+  return denied || { eligible: true, reason: evidence[0].reason,
+    snow: evidence.some(item => item.snow), score: Math.max(...evidence.map(item => item.score)) };
+}
+
+function slotEvidence(day, conditions, settings, slot) {
   if (!slot || day.closed || day.outdoorPreference === 'inside')
     return { eligible: false, reason: unavailableSlotReason({ day, slot }) };
   const local = skopjeParts(new Date(conditions.clock));
@@ -148,14 +159,14 @@ export function outdoorPlanningContext(dates, input, conditions) {
   });
 }
 
-function createTimeline(settings, theme, conditions, date, index) {
+function createTimeline(settings, theme, conditions, date, index, authored) {
+  if (authored != null) return resolveTimelineOverlaps(validateTimeline(authored));
   const basic = { ...settings, blocks: settings.blocks.map((b) => ({ ...b, label: b.label.mk })) };
   let slot = findOpenActivityWindow(basic, conditions, { date, useCurrentTime: false });
-  if (!slot) throw invalid('no_activity_space');
   const candidates = outdoorSlots(settings, conditions, date);
   if (candidates.length) slot = candidates[0];
-  const rows = settings.blocks.map((b) => structuredClone(b));
-  rows.push({ id: 'eco', start: slot.start, end: slot.end, kind: 'eco', label: theme.title });
+  const rows = resolveTimelineOverlaps(settings.blocks.map(b => structuredClone(b)));
+  if (slot && !rows.some(row => row.kind === 'eco')) rows.push({ id: 'eco', start: slot.start, end: slot.end, kind: 'eco', label: theme.title });
   rows.sort((a, b) => a.start.localeCompare(b.start));
   const all = [];
   let cursor = minutes(settings.dayStart);
@@ -182,27 +193,27 @@ function createTimeline(settings, theme, conditions, date, index) {
   for (const row of rows) {
     gap(minutes(row.start));
     all.push(row);
-    cursor = minutes(row.end);
+    cursor = Math.max(cursor, minutes(row.end));
   }
   gap(minutes(settings.dayEnd));
-  validateTimeline(all, settings);
+  validateTimeline(all);
   return compactTimeline(all);
 }
 
-export function dailyPlanningContext(dates, settings, conditions) {
-  const today = skopjeParts(new Date(conditions.clock)).date;
-  return dates.map((date, index) => ({
-    date,
-    slots:
-      date < today
-        ? []
-        : createTimeline(settings, { title: pair('Главна активност', 'Main lesson') }, conditions, date, index).map(
-            ({ id, start, end, kind, label }) => ({ id, start, end, kind, ...(kind !== 'activity' ? { label } : {}) })
-          )
-  }));
+export function dailyPlanningContext(dates, settings, conditions, previous) {
+  const local = skopjeParts(new Date(conditions.clock));
+  const today = local.date;
+  return dates.map(date => ({ date, elapsed: date < today,
+    defaultRoutine: { dayStart: settings.dayStart, dayEnd: settings.dayEnd,
+      duration: settings.duration, blocks: structuredClone(settings.blocks) },
+    lockedRows: date === today ? (previous?.days.find(day => day.date === date)?.timeline || [])
+      .filter(row => minutes(row.start) <= local.minutes).map(rowContent) : [],
+    lockedTheme: date === today && previous?.days.find(day => day.date === date)?.timeline
+      .some(row => row.kind === 'eco' && minutes(row.start) <= local.minutes)
+      ? previous.days.find(day => day.date === date).theme : null }));
 }
 
-export function createWeek(input, curriculum, conditions, calendars) {
+export function createWeek(input, curriculum, conditions, calendars, previous) {
   const settings = validateSettings(input);
   const themes = validateCurriculum(curriculum.themes, settings);
   const dates = planningWeekDates(conditions.clock);
@@ -211,7 +222,8 @@ export function createWeek(input, curriculum, conditions, calendars) {
   const occasions = occasionsForWeek(dates, calendars);
   const variant = Number.isInteger(curriculum.variant) ? curriculum.variant : 0;
   const timelines = dates.map((date, index) =>
-    date < today ? [] : createTimeline(settings, themes[index], conditions, date, (index + variant) % 5)
+    date < today ? [] : createTimeline(settings, themes[index], conditions, date, (index + variant) % 5,
+      curriculum.timelines?.[index] ?? curriculum.themes[index].timeline)
   );
   const sessions = curriculum.sessions === undefined ? [] : validateSessions(
     curriculum.sessions, dates.map((date, index) => ({ date, slots: timelines[index] })), themes, dates
@@ -238,16 +250,18 @@ export function createWeek(input, curriculum, conditions, calendars) {
       date,
       theme: date < today ? null : themes[i],
       baseTheme: date < today ? null : themes[i],
+      authoredTimeline: Array.isArray(curriculum.timelines?.[i] ?? curriculum.themes[i].timeline),
       timeline: timelines[i].map((row) => {
+        if (Array.isArray(curriculum.timelines?.[i] ?? curriculum.themes[i].timeline)) return { ...row, customized: true };
         const session = sessions.find((item) => item.date === date && item.slotId === row.id);
         return session && row.kind === 'activity'
           ? { ...row, label: session.title, note: session.description, plannedSession: true }
           : row;
       }),
-      themePinned: !!curriculum.topicAssignments?.some((topic) => topic.date === date),
+      themePinned: Array.isArray(curriculum.timelines?.[i] ?? curriculum.themes[i].timeline) || !!curriculum.topicAssignments?.some((topic) => topic.date === date),
       occasions: occasions[i],
       closed: false,
-      outdoorPreference: 'auto',
+      outdoorPreference: ['auto', 'inside', 'outside'].includes(curriculum.outdoorPreferences?.[i]) ? curriculum.outdoorPreferences[i] : 'auto',
       mode: date < today ? 'empty' : 'inside',
       reason: date < today ? 'past' : 'pending'
     })),
@@ -258,7 +272,33 @@ export function createWeek(input, curriculum, conditions, calendars) {
     changes: [],
     mode: conditions.mode
   };
-  return adaptWeek(week, conditions);
+  const adapted = adaptWeek(week, conditions);
+  if (previous?.weekStart === week.weekStart) {
+    const local = skopjeParts(new Date(conditions.clock));
+    adapted.days = adapted.days.map(day => {
+      const original = previous.days.find(item => item.date === day.date);
+      if (!original?.theme) return day;
+      if (day.date < today) return structuredClone(original);
+      if (day.date !== today) return day;
+      // The deterministic fallback cannot understand a brief. Keep its elapsed
+      // saved rows before generating the remaining library examples.
+      if (!day.authoredTimeline) {
+        const started = original.timeline.filter(row => minutes(row.start) <= local.minutes);
+        day.timeline = [...structuredClone(started), ...day.timeline.filter(row =>
+          minutes(row.start) > local.minutes && !started.some(item => item.id === row.id))];
+        if (started.some(row => row.kind === 'eco')) {
+          day.theme = structuredClone(original.theme);
+          day.baseTheme = structuredClone(original.baseTheme);
+          day.themePinned = true;
+        }
+      }
+      day.timeline = validateDayChange({ ...original, closed: false }, settings, { scope: 'schedule' },
+        { timeline: day.timeline, theme: day.theme }, conditions.clock).timeline;
+      return day;
+    });
+    return adaptWeek(adapted, conditions);
+  }
+  return adapted;
 }
 
 export function adaptWeek(input, conditions) {
@@ -277,17 +317,18 @@ export function adaptWeek(input, conditions) {
       : null;
   });
   const local = skopjeParts(new Date(conditions.clock));
-  for (const day of week.days.filter((day) => day.date >= today))
+  for (const day of week.days.filter((day) => day.date >= today && !day.authoredTimeline))
     day.timeline = compactTimeline(day.timeline, {
       consolidate: true,
-      from: day.date === today ? timeLabel(local.minutes) : '00:00'
+      from: day.date === today ? timeLabel(local.minutes + 1) : '00:00'
     });
   const previous = new Set(week.days.filter((d) => d.mode === 'outside').map((d) => d.date));
   const finishedToday = week.days.find(
     (d) =>
       d.date === today &&
       d.mode === 'outside' &&
-      d.timeline.some((r) => r.kind === 'eco' && minutes(r.end) <= local.minutes)
+      d.timeline.some(r => r.kind === 'eco') &&
+      d.timeline.filter(r => r.kind === 'eco').every(r => minutes(r.end) <= local.minutes)
   );
   // Retain elapsed planned slots; no automatic refresh rewrites the past or claims actual attendance.
   const spent = week.days.filter((d) => d.date < today && d.mode === 'outside').length + (finishedToday ? 1 : 0);
@@ -360,13 +401,12 @@ export function replaceDayTheme(previous, date, theme, source, conditions) {
   const local = skopjeParts(new Date(conditions.clock));
   const original = previous.days.find((day) => day.date === date);
   const slot = original?.timeline.find((row) => row.kind === 'eco');
-  if (slot && protectedActivity(slot)) throw invalid('protected_activity');
   if (
     !original?.theme ||
     original.closed ||
     !slot ||
     date < local.date ||
-    (date === local.date && minutes(slot.start) <= local.minutes)
+    (date === local.date && original.timeline.some(row => row.kind === 'eco' && minutes(row.start) <= local.minutes))
   )
     throw invalid('activity_finished', 409);
   const [validated] = validateCurriculum([theme], previous.settings, { count: 1 });
@@ -393,12 +433,6 @@ export function applyDayChange(previous, proposal, conditions) {
 export function editWeek(previous, input, conditions) {
   if (!Array.isArray(input.days) || input.days.length !== 5) throw invalid('invalid_plan');
   const settings = validateSettings(input.settings);
-  if (
-    ['dayStart', 'dayEnd', 'duration', 'blocks'].some(
-      (key) => JSON.stringify(settings[key]) !== JSON.stringify(previous.settings[key])
-    )
-  )
-    throw invalid('fixed_times');
   const local = skopjeParts(new Date(conditions.clock));
   const today = local.date;
   const days = previous.days.map((day, index) => {
@@ -410,48 +444,25 @@ export function editWeek(previous, input, conditions) {
     if (
       edit.outdoorPreference !== day.outdoorPreference &&
       day.date === today &&
-      day.timeline.some((row) => row.kind === 'eco' && minutes(row.end) <= local.minutes)
+      day.timeline.some(row => row.kind === 'eco') && !day.timeline.some(row => row.kind === 'eco' && minutes(row.end) > local.minutes)
     )
       throw invalid('activity_finished');
     const theme = validateCurriculum(new Array(5).fill(edit.theme), settings)[0];
     const themeChanged =
       JSON.stringify(theme) !== JSON.stringify(validateCurriculum(new Array(5).fill(day.theme), settings)[0]);
-    const validatedRows = validateTimeline(edit.timeline, settings);
-    validateEcoSlot(validatedRows, day.timeline.find((row) => row.kind === 'eco'));
-    if (themeChanged && day.timeline.some((row) => row.kind === 'eco' && protectedActivity(row)))
-      throw invalid('protected_activity');
-    for (const original of day.timeline.filter(protectedActivity)) {
-      const proposed = edit.timeline?.find((row) => row.id === original.id);
-      if (
-        !proposed ||
-        ['start', 'end', 'kind', 'label'].some((key) => JSON.stringify(proposed[key]) !== JSON.stringify(original[key]))
-      )
-        throw invalid('protected_activity');
-    }
-    const timeline = validatedRows.map((row) => {
-      const original = day.timeline.find((r) => r.id === row.id);
-      if (!original) {
-        if (row.kind !== 'activity') throw invalid('invalid_timeline');
-        return { ...row, customized: true };
-      }
-      if (row.start !== original.start || row.end !== original.end || row.kind !== original.kind)
-        throw invalid('fixed_times');
-      const changed = JSON.stringify(row.label) !== JSON.stringify(original.label);
-      return {
-        ...original,
-        ...row,
-        ...(row.kind === 'eco' ? { label: theme.title } : {}),
-        ...(original.activityRole ? { activityRole: original.activityRole } : {}),
-        ...(original.note && !changed ? { note: original.note } : {}),
-        customized: !!original.customized || changed
-      };
-    });
+    const editedTimeline = themeChanged && edit.timeline?.filter(row => row.kind === 'eco').length === 1
+      ? edit.timeline.map(row => row.kind === 'eco' ? { ...row, label: theme.title } : row) : edit.timeline;
+    const scheduleChanged = themeChanged || JSON.stringify(edit.timeline) !== JSON.stringify(day.timeline);
+    const changedDay = scheduleChanged ? validateDayChange({ ...day, closed: false }, settings, { scope: 'schedule' },
+      { timeline: editedTimeline, theme }, conditions.clock) : day;
+    const timeline = changedDay.timeline;
     return {
       ...day,
       closed: edit.closed,
       outdoorPreference: edit.outdoorPreference,
       theme,
       themePinned: day.themePinned || themeChanged,
+      authoredTimeline: day.authoredTimeline || scheduleChanged,
       timeline
     };
   });
@@ -486,7 +497,7 @@ export function dashboard(week, conditions) {
     clock: conditions.clock,
     today: skopjeParts(new Date(conditions.clock)).date,
     mode: conditions.mode,
-    calendar: dates.map((date) => ({ date, summary: weatherSummary(conditions, date, week?.settings) })),
+    calendar: dates.map(date => ({ date, summary: weatherSummary(conditions, date, summaryHours(week?.days.find(day => day.date === date), week?.settings)) })),
     environment: {
       location: conditions.location,
       assessment,
@@ -505,10 +516,10 @@ export function dashboard(week, conditions) {
 }
 
 function adaptPlannedDay({ day, conditions, week, today, finishedToday, local, candidates, chosen, modelOrder }) {
-  day.summary = weatherSummary(conditions, day.date, week.settings);
+  day.summary = weatherSummary(conditions, day.date, summaryHours(day, week.settings));
   if (day.date < today || !day.theme || day === finishedToday) return;
   const lessonElapsed =
-    day.date === today && day.timeline.some((row) => row.kind === 'eco' && minutes(row.end) <= local.minutes);
+    day.date === today && day.timeline.some((row) => row.kind === 'eco' && minutes(row.start) <= local.minutes);
   if (day.baseTheme && !day.themePinned && !lessonElapsed) {
     const datedLesson = day.occasions.some(
       (event) =>
@@ -528,12 +539,19 @@ function adaptPlannedDay({ day, conditions, week, today, finishedToday, local, c
   const evidence = candidates.find((c) => c.date === day.date);
   day.mode = plannedDayMode({ day, chosen });
   day.reason = planningReason({ evidence, chosen, day, modelOrder });
-  day.snow = !!evidence.snow;
+  day.snow = !!evidence?.snow;
   day.provisional = day.date !== today;
   day.activity = plannedActivity({ day });
+  if (day.authoredTimeline) return;
   adaptActivities(day, (week.days.indexOf(day) + (week.variant || 0)) % 5, today, local.minutes);
   adaptOccasionActivities(day, week.settings, today, local.minutes);
   diversifyActivities(day, (week.days.indexOf(day) + (week.variant || 0)) % 5, today, local.minutes);
+}
+
+function summaryHours(day, settings = DEFAULT_SUMMARY_HOURS) {
+  if (!day?.timeline.length) return settings;
+  return { dayStart: timeLabel(Math.min(...day.timeline.map(row => minutes(row.start)))),
+    dayEnd: timeLabel(Math.max(...day.timeline.map(row => minutes(row.end)))) };
 }
 
 function unavailableSlotReason({ day, slot }) {
@@ -557,13 +575,13 @@ function plannedDayMode({ day, chosen }) {
 }
 
 function planningReason({ evidence, chosen, day, modelOrder }) {
-  if (evidence.eligible && !chosen.has(day.date)) {
+  if (evidence?.eligible && !chosen.has(day.date)) {
     if (modelOrder) {
       return 'ai_plan';
     }
     return 'indoor_balance';
   }
-  return evidence.reason;
+  return evidence?.reason || 'no_slot';
 }
 
 function plannedActivity({ day }) {

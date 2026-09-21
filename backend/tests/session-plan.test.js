@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_SETTINGS, pair } from '../domain/settings.js';
-import { createWeek, adaptWeek, dailyPlanningContext } from '../domain/week.js';
+import { createWeek, adaptWeek } from '../domain/week.js';
 import { demoConditions } from '../services/conditions.js';
 import { localCurriculum } from '../domain/curriculum.js';
 import { validateSessions, titleKey, activityDescription, sessionDescription } from '../domain/session-plan.js';
@@ -14,7 +14,7 @@ function sessionFixture(clock = Date.parse('2026-09-21T06:45:00Z')) {
   conditions.clock = new Date(clock).toISOString();
   const dates = planningWeekDates(conditions.clock);
   const themes = localCurriculum(dates, DEFAULT_SETTINGS);
-  const planningDays = dailyPlanningContext(dates, DEFAULT_SETTINGS, conditions);
+  const planningDays = createWeek(DEFAULT_SETTINGS, { themes, source: 'library' }, conditions).days.map(day => ({ date: day.date, slots: day.timeline }));
   const sessions = planningDays.flatMap(day => day.slots.filter(row => row.kind === 'activity').map((row, i) => ({
     date: day.date, slotId: row.id, title: pair(`Игра ${day.date} ${i}`, `Game ${day.date} ${i}`),
     description: structuredClone(PLAY_IDEAS[i % PLAY_IDEAS.length].note)

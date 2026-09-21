@@ -366,7 +366,7 @@ export function createApp({
         useAI: !demoId,
         calendars,
         variant: demoId ? 0 : randomInt(1000000),
-        planningDays: dailyPlanningContext(dates, settings, conditions),
+        planningDays: dailyPlanningContext(dates, settings, conditions, old),
         outdoorContext: outdoorPlanningContext(dates, settings, conditions),
         today: skopjeParts(new Date(conditions.clock)).date
       });
@@ -381,7 +381,7 @@ export function createApp({
           generationIssue: curriculum.generationIssue || 'ai_unavailable',
           generationError: curriculum.generationError ?? null
         });
-      let generated = createWeek(settings, curriculum, conditions, calendars);
+      let generated = createWeek(settings, curriculum, conditions, calendars, old);
       if (demoId) generated = prepareDemoWeek(generated, conditions, demoWeekById(demoWeek));
       const week = save(user, demoId, generated, old?.revision || 0, true);
       return send(201, present(week, conditions, user, demoId));
@@ -797,7 +797,7 @@ function approveNotice({ mode, old, save, user, demoId, send }) {
   if (
     day.mode === 'outside' &&
     mode === 'live' &&
-    day.timeline.some((row) => row.kind === 'eco' && minutes(row.end) <= skopjeParts(new Date(now)).minutes)
+    !day.timeline.some(row => row.kind === 'eco' && minutes(row.end) > skopjeParts(new Date(now)).minutes)
   )
     throw invalid('recheck_required', 409);
   old.approval = { at: new Date(now).toISOString(), date: today, messages: old.messages.daily[today] };
@@ -845,7 +845,7 @@ async function suggestDayTheme({ week, body, demoId, limit, owner, dayCurriculum
     day.closed ||
     !slot ||
     day.date < local.date ||
-    (day.date === local.date && minutes(slot.start) <= local.minutes)
+    (day.date === local.date && day.timeline.some(row => row.kind === 'eco' && minutes(row.start) <= local.minutes))
   )
     throw invalid('activity_finished', 409);
   const instruction = teacherInstruction(body.instruction);
@@ -922,9 +922,10 @@ async function suggestParentNoteAction({
   const day = week.days.find((day) => day.date === advice.date);
   if (!['activity', 'schedule', 'inside', 'outside'].includes(advice.scope)) throw invalid('invalid_note_advice');
   const row = day?.timeline.find(
-    (row) => row.id === (['inside', 'outside'].includes(advice.scope) ? 'eco' : advice.rowId)
+    row => ['inside', 'outside'].includes(advice.scope) ? row.kind === 'eco' &&
+      (day.date > skopjeParts(new Date(clock)).date || minutes(row.start) > skopjeParts(new Date(clock)).minutes) : row.id === advice.rowId
   );
-  if (advice.scope !== 'schedule' && !row) throw invalid('invalid_timeline');
+  if (advice.scope === 'activity' && !row) throw invalid('invalid_timeline');
   assertUpcoming(day, clock, advice.scope === 'schedule' ? undefined : row);
   let result;
   let preview;

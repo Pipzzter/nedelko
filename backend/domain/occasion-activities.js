@@ -34,7 +34,7 @@ export function occasionDiscussion(events, date) {
 // Add discussion within an existing slot. Never add time, infer closures or overwrite a teacher's lesson.
 export function adaptOccasionActivities(day, settings, today, clockMinutes) {
   if (!day.theme || day.closed || day.date < today) return;
-  const upcoming = (row) => day.date > today || minutes(row.start) >= clockMinutes;
+  const upcoming = (row) => day.date > today || minutes(row.start) > clockMinutes;
   const events = [...(day.preparationFor ? [day.preparationFor] : []), ...(day.occasions || [])];
   const eco = day.timeline.find((row) => row.kind === 'eco');
   for (const row of day.timeline.filter((row) => upcoming(row) && !row.customized)) {

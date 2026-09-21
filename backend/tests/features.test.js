@@ -402,12 +402,12 @@ test('explicit daily topics cannot silently save an unrelated library fallback',
   assert.deepEqual(store.week(user.id, previous.weekStart), previous);
 });
 
-test('targeted edit proposals enforce owner, revision, protected rows and single-use application', async t => {
+test('targeted edit proposals enforce owner, revision, timeline integrity and single-use application', async t => {
   let malicious = false;
   const { client, store } = await fixture(t, { dayPlanProvider: async (day, _settings, request) => {
     if (request.scope === 'activity') return { source: 'ai', change: { label: { mk: 'Нов музички круг', en: 'A new music circle' }, note: { mk: 'Со воспитувачот создаваме ритам.', en: 'With the teacher, create a rhythm.' } } };
     const timeline = day.timeline.map(rowContent);
-    if (malicious) timeline.find(row => row.kind === 'rest').label.en = 'Erase sleep';
+    if (malicious) timeline[1].id = timeline[0].id;
     else { timeline.at(-2).end = '15:00'; timeline.at(-1).start = '15:00'; }
     return { source: 'ai', change: { timeline, theme: day.theme } };
   } });
@@ -419,7 +419,7 @@ test('targeted edit proposals enforce owner, revision, protected rows and single
   const day = week.days.at(-1); const row = day.timeline.find(item => item.kind === 'activity' && !protectedActivity(item));
   const request = { date: day.date, rowId: row.id, scope: 'activity', instruction: 'Use music', revision: week.revision };
   assert.equal((await parent('/api/week/change/suggest', request)).status, 401);
-  assert.equal((await teacher('/api/week/change/suggest', { ...request, rowId: 'lunch' })).status, 400);
+  assert.equal((await teacher('/api/week/change/suggest', { ...request, rowId: 'lunch' })).status, 200);
   const preview = (await teacher('/api/week/change/suggest', request)).body;
   assert.deepEqual(store.week(user.id, week.weekStart), week);
   assert.equal((await other('/api/week/change/apply', { proposalId: preview.proposalId, revision: week.revision })).status, 409);

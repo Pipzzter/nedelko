@@ -36,7 +36,7 @@ test('manual meal/rest/occasion details persist through adaptation without chang
 test('content cannot inject times and validates bilingual descriptions, material IDs and elapsed rows', () => {
   const { conditions, week, day } = fixture(); const row = day.timeline[0];
   const request = { action: 'content', rowId: row.id, content };
-  for (const field of ['start', 'end', 'kind', 'aqi']) assert.throws(() => manualDayEdit(day, week.settings, { ...request, content: { ...content, [field]: '09:00' } }, conditions.clock), { code: 'fixed_times' });
+  for (const field of ['start', 'end', 'kind', 'aqi']) assert.throws(() => manualDayEdit(day, week.settings, { ...request, content: { ...content, [field]: '09:00' } }, conditions.clock), { code: 'invalid_plan' });
   assert.throws(() => manualDayEdit(day, week.settings, { ...request, content: { ...content, note: { en: 'Only English' } } }, conditions.clock), { code: 'invalid_text' });
   assert.throws(() => manualDayEdit(day, week.settings, { ...request, rowId: 'missing' }, conditions.clock), { code: 'invalid_timeline' });
   assert.throws(() => manualDayEdit(day, week.settings, request, `${day.date}T16:00:00Z`), { code: 'activity_finished' });
@@ -61,19 +61,22 @@ test('reordering propagates times through meals and rest while preserving every 
   assert.throws(() => manualDayEdit(day, week.settings, { action: 'reorder', rowIds: ids }, `${day.date}T07:00:00Z`), { code: 'activity_finished' });
 });
 
-test('explicit time editing adjusts adjacent boundaries and rejects overlaps, excessive lesson durations and elapsed changes', () => {
+test('explicit start edits preserve duration, leave gaps and resolve overlaps without a day-end clamp', () => {
   const { conditions, week, day } = fixture(); const starts = day.timeline.map(row => row.start);
-  starts[starts.length - 1] = '15:00';
+  starts[starts.length - 1] = '18:00';
   const request = { action: 'timing', starts };
   const next = manualDayEdit(day, week.settings, request, conditions.clock);
-  assert.equal(next.timeline.at(-2).end, '15:00'); assert.equal(next.timeline.at(-1).start, '15:00');
+  assert.equal(next.timeline.at(-2).end, day.timeline.at(-2).end);
+  assert.equal(next.timeline.at(-1).start, '18:00');
+  assert.ok(next.timeline.at(-1).end > week.settings.dayEnd);
   assert.deepEqual(next.timeline[0], day.timeline[0]);
+  for (let i = 0; i < next.timeline.length; i++)
+    assert.equal(minutes(next.timeline[i].end) - minutes(next.timeline[i].start), minutes(day.timeline[i].end) - minutes(day.timeline[i].start));
   assert.throws(() => manualDayEdit(day, week.settings, { ...request, starts: [] }, conditions.clock), { code: 'invalid_timeline' });
   const overlap = [...starts]; overlap[2] = overlap[1];
-  assert.throws(() => manualDayEdit(day, week.settings, { ...request, starts: overlap }, conditions.clock), { code: 'time_bounds' });
-  const ecoIndex = day.timeline.findIndex(row => row.kind === 'eco'); const tooShort = [...starts];
-  tooShort[ecoIndex + 1] = tooShort[ecoIndex].slice(0, 3) + String(Number(tooShort[ecoIndex].slice(3)) + 1).padStart(2, '0');
-  assert.throws(() => manualDayEdit(day, week.settings, { ...request, starts: tooShort }, conditions.clock), { code: 'one_eco_slot' });
-  assert.throws(() => manualDayEdit(day, week.settings, request, `${day.date}T13:01:00Z`), { code: 'activity_finished' });
+  const resolved = manualDayEdit(day, week.settings, { ...request, starts: overlap }, conditions.clock);
+  assert.equal(resolved.timeline[2].start, resolved.timeline[1].end);
+  const elapsed = [...starts]; elapsed[0] = '08:00';
+  assert.throws(() => manualDayEdit(day, week.settings, { ...request, starts: elapsed }, `${day.date}T13:01:00Z`), { code: 'activity_finished' });
   assert.throws(() => manualDayEdit(day, week.settings, { action: 'unknown' }, conditions.clock), { code: 'invalid_plan' });
 });
