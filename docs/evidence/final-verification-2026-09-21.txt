@@ -1,0 +1,1027 @@
+Final verification
+Started UTC: 2026-09-21T20:43:09.258Z
+Repository: C:/Users/pipoj/PycharmProjects/gun-mayhem-repo
+Branch: main
+Commit: e44f64c36662a52b48ec22a77d741768f05a1b4f
+Origin/main: e44f64c36662a52b48ec22a77d741768f05a1b4f
+Node: v24.15.0
+Platform: win32 x64
+Unrelated pre-existing untracked file: findings.md (preserved)
+
+$ npm.cmd ci
+Started UTC: 2026-09-21T20:43:09.338Z
+
+added 15 packages, and audited 16 packages in 2s
+
+10 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+Exit code: 0
+Finished UTC: 2026-09-21T20:43:11.713Z
+
+$ npm.cmd run check
+Started UTC: 2026-09-21T20:43:11.713Z
+
+> nedelko@1.0.0 check
+> node scripts/check.js && node scripts/check-docs.js
+
+122 JavaScript files checked.
+30 documentation files checked for local links.
+
+Exit code: 0
+Finished UTC: 2026-09-21T20:43:17.195Z
+
+$ npm.cmd test
+Started UTC: 2026-09-21T20:43:17.195Z
+
+> nedelko@1.0.0 test
+> node scripts/test.js
+
+✔ low reasoning preserves the configured model and is omitted for other model families (31.3692ms)
+✔ oversized provider responses are cancelled before parsing (2.9326ms)
+✔ Responses API uses strict JSON schema, store:false, and keeps credentials in the header (2.7557ms)
+✔ incomplete and refusal responses are never accepted as structured output (2.4792ms)
+✔ provider authentication failure is reported without exposing provider text or credentials (4.0288ms)
+✔ model failure falls back visibly; invalid model times cannot bypass validation (2.5116ms)
+✔ without a key the local parser is explicit, and invalid user input is rejected (1.3391ms)
+✔ weekly educational goal becomes five validated editable activity pairs (2.2469ms)
+✔ weekly theme model cannot insert air-quality or safety claims (1.1199ms)
+✔ weekly theme suggestion works without a key and validates input bounds (0.7093ms)
+✔ weekly model may only select teacher-confirmed materials (1.3157ms)
+✔ holiday endpoint needs a session or valid isolated demo, and cannot accept source URLs (172.7696ms)
+✔ weekly generation allows six owner attempts per hour, isolates accounts and leaves demos uncapped (990.4478ms)
+✔ failed weekly AI retries consume the owner budget without replacing the saved plan (179.6778ms)
+✔ holiday requests stop at thirty per owner and hour, including isolated demos (215.5732ms)
+✔ rate buckets reset at the boundary without extending the window on rejected calls (0.8854ms)
+✔ registration normalizes the kindergarten email, hashes passwords, stores the profile and manages sessions (249.7601ms)
+✔ weak passwords, invalid emails, incomplete kindergarten details and cross-origin writes are rejected (15.1551ms)
+✔ legacy username accounts can still sign in through the email field (116.6822ms)
+✔ new accounts start empty; one-click generation persists only to the owner (153.4197ms)
+✔ AI retry preserves the saved week on failure and replaces it only after successful validated generation (180.3767ms)
+✔ demo is isolated, editable and cannot bypass fresh recheck before approving (28.2215ms)
+✔ core dated demo weeks and six air scenarios keep fixed dates, closures and account isolation (275.452ms)
+✔ failed recheck invalidates a previously approved notice (28.6763ms)
+✔ overlapping edits fail without corrupting the saved plan; stale revisions cannot overwrite (33.3446ms)
+✔ saved day location choices update notices, invalidate approval and cannot override server observations (41.3486ms)
+✔ auth rate limits block repeated password attempts (749.6558ms)
+✔ only frontend files are served and configuration never leaks secrets (20.5183ms)
+✔ deleting and regenerating a week is authenticated, revision checked, isolated and resistant to stale tabs (307.5421ms)
+✔ changing city fetches that city and adapts learning choices and outdoor days without regenerating (46.1021ms)
+✔ direct day edits enforce ownership, revisions and parent read-only boundaries and survive refresh (221.9721ms)
+✔ registration normalizes addresses and rejects missing or repeated separators and embedded whitespace (3.2996ms)
+✔ cache deduplicates concurrent cold requests, persists responses and never renews failed evidence (199.7725ms)
+✔ allowlists, status errors, invalid JSON and oversized bodies fail without clean-air data (24.8038ms)
+✔ unwritable cache does not discard a live response and expired memory entries refetch (6.3981ms)
+✔ live projection uses validated nearby sensors and separates observations from forecasts (34.4208ms)
+✔ failed refresh, stale forecasts and missing responses never become clean-air approval (2.7369ms)
+✔ demo never fetches upstream and validates location, mode and scenario before access (19.1642ms)
+✔ daily topics are never assigned to an undefined date after the planning week has elapsed (3.3999ms)
+✔ a valid week arriving after the former 45-second deadline is accepted; the new deadline stays bounded (40.8392ms)
+✔ bilingual curriculum generation ranks server-eligible outdoor days and keeps identity out of the request (4.5268ms)
+✔ missing holiday content cannot be accepted as an AI plan in either language or activity version (10.1568ms)
+✔ invalid or duplicated model outdoor dates reject the whole model result (4.0122ms)
+✔ an invalid bilingual model lesson becomes an explicit local-library week (2.0501ms)
+✔ API credit failure is visible without exposing credentials or raw provider messages (2.8703ms)
+✔ quota, spend, rate and configuration failures retain their distinct cause instead of claiming exhausted credits (10.5299ms)
+✔ unrecognized provider fields and private error bodies cannot escape through generation diagnostics (1.8676ms)
+✔ generated whole-day activities are validated, and regeneration can vary the local library (4.0129ms)
+✔ whole-week output requires every server-owned session key and validates content independently of the model schema (35.6075ms)
+✔ one activity changes without rewriting other rows, lesson, days or times (99.9374ms)
+✔ schedule changes can resize activity times while protected routines remain exact (28.1101ms)
+✔ a selected main lesson changes both variants but leaves all supporting sessions intact (36.0896ms)
+✔ holiday lessons, started rows and the legacy edit endpoint cannot bypass locks (25.1407ms)
+✔ week edits preserve exactly one original eco slot even when it is not a holiday lesson (41.4799ms)
+✔ AI schedule proposals receive locked context and reject tampering without exposing identity (93.4748ms)
+✔ new kindergarten generation requires daily meals and rest (0.4244ms)
+✔ EPA PM2.5 breakpoints, decimal truncation, and above-scale extrapolation (1.3563ms)
+✔ NowCast has zero handling and needs two valid hours among the latest three (0.3661ms)
+✔ NowCast weights missing hours by their real age, not compressed array position (0.1543ms)
+✔ location distance and Skopje winter/summer time are explicit (28.9825ms)
+✔ a fresh plausible sensor with enough history passes (1.1378ms)
+✔ staleness is based on measurement time, including the 60-minute boundary (0.5995ms)
+✔ 999 and 2000 readings block a positive decision even with two low neighbors (1.1599ms)
+✔ an extreme historical value cannot be silently discarded from NowCast (0.3183ms)
+✔ malformed newest data cannot expose a previous low reading as current (1.2777ms)
+✔ negative readings, future timestamps, stuck signals, and thin history are rejected (0.7505ms)
+✔ sudden rise is treated as uncertain evidence, never simply removed as a glitch (0.6253ms)
+✔ disagreeing neighbors and missing coverage prevent an outside plan (0.6449ms)
+✔ schedule validation rejects malformed, out-of-day, and unbounded inputs (1.7499ms)
+✔ settings and extracted schedules enforce identical comfort bounds and strict numeric types (7.8361ms)
+✔ local extraction handles simple Macedonian ranges and stays separate from air decisions (1.0266ms)
+✔ planning week starts on Monday and contains five workdays (1.3358ms)
+✔ theme and material boundaries still reject missing, unowned and injection-like content (1.8061ms)
+✔ open activity windows respect current time, future dates and fully occupied days (7.208ms)
+✔ indoor activity time is deterministic and never overlaps the fixed rhythm (4.3222ms)
+✔ kindergarten and teaching brief validate and keep one canonical location (15.7359ms)
+✔ two dashboard reads preserve the editor revision for both accounts and isolated demos (513.1839ms)
+✔ a failed dashboard refresh durably clears approval without renewing evidence or changing revision (199.6751ms)
+✔ dashboard cached refresh keeps measurement timestamps and marks unavailable air as unknown (137.4619ms)
+✔ public parent reads serve a conservative stored snapshot during writes and still honor revocation (136.4748ms)
+✔ parent link gives a stable read-only projection; revocation and ownership are enforced (205.6237ms)
+✔ demo links are isolated and immediately show adapted pollution messages (36.4592ms)
+✔ sharing survives dashboard reads, explicit rechecks and expiry renewal without changing the URL (157.4192ms)
+✔ demo and account parent pages share a read-only contract; retired classroom routes cannot mutate either plan (159.4461ms)
+✔ refreshing a week preserves newer group preferences and an empty dashboard restores their location (93.7959ms)
+✔ single-day suggestions require a separate apply and cannot overwrite other days or cross accounts (154.4898ms)
+✔ failed AI day generation and stale previews preserve the existing plan (96.3889ms)
+✔ automatic refresh adapts an active week and messages without a browser or model call (12.2623ms)
+✔ day replacement preserves custom rows and refuses elapsed eco lessons (10.1696ms)
+✔ day AI receives teaching preferences but not kindergarten or group identity; incomplete output stays explicit (12.1231ms)
+✔ generation rejects missing required teacher details before contacting providers or changing a plan (89.5923ms)
+✔ explicit daily topics cannot silently save an unrelated library fallback (86.8929ms)
+✔ targeted edit proposals enforce owner, revision, protected rows and single-use application (196.9624ms)
+✔ scraper imports an official moving Easter date and validates date, weekday, scope and source (7.2836ms)
+✔ discovery ignores injected or off-site URLs and deduplicates official article links (1.3709ms)
+✔ an explicit Sunday-to-Monday substitute resolves the programme typo without guessing (8.5472ms)
+✔ a missing paragraph year is inferred only from the same article’s dated listing within 45 days (1.6657ms)
+✔ holiday refresh is shared, persisted and cached; failure never renews an old successful fetch (178.96ms)
+✔ oversized, non-HTML and changed upstream pages fall back to dated evidence (9.5352ms)
+✔ unknown years do not inherit the 2026 religious dates or claim a complete calendar (0.5995ms)
+✔ Easter and Halloween change the correct day’s lessons without inventing closures (3.3759ms)
+✔ year-crossing weeks preserve the correct year and a sourced announcement corrects the PDF typo (0.4375ms)
+✔ manual meal/rest/occasion details persist through adaptation without changing times or evidence (118.1124ms)
+✔ content cannot inject times and validates bilingual descriptions, material IDs and elapsed rows (28.4935ms)
+✔ reordering propagates times through meals and rest while preserving every duration and identity (27.6648ms)
+✔ explicit time editing adjusts adjacent boundaries and rejects overlaps, excessive lesson durations and elapsed changes (64.0572ms)
+✔ parent notes arrive unread, are private to the owner and never authorize plan edits (548.4714ms)
+✔ informational care notes bypass AI and cannot acquire an apply action (274.2384ms)
+✔ a note suggestion applies only after owner confirmation and rejects stale or reused proposals (232.8705ms)
+✔ a parent note can move a whole group day outside without flipping any other day (187.5624ms)
+✔ demo notes stay in memory and deleting a plan clears its notes (184.2687ms)
+✔ the sidebar retains unread older notes and a model cannot edit protected routines through a note (170.4789ms)
+✔ English and Macedonian duration requests keep their exact minute value (2.9533ms)
+✔ duration parsing separates unrelated quantities and handles long text without a matching unit (0.6785ms)
+✔ fractional-minute requests cannot silently become a different whole-minute schedule (72.943ms)
+✔ two hours at closing explains the 105-minute limit instead of returning 45 minutes (38.6655ms)
+✔ a feasible two-hour move is validated in preview and apply; a shorter answer is rejected (103.169ms)
+✔ native startup stays on loopback; container binding and ports are explicit and validated (2.1048ms)
+✔ startup enables refresh, hides internal errors and closes on either termination signal (0.7422ms)
+✔ library days never reuse a generated title around meals or the eco lesson (93.6822ms)
+✔ whole-day session output must cover exact slots once with distinct bilingual activities (65.6248ms)
+✔ createWeek rejects unfiltered session text and invalid slot coverage at its own boundary (228.1866ms)
+✔ createWeek validates sessions only for upcoming activity slots when generation begins midweek (28.9514ms)
+✔ activity details reject one-line summaries and library games use available supplies (0.6893ms)
+✔ structured session sentences retain quoted punctuation and require four substantial steps in each language (1.2192ms)
+✔ accounts, session hashes and private plans persist after closing and reopening SQLite (169.2586ms)
+✔ read refresh persists notice invalidation without changing revision or crossing owners and tombstones (74.0436ms)
+✔ all five requested daily topics survive newlines and legacy flattened briefs (2.9715ms)
+✔ a model response that ignores a requested topic cannot be accepted as an AI plan (53.2774ms)
+✔ adjacent duplicate activities merge while fixed routines, gaps and distinct translations remain intact (90.2494ms)
+✔ pollution moves today indoors and reallocates an outdoor day without changing meals or rest (33.3628ms)
+✔ AI outdoor ranking chooses among eligible days while deterministic gates retain final authority (38.2311ms)
+✔ midweek creation leaves Monday and Tuesday empty and keeps Friday visible (11.7436ms)
+✔ stale, failed refresh and disagreeing evidence cannot schedule outside today (99.8931ms)
+✔ future outdoor drafts require available air forecasts even when weather is favourable (92.1347ms)
+✔ each hour of a future eco slot needs a finite nonnegative air forecast and missing coverage invalidates approval (47.8667ms)
+✔ rain, wind, freezing precipitation and storms override an otherwise attractive day (87.8241ms)
+✔ closure and teacher indoor preference prevent automatic outdoor allocation (17.1222ms)
+✔ parent messages have both languages, no em dash, and only call out clothing outliers (24.9166ms)
+✔ parent projections preserve unknown weather and clothing exceptions name weekend days (18.7073ms)
+✔ curriculum follows the season and an educational national date without inventing closures (0.6127ms)
+✔ injection-like lesson text cannot affect the recommendation or become accepted model output (24.7772ms)
+✔ recurring schedule validation catches overlaps and a day without enough activity space (0.994ms)
+✔ snow forecasts suggest a snow lesson without treating forecast snow as observed ground cover (23.0551ms)
+✔ a generated Bosniak preparation lesson reaches parent messages and survives weather adaptation without closing Friday (32.9949ms)
+✔ elapsed outdoor slots do not get reassigned to an extra future day (17.072ms)
+✔ a legacy plan with no eco slot cannot advertise that lesson in the parent notice (15.0156ms)
+✔ city weather changes upcoming learning choices, preserves routines and keeps indoor backups (34.726ms)
+✔ weather changes preserve manual activity edits and never rewrite elapsed activity text (26.0893ms)
+✔ community holidays have a bilingual discussion in an existing slot without replacing the eco lesson or closing the day (15.9916ms)
+✔ indoor alerts persist only while relevant and never recommend an ineligible replacement (25.4126ms)
+✔ pollution detected during an outdoor lesson switches its remaining plan indoors without moving routines (16.613ms)
+✔ per-day outdoor choices outrank AI allocation, persist on refresh, and can be switched back indoors or to automatic (30.0208ms)
+✔ explicit outdoor choices can exceed the weekly target while held automatic days keep their mode (28.1372ms)
+✔ an outside preference cannot bypass air, weather, closure or missing-slot gates and survives a blocked refresh (51.3755ms)
+✔ future outdoor requests cannot bypass missing air forecasts, and elapsed choices cannot rewrite history (12.4296ms)
+✔ holiday discussion adapts saved plans without overwriting manual text, duplicating events or changing times (20.9815ms)
+✔ a later refresh does not schedule the same holiday discussion again or rewrite its elapsed text (10.9453ms)
+✔ a warmer Friday can remain indoors because outdoor allocation follows the eligible activity ranking and day target (12.8176ms)
+✔ longer activity blocks fill the day without overlaps, gaps or changes to fixed routines (38.1532ms)
+✔ older short generated blocks consolidate once, retaining edited blocks and fixed times (16.1371ms)
+✔ week edits reject overlaps and changed times while a replacement uses an existing gap (11.6147ms)
+✔ generation selects a weather-compatible free slot when the usual late-morning slot is unsuitable (8.4707ms)
+✔ missing temperatures never masquerade as a cold-weather learning forecast (14.9788ms)
+✔ the browser accepts generation past the old one-minute limit including environmental request time (50.5744ms)
+✔ generation still expires and tells the caller to check the saved plan before retrying (1.033ms)
+✔ ordinary requests keep their shorter deadline (0.537ms)
+✔ DOM integration: empty account, create kindergarten, one-page management, live step, bilingual messages and isolated demo (1320.5047ms)
+✔ inline editing preserves typing, supports cancel and distinguishes multiline Enter from commit (12.1907ms)
+✔ legacy day assistant previews before apply, discards proposals and shows failures without applying (48.8729ms)
+✔ week deletion requires confirmation and cancellation preserves the plan (45.629ms)
+✔ bilingual inputs preserve the other translation and form errors expand nested details before focus (3.6097ms)
+✔ teacher registration requires kindergarten details while parents receive link-only guidance (11.6892ms)
+✔ pencil editor saves bilingual meal details without time fields and retains a draft after errors (11.2463ms)
+✔ eco detail editing exposes both alternatives, goals, materials and holiday discussion (4.8145ms)
+✔ schedule time edits show propagated boundaries and require review before saving (45.9526ms)
+✔ top-level dragging and keyboard movement send complete row order; parent view exposes neither (48.124ms)
+✔ parent notes mount without randomUUID and preserve a valid nonce when retrying a failed submission (92.5121ms)
+✔ weather controls use every canonical range, expose precipitation and add routines without randomUUID (17.0347ms)
+✔ parent sharing uses Skopje-local expiry dates and omits unsafe server links (4.6943ms)
+✔ live air sources retain safe links and the calendar preserves five selectable weekdays and attribution (7.6469ms)
+✔ demo uses the planner and shared parent page; links, languages and isolated deep links work (777.5204ms)
+✔ Macedonian dates stay translated and use the Skopje date across midnight (25.1529ms)
+✔ UI identifiers survive unavailable crypto methods and stay distinct with a frozen clock (2.0305ms)
+✔ server links allow HTTP(S) and same-origin root paths but reject executable and ambiguous URLs (0.5456ms)
+✔ first-time planning identifies every missing essential and requires an explicit timetable review (15.9803ms)
+✔ every canonical preference bound accepts and rejects the same values in the form and server (8.0594ms)
+✔ form validation reads the supplied configuration instead of retaining literal weather limits (0.3307ms)
+✔ planning finds overlaps, missing translations and insufficient activity space before generation (0.4275ms)
+✔ all AI and apply requests report progress without retaining private input, and failures release it (38.0821ms)
+✔ bodyless, non-JSON and empty JSON errors retain HTTP status for expired-session handling (1.2885ms)
+✔ modal request progress preserves the form, uses real elapsed time and restores interaction (286.6764ms)
+✔ friendly time ranges normalize without accepting ambiguous or invalid clock values (1.2827ms)
+✔ hook installation ignores PATH executables and preserves an existing custom hook (591.8181ms)
+✔ coverage requires strictly above 90% in each layer and cannot hide an unimported file (4.0353ms)
+✔ coverage paths are relative for scanner containers and Windows separators normalize (0.4697ms)
+✔ critical module coverage cannot be hidden by a passing area total or rounded up (6.286ms)
+✔ pushes validate every source tip, allow annotated tags at HEAD and identify deletion-only pushes (1.9537ms)
+✔ local link checks find Markdown and HTML paths but ignore URLs, anchors and code examples (0.8882ms)
+✔ Sonar credentials are required, loopback-only, sent in headers and never copied into errors (36.46ms)
+✔ Sonar policy rejects missing or weakened server coverage conditions (0.8877ms)
+✔ Sonar setup creates a private project once, copies the standard gate and reconciles thresholds on repeat (1.8189ms)
+ℹ tests 202
+ℹ suites 0
+ℹ pass 202
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4187.1874
+
+Exit code: 0
+Finished UTC: 2026-09-21T20:43:21.979Z
+
+$ npm.cmd run test:coverage
+Started UTC: 2026-09-21T20:43:21.979Z
+
+> nedelko@1.0.0 test:coverage
+> node scripts/test.js --coverage
+
+✔ low reasoning preserves the configured model and is omitted for other model families (38.5221ms)
+✔ oversized provider responses are cancelled before parsing (3.9009ms)
+✔ Responses API uses strict JSON schema, store:false, and keeps credentials in the header (3.1574ms)
+✔ incomplete and refusal responses are never accepted as structured output (1.4679ms)
+✔ provider authentication failure is reported without exposing provider text or credentials (1.5992ms)
+✔ model failure falls back visibly; invalid model times cannot bypass validation (3.07ms)
+✔ without a key the local parser is explicit, and invalid user input is rejected (1.3761ms)
+✔ weekly educational goal becomes five validated editable activity pairs (3.0622ms)
+✔ weekly theme model cannot insert air-quality or safety claims (1.6205ms)
+✔ weekly theme suggestion works without a key and validates input bounds (0.8134ms)
+✔ weekly model may only select teacher-confirmed materials (2.0221ms)
+✔ holiday endpoint needs a session or valid isolated demo, and cannot accept source URLs (191.4533ms)
+✔ weekly generation allows six owner attempts per hour, isolates accounts and leaves demos uncapped (1055.3667ms)
+✔ failed weekly AI retries consume the owner budget without replacing the saved plan (174.4171ms)
+✔ holiday requests stop at thirty per owner and hour, including isolated demos (244.9949ms)
+✔ rate buckets reset at the boundary without extending the window on rejected calls (1.1982ms)
+✔ registration normalizes the kindergarten email, hashes passwords, stores the profile and manages sessions (245.6865ms)
+✔ weak passwords, invalid emails, incomplete kindergarten details and cross-origin writes are rejected (34.1313ms)
+✔ legacy username accounts can still sign in through the email field (195.7203ms)
+✔ new accounts start empty; one-click generation persists only to the owner (200.5728ms)
+✔ AI retry preserves the saved week on failure and replaces it only after successful validated generation (234.6799ms)
+✔ demo is isolated, editable and cannot bypass fresh recheck before approving (40.9769ms)
+✔ core dated demo weeks and six air scenarios keep fixed dates, closures and account isolation (380.9989ms)
+✔ failed recheck invalidates a previously approved notice (45.1333ms)
+✔ overlapping edits fail without corrupting the saved plan; stale revisions cannot overwrite (47.9995ms)
+✔ saved day location choices update notices, invalidate approval and cannot override server observations (78.3434ms)
+✔ auth rate limits block repeated password attempts (827.7763ms)
+✔ only frontend files are served and configuration never leaks secrets (22.1819ms)
+✔ deleting and regenerating a week is authenticated, revision checked, isolated and resistant to stale tabs (315.9343ms)
+✔ changing city fetches that city and adapts learning choices and outdoor days without regenerating (27.3908ms)
+✔ direct day edits enforce ownership, revisions and parent read-only boundaries and survive refresh (239.581ms)
+✔ registration normalizes addresses and rejects missing or repeated separators and embedded whitespace (4.0231ms)
+✔ cache deduplicates concurrent cold requests, persists responses and never renews failed evidence (175.9758ms)
+✔ allowlists, status errors, invalid JSON and oversized bodies fail without clean-air data (23.105ms)
+✔ unwritable cache does not discard a live response and expired memory entries refetch (23.3941ms)
+✔ live projection uses validated nearby sensors and separates observations from forecasts (51.9479ms)
+✔ failed refresh, stale forecasts and missing responses never become clean-air approval (2.1679ms)
+✔ demo never fetches upstream and validates location, mode and scenario before access (3.0825ms)
+✔ daily topics are never assigned to an undefined date after the planning week has elapsed (3.9563ms)
+✔ a valid week arriving after the former 45-second deadline is accepted; the new deadline stays bounded (50.2221ms)
+✔ bilingual curriculum generation ranks server-eligible outdoor days and keeps identity out of the request (3.3218ms)
+✔ missing holiday content cannot be accepted as an AI plan in either language or activity version (8.6474ms)
+✔ invalid or duplicated model outdoor dates reject the whole model result (1.9573ms)
+✔ an invalid bilingual model lesson becomes an explicit local-library week (1.6754ms)
+✔ API credit failure is visible without exposing credentials or raw provider messages (4.0196ms)
+✔ quota, spend, rate and configuration failures retain their distinct cause instead of claiming exhausted credits (21.1439ms)
+✔ unrecognized provider fields and private error bodies cannot escape through generation diagnostics (2.7922ms)
+✔ generated whole-day activities are validated, and regeneration can vary the local library (2.5056ms)
+✔ whole-week output requires every server-owned session key and validates content independently of the model schema (15.3357ms)
+✔ one activity changes without rewriting other rows, lesson, days or times (77.4885ms)
+✔ schedule changes can resize activity times while protected routines remain exact (32.2013ms)
+✔ a selected main lesson changes both variants but leaves all supporting sessions intact (34.7808ms)
+✔ holiday lessons, started rows and the legacy edit endpoint cannot bypass locks (41.8088ms)
+✔ week edits preserve exactly one original eco slot even when it is not a holiday lesson (67.1262ms)
+✔ AI schedule proposals receive locked context and reject tampering without exposing identity (78.3369ms)
+✔ new kindergarten generation requires daily meals and rest (0.5744ms)
+✔ EPA PM2.5 breakpoints, decimal truncation, and above-scale extrapolation (4.6998ms)
+✔ NowCast has zero handling and needs two valid hours among the latest three (1.914ms)
+✔ NowCast weights missing hours by their real age, not compressed array position (0.2044ms)
+✔ location distance and Skopje winter/summer time are explicit (23.9235ms)
+✔ a fresh plausible sensor with enough history passes (1.1257ms)
+✔ staleness is based on measurement time, including the 60-minute boundary (0.4599ms)
+✔ 999 and 2000 readings block a positive decision even with two low neighbors (0.9067ms)
+✔ an extreme historical value cannot be silently discarded from NowCast (0.2818ms)
+✔ malformed newest data cannot expose a previous low reading as current (1.1436ms)
+✔ negative readings, future timestamps, stuck signals, and thin history are rejected (0.5688ms)
+✔ sudden rise is treated as uncertain evidence, never simply removed as a glitch (0.4845ms)
+✔ disagreeing neighbors and missing coverage prevent an outside plan (0.5682ms)
+✔ schedule validation rejects malformed, out-of-day, and unbounded inputs (1.5876ms)
+✔ settings and extracted schedules enforce identical comfort bounds and strict numeric types (5.1933ms)
+✔ local extraction handles simple Macedonian ranges and stays separate from air decisions (1.0848ms)
+✔ planning week starts on Monday and contains five workdays (1.8778ms)
+✔ theme and material boundaries still reject missing, unowned and injection-like content (1.4879ms)
+✔ open activity windows respect current time, future dates and fully occupied days (4.494ms)
+✔ indoor activity time is deterministic and never overlaps the fixed rhythm (2.5073ms)
+✔ kindergarten and teaching brief validate and keep one canonical location (34.2501ms)
+✔ two dashboard reads preserve the editor revision for both accounts and isolated demos (511.3417ms)
+✔ a failed dashboard refresh durably clears approval without renewing evidence or changing revision (195.5414ms)
+✔ dashboard cached refresh keeps measurement timestamps and marks unavailable air as unknown (149.5105ms)
+✔ public parent reads serve a conservative stored snapshot during writes and still honor revocation (149.5475ms)
+✔ parent link gives a stable read-only projection; revocation and ownership are enforced (217.2519ms)
+✔ demo links are isolated and immediately show adapted pollution messages (33.8797ms)
+✔ sharing survives dashboard reads, explicit rechecks and expiry renewal without changing the URL (161.6654ms)
+✔ demo and account parent pages share a read-only contract; retired classroom routes cannot mutate either plan (168.9808ms)
+✔ refreshing a week preserves newer group preferences and an empty dashboard restores their location (100.855ms)
+✔ single-day suggestions require a separate apply and cannot overwrite other days or cross accounts (274.2432ms)
+✔ failed AI day generation and stale previews preserve the existing plan (145.7032ms)
+✔ automatic refresh adapts an active week and messages without a browser or model call (19.316ms)
+✔ day replacement preserves custom rows and refuses elapsed eco lessons (22.2881ms)
+✔ day AI receives teaching preferences but not kindergarten or group identity; incomplete output stays explicit (22.7331ms)
+✔ generation rejects missing required teacher details before contacting providers or changing a plan (114.4664ms)
+✔ explicit daily topics cannot silently save an unrelated library fallback (126.7716ms)
+✔ targeted edit proposals enforce owner, revision, protected rows and single-use application (226.2104ms)
+✔ scraper imports an official moving Easter date and validates date, weekday, scope and source (10.3654ms)
+✔ discovery ignores injected or off-site URLs and deduplicates official article links (1.5646ms)
+✔ an explicit Sunday-to-Monday substitute resolves the programme typo without guessing (0.9548ms)
+✔ a missing paragraph year is inferred only from the same article’s dated listing within 45 days (1.2783ms)
+✔ holiday refresh is shared, persisted and cached; failure never renews an old successful fetch (192.9688ms)
+✔ oversized, non-HTML and changed upstream pages fall back to dated evidence (9.9473ms)
+✔ unknown years do not inherit the 2026 religious dates or claim a complete calendar (1.1359ms)
+✔ Easter and Halloween change the correct day’s lessons without inventing closures (3.6076ms)
+✔ year-crossing weeks preserve the correct year and a sourced announcement corrects the PDF typo (0.4336ms)
+✔ manual meal/rest/occasion details persist through adaptation without changing times or evidence (137.7984ms)
+✔ content cannot inject times and validates bilingual descriptions, material IDs and elapsed rows (33.7629ms)
+✔ reordering propagates times through meals and rest while preserving every duration and identity (28.8496ms)
+✔ explicit time editing adjusts adjacent boundaries and rejects overlaps, excessive lesson durations and elapsed changes (38.6986ms)
+✔ parent notes arrive unread, are private to the owner and never authorize plan edits (560.0886ms)
+✔ informational care notes bypass AI and cannot acquire an apply action (285.7168ms)
+✔ a note suggestion applies only after owner confirmation and rejects stale or reused proposals (244.214ms)
+✔ a parent note can move a whole group day outside without flipping any other day (182.3082ms)
+✔ demo notes stay in memory and deleting a plan clears its notes (200.5245ms)
+✔ the sidebar retains unread older notes and a model cannot edit protected routines through a note (172.3268ms)
+✔ English and Macedonian duration requests keep their exact minute value (3.0208ms)
+✔ duration parsing separates unrelated quantities and handles long text without a matching unit (0.6197ms)
+✔ fractional-minute requests cannot silently become a different whole-minute schedule (68.2862ms)
+✔ two hours at closing explains the 105-minute limit instead of returning 45 minutes (35.7466ms)
+✔ a feasible two-hour move is validated in preview and apply; a shorter answer is rejected (93.9525ms)
+✔ native startup stays on loopback; container binding and ports are explicit and validated (2.9916ms)
+✔ startup enables refresh, hides internal errors and closes on either termination signal (0.9633ms)
+✔ library days never reuse a generated title around meals or the eco lesson (84.5761ms)
+✔ whole-day session output must cover exact slots once with distinct bilingual activities (91.6106ms)
+✔ createWeek rejects unfiltered session text and invalid slot coverage at its own boundary (211.1405ms)
+✔ createWeek validates sessions only for upcoming activity slots when generation begins midweek (43.4303ms)
+✔ activity details reject one-line summaries and library games use available supplies (0.6689ms)
+✔ structured session sentences retain quoted punctuation and require four substantial steps in each language (0.7153ms)
+✔ accounts, session hashes and private plans persist after closing and reopening SQLite (262.5256ms)
+✔ read refresh persists notice invalidation without changing revision or crossing owners and tombstones (121.8592ms)
+✔ all five requested daily topics survive newlines and legacy flattened briefs (3.248ms)
+✔ a model response that ignores a requested topic cannot be accepted as an AI plan (64.0426ms)
+✔ adjacent duplicate activities merge while fixed routines, gaps and distinct translations remain intact (102.7943ms)
+✔ pollution moves today indoors and reallocates an outdoor day without changing meals or rest (40.1225ms)
+✔ AI outdoor ranking chooses among eligible days while deterministic gates retain final authority (39.9142ms)
+✔ midweek creation leaves Monday and Tuesday empty and keeps Friday visible (26.5602ms)
+✔ stale, failed refresh and disagreeing evidence cannot schedule outside today (112.4226ms)
+✔ future outdoor drafts require available air forecasts even when weather is favourable (90.1106ms)
+✔ each hour of a future eco slot needs a finite nonnegative air forecast and missing coverage invalidates approval (56.1261ms)
+✔ rain, wind, freezing precipitation and storms override an otherwise attractive day (83.2482ms)
+✔ closure and teacher indoor preference prevent automatic outdoor allocation (29.7715ms)
+✔ parent messages have both languages, no em dash, and only call out clothing outliers (16.3404ms)
+✔ parent projections preserve unknown weather and clothing exceptions name weekend days (17.5997ms)
+✔ curriculum follows the season and an educational national date without inventing closures (0.3235ms)
+✔ injection-like lesson text cannot affect the recommendation or become accepted model output (22.6404ms)
+✔ recurring schedule validation catches overlaps and a day without enough activity space (1.3463ms)
+✔ snow forecasts suggest a snow lesson without treating forecast snow as observed ground cover (11.6509ms)
+✔ a generated Bosniak preparation lesson reaches parent messages and survives weather adaptation without closing Friday (30.7757ms)
+✔ elapsed outdoor slots do not get reassigned to an extra future day (18.7021ms)
+✔ a legacy plan with no eco slot cannot advertise that lesson in the parent notice (19.4482ms)
+✔ city weather changes upcoming learning choices, preserves routines and keeps indoor backups (42.0542ms)
+✔ weather changes preserve manual activity edits and never rewrite elapsed activity text (23.2862ms)
+✔ community holidays have a bilingual discussion in an existing slot without replacing the eco lesson or closing the day (12.6648ms)
+✔ indoor alerts persist only while relevant and never recommend an ineligible replacement (31.6823ms)
+✔ pollution detected during an outdoor lesson switches its remaining plan indoors without moving routines (10.4651ms)
+✔ per-day outdoor choices outrank AI allocation, persist on refresh, and can be switched back indoors or to automatic (29.6251ms)
+✔ explicit outdoor choices can exceed the weekly target while held automatic days keep their mode (32.1807ms)
+✔ an outside preference cannot bypass air, weather, closure or missing-slot gates and survives a blocked refresh (62.0671ms)
+✔ future outdoor requests cannot bypass missing air forecasts, and elapsed choices cannot rewrite history (17.181ms)
+✔ holiday discussion adapts saved plans without overwriting manual text, duplicating events or changing times (22.9148ms)
+✔ a later refresh does not schedule the same holiday discussion again or rewrite its elapsed text (11.0635ms)
+✔ a warmer Friday can remain indoors because outdoor allocation follows the eligible activity ranking and day target (10.2502ms)
+✔ longer activity blocks fill the day without overlaps, gaps or changes to fixed routines (36.5379ms)
+✔ older short generated blocks consolidate once, retaining edited blocks and fixed times (20.841ms)
+✔ week edits reject overlaps and changed times while a replacement uses an existing gap (14.5423ms)
+✔ generation selects a weather-compatible free slot when the usual late-morning slot is unsuitable (11.6755ms)
+✔ missing temperatures never masquerade as a cold-weather learning forecast (9.705ms)
+✔ the browser accepts generation past the old one-minute limit including environmental request time (62.8104ms)
+✔ generation still expires and tells the caller to check the saved plan before retrying (3.9373ms)
+✔ ordinary requests keep their shorter deadline (0.5195ms)
+✔ DOM integration: empty account, create kindergarten, one-page management, live step, bilingual messages and isolated demo (1308.2253ms)
+✔ inline editing preserves typing, supports cancel and distinguishes multiline Enter from commit (13.8513ms)
+✔ legacy day assistant previews before apply, discards proposals and shows failures without applying (51.8411ms)
+✔ week deletion requires confirmation and cancellation preserves the plan (44.1491ms)
+✔ bilingual inputs preserve the other translation and form errors expand nested details before focus (6.8833ms)
+✔ teacher registration requires kindergarten details while parents receive link-only guidance (17.4486ms)
+✔ pencil editor saves bilingual meal details without time fields and retains a draft after errors (12.253ms)
+✔ eco detail editing exposes both alternatives, goals, materials and holiday discussion (13.8271ms)
+✔ schedule time edits show propagated boundaries and require review before saving (56.538ms)
+✔ top-level dragging and keyboard movement send complete row order; parent view exposes neither (46.4215ms)
+✔ parent notes mount without randomUUID and preserve a valid nonce when retrying a failed submission (89.6631ms)
+✔ weather controls use every canonical range, expose precipitation and add routines without randomUUID (20.7188ms)
+✔ parent sharing uses Skopje-local expiry dates and omits unsafe server links (6.2215ms)
+✔ live air sources retain safe links and the calendar preserves five selectable weekdays and attribution (11.0711ms)
+✔ demo uses the planner and shared parent page; links, languages and isolated deep links work (857.2343ms)
+✔ Macedonian dates stay translated and use the Skopje date across midnight (44.5768ms)
+✔ UI identifiers survive unavailable crypto methods and stay distinct with a frozen clock (3.745ms)
+✔ server links allow HTTP(S) and same-origin root paths but reject executable and ambiguous URLs (1.0107ms)
+✔ first-time planning identifies every missing essential and requires an explicit timetable review (16.1596ms)
+✔ every canonical preference bound accepts and rejects the same values in the form and server (9.7844ms)
+✔ form validation reads the supplied configuration instead of retaining literal weather limits (0.4083ms)
+✔ planning finds overlaps, missing translations and insufficient activity space before generation (0.5606ms)
+✔ all AI and apply requests report progress without retaining private input, and failures release it (36.9947ms)
+✔ bodyless, non-JSON and empty JSON errors retain HTTP status for expired-session handling (1.4088ms)
+✔ modal request progress preserves the form, uses real elapsed time and restores interaction (290.1215ms)
+✔ friendly time ranges normalize without accepting ambiguous or invalid clock values (3.0738ms)
+✔ hook installation ignores PATH executables and preserves an existing custom hook (642.0704ms)
+✔ coverage requires strictly above 90% in each layer and cannot hide an unimported file (4.6871ms)
+✔ coverage paths are relative for scanner containers and Windows separators normalize (0.6842ms)
+✔ critical module coverage cannot be hidden by a passing area total or rounded up (6.6772ms)
+✔ pushes validate every source tip, allow annotated tags at HEAD and identify deletion-only pushes (3.4709ms)
+✔ local link checks find Markdown and HTML paths but ignore URLs, anchors and code examples (0.8361ms)
+✔ Sonar credentials are required, loopback-only, sent in headers and never copied into errors (45.5956ms)
+✔ Sonar policy rejects missing or weakened server coverage conditions (0.7298ms)
+✔ Sonar setup creates a private project once, copies the standard gate and reconciles thresholds on repeat (2.7892ms)
+ℹ tests 202
+ℹ suites 0
+ℹ pass 202
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4813.2974
+ℹ start of coverage report
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ file                      | line % | branch % | funcs % | uncovered lines
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ backend                   |        |          |         | 
+ℹ  config                   |        |          |         | 
+ℹ   demo.js                 | 100.00 |   100.00 |  100.00 | 
+ℹ   holiday-snapshot.js     | 100.00 |   100.00 |  100.00 | 
+ℹ   index.js                | 100.00 |   100.00 |  100.00 | 
+ℹ   locations.js            | 100.00 |   100.00 |  100.00 | 
+ℹ  domain                   |        |          |         | 
+ℹ   aqi.js                  | 100.00 |    91.18 |  100.00 | 
+ℹ   constraints.js          |  99.19 |    89.29 |  100.00 | 226-227
+ℹ   curriculum.js           |  94.82 |    91.80 |  100.00 | 221-235 247-248
+ℹ   day-activities.js       |  91.67 |    96.83 |   85.71 | 25 86-92
+ℹ   day-edit.js             |  99.22 |    88.75 |  100.00 | 107
+ℹ   demo-week.js            | 100.00 |   100.00 |  100.00 | 
+ℹ   holidays.js             | 100.00 |    94.29 |  100.00 | 
+ℹ   manual-day-edit.js      | 100.00 |    96.61 |  100.00 | 
+ℹ   messages.js             |  98.84 |    95.10 |  100.00 | 104-105
+ℹ   occasion-activities.js  | 100.00 |    94.64 |  100.00 | 
+ℹ   parent-notes.js         |  92.59 |    78.26 |   57.14 | 24-25
+ℹ   parent-view.js          | 100.00 |    68.97 |  100.00 | 
+ℹ   planner.js              | 100.00 |   100.00 |  100.00 | 
+ℹ   play-ideas.js           | 100.00 |   100.00 |  100.00 | 
+ℹ   preferences.js          | 100.00 |   100.00 |  100.00 | 
+ℹ   qc.js                   | 100.00 |    97.26 |  100.00 | 
+ℹ   schedule-timing.js      | 100.00 |    75.53 |  100.00 | 
+ℹ   session-plan.js         | 100.00 |    95.83 |  100.00 | 
+ℹ   settings.js             | 100.00 |    84.34 |  100.00 | 
+ℹ   teaching-brief.js       | 100.00 |    96.00 |  100.00 | 
+ℹ   timeline.js             | 100.00 |    94.12 |  100.00 | 
+ℹ   week.js                 |  98.84 |    97.20 |   97.37 | 15-16 27-28 337-339
+ℹ  http                     |        |          |         | 
+ℹ   app.js                  |  99.40 |    87.59 |   96.25 | 299-301 893-894 905
+ℹ   security.js             |  94.74 |    78.95 |  100.00 | 25-26
+ℹ  server.js                | 100.00 |    94.74 |  100.00 | 
+ℹ  services                 |        |          |         | 
+ℹ   ai-errors.js            | 100.00 |   100.00 |  100.00 | 
+ℹ   ai.js                   |  93.43 |    88.89 |   94.44 | 87-95
+ℹ   auth.js                 | 100.00 |    94.12 |  100.00 | 
+ℹ   auto-refresh.js         | 100.00 |    75.00 |  100.00 | 
+ℹ   conditions.js           |  99.13 |    92.57 |   96.88 | 54-55 113
+ℹ   curriculum.js           |  96.91 |    90.28 |  100.00 | 78-80
+ℹ   day-plan.js             |  86.30 |    55.56 |   92.31 | 100-110 136-144
+ℹ   holidays.js             |  98.05 |    91.80 |   89.66 | 70-71 96-97 305-306
+ℹ   learning-guidance.js    | 100.00 |   100.00 |  100.00 | 
+ℹ   parent-notes.js         |  59.46 |    61.54 |   71.43 | 22-36
+ℹ   schedule-intent.js      | 100.00 |   100.00 |  100.00 | 
+ℹ  storage                  |        |          |         | 
+ℹ   database.js             |  99.04 |    91.18 |   94.44 | 71
+ℹ   parent-notes.js         | 100.00 |    88.24 |   87.50 | 
+ℹ frontend                  |        |          |         | 
+ℹ  src                      |        |          |         | 
+ℹ   app.js                  |  90.40 |    91.52 |   85.00 | 34-35 41-42 84 102-105 195 221-237 387-389 456-458 473-482 512-527 539-541 616-617 661-669 756 771-772
+ℹ   components              |        |          |         | 
+ℹ    ActivityEditor.js      | 100.00 |    92.11 |  100.00 | 
+ℹ    AirCard.js             |  87.10 |    66.67 |  100.00 | 66-72 81-85
+ℹ    Calendar.js            | 100.00 |    72.00 |  100.00 | 
+ℹ    ChangeAssistant.js     |  89.06 |    88.06 |   73.68 | 48 59 151 166-173 231-239 243-244 251-256
+ℹ    DayAssistant.js        | 100.00 |    78.95 |  100.00 | 
+ℹ    DayPlan.js             |  96.26 |    86.33 |   90.24 | 74-75 207 381-383 427 484 565-566 571-572 606-614 709-715
+ℹ    DemoControls.js        | 100.00 |   100.00 |   80.00 | 
+ℹ    Holidays.js            |  96.43 |    95.00 |  100.00 | 43-44
+ℹ    Icon.js                | 100.00 |   100.00 |  100.00 | 
+ℹ    InlineText.js          | 100.00 |    93.75 |   80.00 | 
+ℹ    Messages.js            |  92.36 |    65.85 |   87.50 | 25-26 65-66 70-75 102
+ℹ    ParentNoteForm.js      |  98.20 |    95.00 |   87.50 | 63-64
+ℹ    ParentNotes.js         |  91.03 |    75.00 |   87.50 | 20-21 27 45-46 57-59 72 86 174-177 203 213-217
+ℹ    ParentShare.js         |  96.51 |    88.24 |   85.71 | 15-16 75
+ℹ    PlanChanges.js         |  98.00 |    63.64 |   80.00 | 49
+ℹ    RequestProgress.js     | 100.00 |   100.00 |  100.00 | 
+ℹ    ScheduleEditor.js      |  94.94 |    85.19 |  100.00 | 19-20 48 51
+ℹ    SettingsForm.js        | 100.00 |    83.33 |   67.74 | 
+ℹ    WeekActions.js         | 100.00 |   100.00 |  100.00 | 
+ℹ   lib                     |        |          |         | 
+ℹ    api.js                 | 100.00 |   100.00 |  100.00 | 
+ℹ    plan-form.js           | 100.00 |    92.50 |  100.00 | 
+ℹ    request-progress.js    | 100.00 |   100.00 |  100.00 | 
+ℹ    time-range.js          | 100.00 |   100.00 |  100.00 | 
+ℹ    ui.js                  | 100.00 |    92.19 |  100.00 | 
+ℹ   locales                 |        |          |         | 
+ℹ    features.js            | 100.00 |   100.00 |  100.00 | 
+ℹ    index.js               | 100.00 |    83.33 |  100.00 | 
+ℹ    loading.js             | 100.00 |   100.00 |  100.00 | 
+ℹ    notes.js               | 100.00 |   100.00 |  100.00 | 
+ℹ    planning.js            | 100.00 |   100.00 |  100.00 | 
+ℹ   pages                   |        |          |         | 
+ℹ    Auth.js                |  96.75 |    95.35 |   77.78 | 40-42 151-152
+ℹ    CreatePlan.js          |  86.59 |    70.45 |   83.33 | 28-30 37-41 62-77
+ℹ    ParentWeek.js          |  98.13 |    78.57 |   92.86 | 16 47 52
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ all files                 |  96.58 |    89.48 |   93.61 | 
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report
+backend/ 97.99% lines (5078/5182); required 91%.
+frontend/src/ 94.88% lines (4056/4275); required 91%.
+
+Exit code: 0
+Finished UTC: 2026-09-21T20:43:27.734Z
+
+$ npm.cmd run gate
+Started UTC: 2026-09-21T20:43:27.734Z
+
+> nedelko@1.0.0 gate
+> node --env-file-if-exists=static-analysis/.env scripts/gate.js
+
+122 JavaScript files checked.
+30 documentation files checked for local links.
+✔ low reasoning preserves the configured model and is omitted for other model families (45.864ms)
+✔ oversized provider responses are cancelled before parsing (3.0298ms)
+✔ Responses API uses strict JSON schema, store:false, and keeps credentials in the header (2.5862ms)
+✔ incomplete and refusal responses are never accepted as structured output (1.5921ms)
+✔ provider authentication failure is reported without exposing provider text or credentials (1.8174ms)
+✔ model failure falls back visibly; invalid model times cannot bypass validation (4.3939ms)
+✔ without a key the local parser is explicit, and invalid user input is rejected (2.2748ms)
+✔ weekly educational goal becomes five validated editable activity pairs (4.8894ms)
+✔ weekly theme model cannot insert air-quality or safety claims (2.3377ms)
+✔ weekly theme suggestion works without a key and validates input bounds (1.0504ms)
+✔ weekly model may only select teacher-confirmed materials (1.8262ms)
+✔ holiday endpoint needs a session or valid isolated demo, and cannot accept source URLs (250.9991ms)
+✔ weekly generation allows six owner attempts per hour, isolates accounts and leaves demos uncapped (1078.8252ms)
+✔ failed weekly AI retries consume the owner budget without replacing the saved plan (191.9686ms)
+✔ holiday requests stop at thirty per owner and hour, including isolated demos (241.1973ms)
+✔ rate buckets reset at the boundary without extending the window on rejected calls (0.7341ms)
+✔ registration normalizes the kindergarten email, hashes passwords, stores the profile and manages sessions (242.8537ms)
+✔ weak passwords, invalid emails, incomplete kindergarten details and cross-origin writes are rejected (26.9325ms)
+✔ legacy username accounts can still sign in through the email field (118.1618ms)
+✔ new accounts start empty; one-click generation persists only to the owner (145.6309ms)
+✔ AI retry preserves the saved week on failure and replaces it only after successful validated generation (178.2857ms)
+✔ demo is isolated, editable and cannot bypass fresh recheck before approving (35.1389ms)
+✔ core dated demo weeks and six air scenarios keep fixed dates, closures and account isolation (295.5616ms)
+✔ failed recheck invalidates a previously approved notice (55.6295ms)
+✔ overlapping edits fail without corrupting the saved plan; stale revisions cannot overwrite (55.5275ms)
+✔ saved day location choices update notices, invalidate approval and cannot override server observations (48.1588ms)
+✔ auth rate limits block repeated password attempts (776.816ms)
+✔ only frontend files are served and configuration never leaks secrets (19.2561ms)
+✔ deleting and regenerating a week is authenticated, revision checked, isolated and resistant to stale tabs (335.371ms)
+✔ changing city fetches that city and adapts learning choices and outdoor days without regenerating (52.9531ms)
+✔ direct day edits enforce ownership, revisions and parent read-only boundaries and survive refresh (195.7514ms)
+✔ registration normalizes addresses and rejects missing or repeated separators and embedded whitespace (4.1992ms)
+✔ cache deduplicates concurrent cold requests, persists responses and never renews failed evidence (244.3148ms)
+✔ allowlists, status errors, invalid JSON and oversized bodies fail without clean-air data (33.354ms)
+✔ unwritable cache does not discard a live response and expired memory entries refetch (35.7995ms)
+✔ live projection uses validated nearby sensors and separates observations from forecasts (45.7273ms)
+✔ failed refresh, stale forecasts and missing responses never become clean-air approval (2.0329ms)
+✔ demo never fetches upstream and validates location, mode and scenario before access (3.4378ms)
+✔ daily topics are never assigned to an undefined date after the planning week has elapsed (8.2389ms)
+✔ a valid week arriving after the former 45-second deadline is accepted; the new deadline stays bounded (72.981ms)
+✔ bilingual curriculum generation ranks server-eligible outdoor days and keeps identity out of the request (3.7802ms)
+✔ missing holiday content cannot be accepted as an AI plan in either language or activity version (9.0424ms)
+✔ invalid or duplicated model outdoor dates reject the whole model result (2.4914ms)
+✔ an invalid bilingual model lesson becomes an explicit local-library week (1.9727ms)
+✔ API credit failure is visible without exposing credentials or raw provider messages (3.1999ms)
+✔ quota, spend, rate and configuration failures retain their distinct cause instead of claiming exhausted credits (12.834ms)
+✔ unrecognized provider fields and private error bodies cannot escape through generation diagnostics (4.5413ms)
+✔ generated whole-day activities are validated, and regeneration can vary the local library (4.9246ms)
+✔ whole-week output requires every server-owned session key and validates content independently of the model schema (22.8195ms)
+✔ one activity changes without rewriting other rows, lesson, days or times (117.1346ms)
+✔ schedule changes can resize activity times while protected routines remain exact (29.7672ms)
+✔ a selected main lesson changes both variants but leaves all supporting sessions intact (41.4372ms)
+✔ holiday lessons, started rows and the legacy edit endpoint cannot bypass locks (25.0496ms)
+✔ week edits preserve exactly one original eco slot even when it is not a holiday lesson (54.2526ms)
+✔ AI schedule proposals receive locked context and reject tampering without exposing identity (111.8643ms)
+✔ new kindergarten generation requires daily meals and rest (0.6974ms)
+✔ EPA PM2.5 breakpoints, decimal truncation, and above-scale extrapolation (4.2874ms)
+✔ NowCast has zero handling and needs two valid hours among the latest three (0.3156ms)
+✔ NowCast weights missing hours by their real age, not compressed array position (0.0896ms)
+✔ location distance and Skopje winter/summer time are explicit (21.4782ms)
+✔ a fresh plausible sensor with enough history passes (1.0543ms)
+✔ staleness is based on measurement time, including the 60-minute boundary (1.5657ms)
+✔ 999 and 2000 readings block a positive decision even with two low neighbors (1.0192ms)
+✔ an extreme historical value cannot be silently discarded from NowCast (0.3079ms)
+✔ malformed newest data cannot expose a previous low reading as current (1.2152ms)
+✔ negative readings, future timestamps, stuck signals, and thin history are rejected (0.5901ms)
+✔ sudden rise is treated as uncertain evidence, never simply removed as a glitch (0.4769ms)
+✔ disagreeing neighbors and missing coverage prevent an outside plan (0.8523ms)
+✔ schedule validation rejects malformed, out-of-day, and unbounded inputs (1.7516ms)
+✔ settings and extracted schedules enforce identical comfort bounds and strict numeric types (6.7165ms)
+✔ local extraction handles simple Macedonian ranges and stays separate from air decisions (1.2451ms)
+✔ planning week starts on Monday and contains five workdays (1.4264ms)
+✔ theme and material boundaries still reject missing, unowned and injection-like content (2.5561ms)
+✔ open activity windows respect current time, future dates and fully occupied days (6.1767ms)
+✔ indoor activity time is deterministic and never overlaps the fixed rhythm (3.0339ms)
+✔ kindergarten and teaching brief validate and keep one canonical location (16.0186ms)
+✔ two dashboard reads preserve the editor revision for both accounts and isolated demos (542.0501ms)
+✔ a failed dashboard refresh durably clears approval without renewing evidence or changing revision (204.1621ms)
+✔ dashboard cached refresh keeps measurement timestamps and marks unavailable air as unknown (155.8303ms)
+✔ public parent reads serve a conservative stored snapshot during writes and still honor revocation (163.126ms)
+✔ parent link gives a stable read-only projection; revocation and ownership are enforced (239.0825ms)
+✔ demo links are isolated and immediately show adapted pollution messages (48.9545ms)
+✔ sharing survives dashboard reads, explicit rechecks and expiry renewal without changing the URL (166.6669ms)
+✔ demo and account parent pages share a read-only contract; retired classroom routes cannot mutate either plan (168.2611ms)
+✔ refreshing a week preserves newer group preferences and an empty dashboard restores their location (101.0716ms)
+✔ single-day suggestions require a separate apply and cannot overwrite other days or cross accounts (162.6473ms)
+✔ failed AI day generation and stale previews preserve the existing plan (102.6906ms)
+✔ automatic refresh adapts an active week and messages without a browser or model call (10.5986ms)
+✔ day replacement preserves custom rows and refuses elapsed eco lessons (9.6159ms)
+✔ day AI receives teaching preferences but not kindergarten or group identity; incomplete output stays explicit (11.1679ms)
+✔ generation rejects missing required teacher details before contacting providers or changing a plan (89.8478ms)
+✔ explicit daily topics cannot silently save an unrelated library fallback (95.2725ms)
+✔ targeted edit proposals enforce owner, revision, protected rows and single-use application (201.3744ms)
+✔ scraper imports an official moving Easter date and validates date, weekday, scope and source (15.0806ms)
+✔ discovery ignores injected or off-site URLs and deduplicates official article links (1.7788ms)
+✔ an explicit Sunday-to-Monday substitute resolves the programme typo without guessing (1.4595ms)
+✔ a missing paragraph year is inferred only from the same article’s dated listing within 45 days (1.6354ms)
+✔ holiday refresh is shared, persisted and cached; failure never renews an old successful fetch (222.0958ms)
+✔ oversized, non-HTML and changed upstream pages fall back to dated evidence (27.6975ms)
+✔ unknown years do not inherit the 2026 religious dates or claim a complete calendar (0.6865ms)
+✔ Easter and Halloween change the correct day’s lessons without inventing closures (20.8597ms)
+✔ year-crossing weeks preserve the correct year and a sourced announcement corrects the PDF typo (1.7333ms)
+✔ manual meal/rest/occasion details persist through adaptation without changing times or evidence (85.2407ms)
+✔ content cannot inject times and validates bilingual descriptions, material IDs and elapsed rows (24.0827ms)
+✔ reordering propagates times through meals and rest while preserving every duration and identity (32.1403ms)
+✔ explicit time editing adjusts adjacent boundaries and rejects overlaps, excessive lesson durations and elapsed changes (24.7782ms)
+✔ parent notes arrive unread, are private to the owner and never authorize plan edits (573.535ms)
+✔ informational care notes bypass AI and cannot acquire an apply action (309.7583ms)
+✔ a note suggestion applies only after owner confirmation and rejects stale or reused proposals (253.9581ms)
+✔ a parent note can move a whole group day outside without flipping any other day (196.6602ms)
+✔ demo notes stay in memory and deleting a plan clears its notes (188.8299ms)
+✔ the sidebar retains unread older notes and a model cannot edit protected routines through a note (168.1442ms)
+✔ English and Macedonian duration requests keep their exact minute value (3.032ms)
+✔ duration parsing separates unrelated quantities and handles long text without a matching unit (0.7813ms)
+✔ fractional-minute requests cannot silently become a different whole-minute schedule (62.4994ms)
+✔ two hours at closing explains the 105-minute limit instead of returning 45 minutes (52.9451ms)
+✔ a feasible two-hour move is validated in preview and apply; a shorter answer is rejected (112.4195ms)
+✔ native startup stays on loopback; container binding and ports are explicit and validated (4.7876ms)
+✔ startup enables refresh, hides internal errors and closes on either termination signal (1.1538ms)
+✔ library days never reuse a generated title around meals or the eco lesson (98.1417ms)
+✔ whole-day session output must cover exact slots once with distinct bilingual activities (98.6071ms)
+✔ createWeek rejects unfiltered session text and invalid slot coverage at its own boundary (248.4418ms)
+✔ createWeek validates sessions only for upcoming activity slots when generation begins midweek (42.8529ms)
+✔ activity details reject one-line summaries and library games use available supplies (0.6299ms)
+✔ structured session sentences retain quoted punctuation and require four substantial steps in each language (0.6975ms)
+✔ accounts, session hashes and private plans persist after closing and reopening SQLite (291.3069ms)
+✔ read refresh persists notice invalidation without changing revision or crossing owners and tombstones (101.5816ms)
+✔ all five requested daily topics survive newlines and legacy flattened briefs (7.2752ms)
+✔ a model response that ignores a requested topic cannot be accepted as an AI plan (81.0918ms)
+✔ adjacent duplicate activities merge while fixed routines, gaps and distinct translations remain intact (128.9969ms)
+✔ pollution moves today indoors and reallocates an outdoor day without changing meals or rest (28.4134ms)
+✔ AI outdoor ranking chooses among eligible days while deterministic gates retain final authority (34.9943ms)
+✔ midweek creation leaves Monday and Tuesday empty and keeps Friday visible (14.0048ms)
+✔ stale, failed refresh and disagreeing evidence cannot schedule outside today (129.2998ms)
+✔ future outdoor drafts require available air forecasts even when weather is favourable (87.1131ms)
+✔ each hour of a future eco slot needs a finite nonnegative air forecast and missing coverage invalidates approval (47.3258ms)
+✔ rain, wind, freezing precipitation and storms override an otherwise attractive day (94.6948ms)
+✔ closure and teacher indoor preference prevent automatic outdoor allocation (27.114ms)
+✔ parent messages have both languages, no em dash, and only call out clothing outliers (23.7667ms)
+✔ parent projections preserve unknown weather and clothing exceptions name weekend days (16.626ms)
+✔ curriculum follows the season and an educational national date without inventing closures (0.8905ms)
+✔ injection-like lesson text cannot affect the recommendation or become accepted model output (23.7985ms)
+✔ recurring schedule validation catches overlaps and a day without enough activity space (0.5809ms)
+✔ snow forecasts suggest a snow lesson without treating forecast snow as observed ground cover (21.7126ms)
+✔ a generated Bosniak preparation lesson reaches parent messages and survives weather adaptation without closing Friday (32.126ms)
+✔ elapsed outdoor slots do not get reassigned to an extra future day (19.8026ms)
+✔ a legacy plan with no eco slot cannot advertise that lesson in the parent notice (15.8861ms)
+✔ city weather changes upcoming learning choices, preserves routines and keeps indoor backups (36.1899ms)
+✔ weather changes preserve manual activity edits and never rewrite elapsed activity text (22.5222ms)
+✔ community holidays have a bilingual discussion in an existing slot without replacing the eco lesson or closing the day (21.3717ms)
+✔ indoor alerts persist only while relevant and never recommend an ineligible replacement (34.9342ms)
+✔ pollution detected during an outdoor lesson switches its remaining plan indoors without moving routines (16.8125ms)
+✔ per-day outdoor choices outrank AI allocation, persist on refresh, and can be switched back indoors or to automatic (34.0499ms)
+✔ explicit outdoor choices can exceed the weekly target while held automatic days keep their mode (31.476ms)
+✔ an outside preference cannot bypass air, weather, closure or missing-slot gates and survives a blocked refresh (58.9161ms)
+✔ future outdoor requests cannot bypass missing air forecasts, and elapsed choices cannot rewrite history (23.2282ms)
+✔ holiday discussion adapts saved plans without overwriting manual text, duplicating events or changing times (28.552ms)
+✔ a later refresh does not schedule the same holiday discussion again or rewrite its elapsed text (11.1373ms)
+✔ a warmer Friday can remain indoors because outdoor allocation follows the eligible activity ranking and day target (13.5147ms)
+✔ longer activity blocks fill the day without overlaps, gaps or changes to fixed routines (42.9885ms)
+✔ older short generated blocks consolidate once, retaining edited blocks and fixed times (21.8053ms)
+✔ week edits reject overlaps and changed times while a replacement uses an existing gap (19.7719ms)
+✔ generation selects a weather-compatible free slot when the usual late-morning slot is unsuitable (14.4408ms)
+✔ missing temperatures never masquerade as a cold-weather learning forecast (22.0802ms)
+✔ the browser accepts generation past the old one-minute limit including environmental request time (52.1842ms)
+✔ generation still expires and tells the caller to check the saved plan before retrying (1.604ms)
+✔ ordinary requests keep their shorter deadline (10.8835ms)
+✔ DOM integration: empty account, create kindergarten, one-page management, live step, bilingual messages and isolated demo (1412.0879ms)
+✔ inline editing preserves typing, supports cancel and distinguishes multiline Enter from commit (15.6423ms)
+✔ legacy day assistant previews before apply, discards proposals and shows failures without applying (60.3756ms)
+✔ week deletion requires confirmation and cancellation preserves the plan (45.8043ms)
+✔ bilingual inputs preserve the other translation and form errors expand nested details before focus (3.753ms)
+✔ teacher registration requires kindergarten details while parents receive link-only guidance (16.5726ms)
+✔ pencil editor saves bilingual meal details without time fields and retains a draft after errors (12.9222ms)
+✔ eco detail editing exposes both alternatives, goals, materials and holiday discussion (12.1461ms)
+✔ schedule time edits show propagated boundaries and require review before saving (43.5644ms)
+✔ top-level dragging and keyboard movement send complete row order; parent view exposes neither (50.4532ms)
+✔ parent notes mount without randomUUID and preserve a valid nonce when retrying a failed submission (105.1432ms)
+✔ weather controls use every canonical range, expose precipitation and add routines without randomUUID (20.8489ms)
+✔ parent sharing uses Skopje-local expiry dates and omits unsafe server links (6.1465ms)
+✔ live air sources retain safe links and the calendar preserves five selectable weekdays and attribution (11.5955ms)
+✔ demo uses the planner and shared parent page; links, languages and isolated deep links work (863.6885ms)
+✔ Macedonian dates stay translated and use the Skopje date across midnight (35.7412ms)
+✔ UI identifiers survive unavailable crypto methods and stay distinct with a frozen clock (2.6053ms)
+✔ server links allow HTTP(S) and same-origin root paths but reject executable and ambiguous URLs (0.6403ms)
+✔ first-time planning identifies every missing essential and requires an explicit timetable review (17.9743ms)
+✔ every canonical preference bound accepts and rejects the same values in the form and server (11.7867ms)
+✔ form validation reads the supplied configuration instead of retaining literal weather limits (0.3926ms)
+✔ planning finds overlaps, missing translations and insufficient activity space before generation (0.426ms)
+✔ all AI and apply requests report progress without retaining private input, and failures release it (46.9025ms)
+✔ bodyless, non-JSON and empty JSON errors retain HTTP status for expired-session handling (4.9303ms)
+✔ modal request progress preserves the form, uses real elapsed time and restores interaction (290.54ms)
+✔ friendly time ranges normalize without accepting ambiguous or invalid clock values (3.0434ms)
+✔ hook installation ignores PATH executables and preserves an existing custom hook (668.521ms)
+✔ coverage requires strictly above 90% in each layer and cannot hide an unimported file (6.2776ms)
+✔ coverage paths are relative for scanner containers and Windows separators normalize (3.0072ms)
+✔ critical module coverage cannot be hidden by a passing area total or rounded up (5.489ms)
+✔ pushes validate every source tip, allow annotated tags at HEAD and identify deletion-only pushes (1.912ms)
+✔ local link checks find Markdown and HTML paths but ignore URLs, anchors and code examples (0.7773ms)
+✔ Sonar credentials are required, loopback-only, sent in headers and never copied into errors (43.8081ms)
+✔ Sonar policy rejects missing or weakened server coverage conditions (0.7237ms)
+✔ Sonar setup creates a private project once, copies the standard gate and reconciles thresholds on repeat (2.8938ms)
+ℹ tests 202
+ℹ suites 0
+ℹ pass 202
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4620.2349
+ℹ start of coverage report
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ file                      | line % | branch % | funcs % | uncovered lines
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ backend                   |        |          |         | 
+ℹ  config                   |        |          |         | 
+ℹ   demo.js                 | 100.00 |   100.00 |  100.00 | 
+ℹ   holiday-snapshot.js     | 100.00 |   100.00 |  100.00 | 
+ℹ   index.js                | 100.00 |   100.00 |  100.00 | 
+ℹ   locations.js            | 100.00 |   100.00 |  100.00 | 
+ℹ  domain                   |        |          |         | 
+ℹ   aqi.js                  | 100.00 |    91.18 |  100.00 | 
+ℹ   constraints.js          |  99.19 |    89.29 |  100.00 | 226-227
+ℹ   curriculum.js           |  94.82 |    91.80 |  100.00 | 221-235 247-248
+ℹ   day-activities.js       |  91.67 |    96.83 |   85.71 | 25 86-92
+ℹ   day-edit.js             |  99.22 |    89.87 |  100.00 | 107
+ℹ   demo-week.js            | 100.00 |   100.00 |  100.00 | 
+ℹ   holidays.js             | 100.00 |    94.29 |  100.00 | 
+ℹ   manual-day-edit.js      | 100.00 |    96.61 |  100.00 | 
+ℹ   messages.js             |  98.84 |    95.10 |  100.00 | 104-105
+ℹ   occasion-activities.js  | 100.00 |    94.64 |  100.00 | 
+ℹ   parent-notes.js         |  92.59 |    78.26 |   57.14 | 24-25
+ℹ   parent-view.js          | 100.00 |    68.97 |  100.00 | 
+ℹ   planner.js              | 100.00 |   100.00 |  100.00 | 
+ℹ   play-ideas.js           | 100.00 |   100.00 |  100.00 | 
+ℹ   preferences.js          | 100.00 |   100.00 |  100.00 | 
+ℹ   qc.js                   | 100.00 |    97.26 |  100.00 | 
+ℹ   schedule-timing.js      | 100.00 |    75.53 |  100.00 | 
+ℹ   session-plan.js         | 100.00 |    95.83 |  100.00 | 
+ℹ   settings.js             | 100.00 |    84.34 |  100.00 | 
+ℹ   teaching-brief.js       | 100.00 |    96.00 |  100.00 | 
+ℹ   timeline.js             | 100.00 |    94.12 |  100.00 | 
+ℹ   week.js                 |  98.84 |    97.20 |   97.37 | 15-16 27-28 337-339
+ℹ  http                     |        |          |         | 
+ℹ   app.js                  |  99.40 |    87.99 |   96.25 | 299-301 893-894 905
+ℹ   security.js             |  94.74 |    78.95 |  100.00 | 25-26
+ℹ  server.js                | 100.00 |    94.74 |  100.00 | 
+ℹ  services                 |        |          |         | 
+ℹ   ai-errors.js            | 100.00 |   100.00 |  100.00 | 
+ℹ   ai.js                   |  93.43 |    88.89 |   94.44 | 87-95
+ℹ   auth.js                 | 100.00 |    94.12 |  100.00 | 
+ℹ   auto-refresh.js         | 100.00 |    75.00 |  100.00 | 
+ℹ   conditions.js           |  99.13 |    92.57 |   96.88 | 54-55 113
+ℹ   curriculum.js           |  96.91 |    90.28 |  100.00 | 78-80
+ℹ   day-plan.js             |  86.30 |    55.56 |   92.31 | 100-110 136-144
+ℹ   holidays.js             |  98.05 |    91.80 |   89.66 | 70-71 96-97 305-306
+ℹ   learning-guidance.js    | 100.00 |   100.00 |  100.00 | 
+ℹ   parent-notes.js         |  59.46 |    61.54 |   71.43 | 22-36
+ℹ   schedule-intent.js      | 100.00 |   100.00 |  100.00 | 
+ℹ  storage                  |        |          |         | 
+ℹ   database.js             |  99.04 |    91.18 |   94.44 | 71
+ℹ   parent-notes.js         | 100.00 |    88.24 |   87.50 | 
+ℹ frontend                  |        |          |         | 
+ℹ  src                      |        |          |         | 
+ℹ   app.js                  |  90.40 |    91.52 |   85.00 | 34-35 41-42 84 102-105 195 221-237 387-389 456-458 473-482 512-527 539-541 616-617 661-669 756 771-772
+ℹ   components              |        |          |         | 
+ℹ    ActivityEditor.js      | 100.00 |    92.11 |  100.00 | 
+ℹ    AirCard.js             |  87.10 |    66.67 |  100.00 | 66-72 81-85
+ℹ    Calendar.js            | 100.00 |    72.00 |  100.00 | 
+ℹ    ChangeAssistant.js     |  89.06 |    88.06 |   73.68 | 48 59 151 166-173 231-239 243-244 251-256
+ℹ    DayAssistant.js        | 100.00 |    78.95 |  100.00 | 
+ℹ    DayPlan.js             |  96.26 |    86.33 |   90.24 | 74-75 207 381-383 427 484 565-566 571-572 606-614 709-715
+ℹ    DemoControls.js        | 100.00 |   100.00 |   80.00 | 
+ℹ    Holidays.js            |  96.43 |    95.00 |  100.00 | 43-44
+ℹ    Icon.js                | 100.00 |   100.00 |  100.00 | 
+ℹ    InlineText.js          | 100.00 |    93.75 |   80.00 | 
+ℹ    Messages.js            |  92.36 |    65.85 |   87.50 | 25-26 65-66 70-75 102
+ℹ    ParentNoteForm.js      |  98.20 |    95.00 |   87.50 | 63-64
+ℹ    ParentNotes.js         |  91.03 |    75.00 |   87.50 | 20-21 27 45-46 57-59 72 86 174-177 203 213-217
+ℹ    ParentShare.js         |  96.51 |    88.24 |   85.71 | 15-16 75
+ℹ    PlanChanges.js         |  98.00 |    63.64 |   80.00 | 49
+ℹ    RequestProgress.js     | 100.00 |   100.00 |  100.00 | 
+ℹ    ScheduleEditor.js      |  94.94 |    85.19 |  100.00 | 19-20 48 51
+ℹ    SettingsForm.js        | 100.00 |    83.33 |   67.74 | 
+ℹ    WeekActions.js         | 100.00 |    85.71 |  100.00 | 
+ℹ   lib                     |        |          |         | 
+ℹ    api.js                 | 100.00 |   100.00 |  100.00 | 
+ℹ    plan-form.js           | 100.00 |    92.50 |  100.00 | 
+ℹ    request-progress.js    | 100.00 |   100.00 |  100.00 | 
+ℹ    time-range.js          | 100.00 |   100.00 |  100.00 | 
+ℹ    ui.js                  | 100.00 |    92.19 |  100.00 | 
+ℹ   locales                 |        |          |         | 
+ℹ    features.js            | 100.00 |   100.00 |  100.00 | 
+ℹ    index.js               | 100.00 |    83.33 |  100.00 | 
+ℹ    loading.js             | 100.00 |   100.00 |  100.00 | 
+ℹ    notes.js               | 100.00 |   100.00 |  100.00 | 
+ℹ    planning.js            | 100.00 |   100.00 |  100.00 | 
+ℹ   pages                   |        |          |         | 
+ℹ    Auth.js                |  96.75 |    95.35 |   77.78 | 40-42 151-152
+ℹ    CreatePlan.js          |  86.59 |    70.45 |   83.33 | 28-30 37-41 62-77
+ℹ    ParentWeek.js          |  98.13 |    78.57 |   92.86 | 16 47 52
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ all files                 |  96.58 |    89.53 |   93.61 | 
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report
+backend/ 97.99% lines (5078/5182); required 91%.
+frontend/src/ 94.88% lines (4056/4275); required 91%.
+20:43:40.842 WARN  Property 'sonar.working.directory' with value '/tmp/.scannerwork' is overridden with value '/tmp/analysis'
+20:43:40.848 INFO  Scanner configuration file: /opt/sonar-scanner/conf/sonar-scanner.properties
+20:43:40.849 INFO  Project root configuration file: /usr/src/sonar-project.properties
+20:43:40.864 INFO  SonarScanner CLI 8.1.0.6389
+20:43:40.869 INFO  Linux 6.6.87.2-microsoft-standard-WSL2 amd64
+20:43:41.647 INFO  Communicating with SonarQube Community Build 26.9.0.129388
+20:43:41.647 INFO  JRE provisioning: os[linux], arch[x86_64]
+20:43:41.949 INFO  Starting SonarScanner Engine...
+20:43:41.949 INFO  Java 21.0.11 Eclipse Adoptium (64-bit)
+20:43:42.934 INFO  Load global settings
+20:43:42.998 INFO  Load global settings (done) | time=63ms
+20:43:43.000 INFO  Server id: 303924D4-AaDFhEZdaOqJyQWEX7kR
+20:43:43.010 INFO  Loading required plugins
+20:43:43.010 INFO  Load plugins index
+20:43:43.022 INFO  Load plugins index (done) | time=11ms
+20:43:43.022 INFO  Load/download plugins
+20:43:43.044 INFO  Load/download plugins (done) | time=22ms
+20:43:43.303 INFO  Process project properties
+20:43:43.325 INFO  Process project properties (done) | time=22ms
+20:43:43.337 INFO  Project key: ekocuvar
+20:43:43.337 INFO  Base dir: /usr/src
+20:43:43.338 INFO  Working dir: /tmp/analysis
+20:43:43.353 INFO  Load project settings for component key: 'ekocuvar'
+20:43:43.367 INFO  Load project settings for component key: 'ekocuvar' (done) | time=13ms
+20:43:43.399 INFO  Load quality profiles
+20:43:43.444 INFO  Load quality profiles (done) | time=44ms
+20:43:43.502 INFO  Load active rules
+20:43:43.701 INFO  Load active rules (done) | time=199ms
+20:43:43.708 INFO  Load analysis cache
+20:43:43.753 INFO  Load analysis cache | time=46ms
+20:43:43.823 INFO  Preprocessing files...
+20:43:44.212 INFO  5 languages detected in 126 preprocessed files (done) | time=389ms
+20:43:44.213 INFO  1 file ignored because of inclusion/exclusion patterns
+20:43:44.213 INFO  3 directories skipped because of exclusion patterns (content not counted)
+20:43:44.214 INFO  Loading plugins for detected languages
+20:43:44.215 INFO  Load/download plugins
+20:43:44.219 INFO  Load/download plugins (done) | time=4ms
+20:43:44.320 INFO  Load project repositories
+20:43:44.419 INFO  Load project repositories (done) | time=99ms
+20:43:44.442 INFO  Indexing files...
+20:43:44.442 INFO  Project configuration:
+20:43:44.442 INFO    Excluded sources: backend/tests/**, scripts/tests/**, static-analysis/tests/**, **/AGENTS.md
+20:43:44.443 INFO    Excluded sources for coverage: scripts/**, static-analysis/**, api-tests/scripts/**, frontend/styles/**
+20:43:44.660 INFO  126 files indexed (done) | time=219ms
+20:43:44.661 INFO  Quality profile for css: Sonar way
+20:43:44.661 INFO  Quality profile for docker: Sonar way
+20:43:44.662 INFO  Quality profile for js: Sonar way
+20:43:44.662 INFO  Quality profile for web: Sonar way
+20:43:44.663 INFO  Quality profile for yaml: Sonar way
+20:43:44.663 INFO  ------------- Run sensors on module EkoCuvar
+20:43:44.691 INFO  Load metrics repository
+20:43:44.709 INFO  Load metrics repository (done) | time=17ms
+20:43:45.033 INFO  Reflections took 64 ms to scan 1 urls, producing 30 keys and 295 values
+20:43:45.139 INFO  Sensor IaC YAML File Type Classification Sensor [iac]
+20:43:45.169 INFO  Sensor IaC YAML File Type Classification Sensor [iac] (done) | time=29ms
+20:43:45.169 INFO  Sensor IaC CloudFormation Sensor [iac]
+20:43:45.170 INFO  There are no files to be analyzed for the CloudFormation language
+20:43:45.170 INFO  Sensor IaC CloudFormation Sensor [iac] (done) | time=0ms
+20:43:45.170 INFO  Sensor IaC cfn-lint report Sensor [iac]
+20:43:45.170 INFO  Sensor IaC cfn-lint report Sensor [iac] (done) | time=0ms
+20:43:45.170 INFO  Sensor IaC Kustomization Sensor [iac]
+20:43:45.171 INFO  Sensor IaC Kustomization Sensor [iac] (done) | time=1ms
+20:43:45.171 INFO  Sensor IaC hadolint report Sensor [iac]
+20:43:45.171 INFO  Sensor IaC hadolint report Sensor [iac] (done) | time=0ms
+20:43:45.171 INFO  Sensor Java Config Sensor [iac]
+20:43:45.171 INFO  There are no files to be analyzed for the Java language
+20:43:45.172 INFO  Sensor Java Config Sensor [iac] (done) | time=0ms
+20:43:45.172 INFO  Sensor IaC Docker Sensor [iac]
+20:43:45.238 INFO  1 source file to be analyzed
+20:43:45.316 INFO  1/1 source file has been analyzed
+20:43:45.317 INFO  Sensor IaC Docker Sensor [iac] (done) | time=145ms
+20:43:45.317 INFO  Sensor HTML [web]
+20:43:45.384 INFO  Sensor HTML [web] (done) | time=67ms
+20:43:45.384 INFO  Sensor JavaScript/TypeScript Coverage [javascript]
+20:43:45.386 INFO  Analysing [/usr/src/coverage/lcov.info]
+20:43:45.748 WARN  Found 1 inconsistencies in coverage report. Re-run analyse in debug mode to see details.
+20:43:45.748 INFO  Sensor JavaScript/TypeScript Coverage [javascript] (done) | time=363ms
+20:43:45.748 INFO  Sensor IaC Kubernetes Sensor [iac]
+20:43:45.818 INFO  There are no files to be analyzed for the Kubernetes language
+20:43:45.818 INFO  Sensor IaC Kubernetes Sensor [iac] (done) | time=70ms
+20:43:45.818 INFO  Sensor TextAndSecretsSensor [text]
+20:43:45.836 INFO  Available processors: 20
+20:43:45.836 INFO  Using 20 threads for analysis.
+20:43:46.072 INFO  Start fetching files for the text and secrets analysis
+20:43:46.086 INFO  Using Git CLI to retrieve dirty files
+20:43:46.088 WARN  Retrieving only language associated files, make sure to run the analysis inside a git repository to make use of inclusions specified via "sonar.text.inclusions"
+20:43:46.088 INFO  Starting the text and secrets analysis
+20:43:46.090 INFO  126 source files to be analyzed for the text and secrets analysis
+20:43:46.314 INFO  126/126 source files have been analyzed for the text and secrets analysis
+20:43:46.317 INFO  Sensor TextAndSecretsSensor [text] (done) | time=498ms
+20:43:46.319 INFO  ------------- Run sensors on project
+20:43:46.490 INFO  Sensor JavaScript/TypeScript/CSS analysis [javascript]
+20:43:46.738 INFO  Detected os: Linux arch: amd64 alpine: false. Platform: LINUX_X64
+20:43:46.739 INFO  Deploy location /opt/sonar-scanner/.sonar/js/node-runtime, tagetRuntime: /opt/sonar-scanner/.sonar/js/node-runtime/node,  version: /opt/sonar-scanner/.sonar/js/node-runtime/version.txt
+20:43:48.903 INFO  Using embedded Node.js runtime.
+20:43:48.903 INFO  Using Node.js executable: '/opt/sonar-scanner/.sonar/js/node-runtime/node'.
+20:43:50.477 INFO  Memory configuration: OS (15881 MB), Node.js (4288 MB).
+20:43:50.492 INFO  gRPC analyze-project server listening on 127.0.0.1:38523
+20:43:50.632 INFO  Plugin version: [13.8.0.44569]
+20:43:52.343 INFO  Found 0 tsconfig.json file(s): []
+20:44:01.918 INFO  120 source files to be analyzed
+20:44:01.918 INFO  Analyzing 116 file(s) using default options [lib: lib.esnext.d.ts, lib.dom.d.ts]
+20:44:01.920 INFO  120/120 source files have been analyzed
+20:44:01.927 INFO  Hit the cache for 0 out of 120
+20:44:01.927 INFO  Miss the cache for 120 out of 120: ANALYSIS_MODE_INELIGIBLE [120/120]
+20:44:01.927 INFO  Sensor JavaScript/TypeScript/CSS analysis [javascript] (done) | time=15437ms
+20:44:01.927 INFO  Sensor IaC Project Sensor [iac]
+20:44:01.928 INFO  Sensor IaC Project Sensor [iac] (done) | time=0ms
+20:44:01.929 INFO  Sensor Zero Coverage Sensor
+20:44:01.929 INFO  Sensor Zero Coverage Sensor (done) | time=0ms
+20:44:01.929 INFO  ------------- Gather SCA dependencies on project
+20:44:01.934 INFO  Dependency analysis skipped
+20:44:01.935 INFO  SCM Publisher is disabled
+20:44:01.945 INFO  CPD Executor 11 files had no CPD blocks
+20:44:01.946 INFO  CPD Executor Calculating CPD for 81 files
+20:44:01.993 INFO  CPD Executor CPD calculation finished (done) | time=47ms
+20:44:02.409 INFO  Analysis report generated in 409ms, dir size=2.4 MB
+20:44:02.520 INFO  Analysis report compressed in 111ms, zip size=1.2 MB
+20:44:02.646 INFO  Analysis report uploaded in 126ms
+20:44:02.647 INFO  ------------- Check Quality Gate status
+20:44:02.648 INFO  Waiting for the analysis report to be processed (max 300s)
+20:44:07.681 INFO  QUALITY GATE STATUS: PASSED - View details on http://sonarqube:9000/dashboard?id=ekocuvar
+20:44:07.822 INFO  Analysis total time: 24.750 s
+20:44:07.839 INFO  SonarScanner Engine completed successfully
+20:44:07.858 INFO  EXECUTION SUCCESS
+20:44:07.859 INFO  Total time: 27.012s
+Local gate passed: syntax, documentation, tests, coverage and SonarQube.
+ Container ekocuvar-sonarqube-1 Running 
+ Container ekocuvar-sonar-db-1 Running 
+ Container ekocuvar-sonar-db-1 Waiting 
+ Container ekocuvar-sonar-db-1 Healthy 
+ Container ekocuvar-sonarqube-1 Waiting 
+ Container ekocuvar-sonar-db-1 Waiting 
+ Container ekocuvar-sonar-db-1 Healthy 
+ Container ekocuvar-sonarqube-1 Healthy 
+ Container ekocuvar-sonar-scanner-run-9e4798c10615 Creating 
+ Container ekocuvar-sonar-scanner-run-9e4798c10615 Created 
+
+Exit code: 0
+Finished UTC: 2026-09-21T20:44:10.909Z

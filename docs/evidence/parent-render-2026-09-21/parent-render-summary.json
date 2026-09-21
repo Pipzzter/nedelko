@@ -1,0 +1,47 @@
+{
+  "checkedAt": "2026-09-21T20:45:08.569Z",
+  "codeCommit": "e44f64c36662a52b48ec22a77d741768f05a1b4f",
+  "context": "Offline library curriculum and synthetic environmental fixtures; isolated in-memory SQLite; no paid AI call.",
+  "locales": {
+    "en": {
+      "rows": 12,
+      "allTitlesEqualApiLabels": true,
+      "strayTextNodes": 0,
+      "missingOccasionIds": 0,
+      "emptyOccasionIds": 11,
+      "realOccasionBadgesVisible": 1
+    },
+    "mk": {
+      "rows": 12,
+      "allTitlesEqualApiLabels": true,
+      "strayTextNodes": 0,
+      "missingOccasionIds": 0,
+      "emptyOccasionIds": 11,
+      "realOccasionBadgesVisible": 1
+    }
+  },
+  "screenshots": [
+    "parent-week-en.png",
+    "parent-timeline-en.png",
+    "parent-timeline-mk.png",
+    "parent-390px.png"
+  ],
+  "errors": [],
+  "teacherMissingOccasions": {
+    "rows": 12,
+    "allTitlesEqualApiLabels": true,
+    "strayTextNodes": 0,
+    "missingOccasionIds": 11,
+    "emptyOccasionIds": 0,
+    "realOccasionBadgesVisible": 1
+  },
+  "mobile": {
+    "viewport": 390,
+    "documentWidth": 390
+  },
+  "passed": true,
+  "providerCalls": {
+    "demoCurriculumCalls": 1,
+    "liveCurriculumCalls": 0
+  }
+}

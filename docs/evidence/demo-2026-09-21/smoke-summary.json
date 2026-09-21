@@ -1,0 +1,104 @@
+{
+  "recordedAt": "2026-09-21T20:36:26.352Z",
+  "codeCommit": "a07fdd83ec018b5dea7d4aef6e57d8048b73cdaf",
+  "context": {
+    "environmentalEvidence": "Synthetic demo observations and forecasts throughout, including the authenticated path. The UI labels them DEMO / Sample conditions.",
+    "curriculum": "Offline library for credential-free demo; real configured OpenAI provider for authenticated generation.",
+    "persistence": "Fresh in-memory SQLite; generated temporary account; no existing app database opened.",
+    "method": "Real browser UI controls and navigation to observed links. No app state or API responses injected."
+  },
+  "steps": [
+    {
+      "name": "Credential-free five-day demo",
+      "atSeconds": 1.1,
+      "curriculumSource": "library",
+      "environmentalMode": "demo"
+    },
+    {
+      "name": "Parent share opens a read-only five-day plan",
+      "atSeconds": 6.5,
+      "teacherEditControls": 0
+    },
+    {
+      "name": "Phone-width parent view",
+      "atSeconds": 7.4,
+      "viewport": 390,
+      "documentWidth": 390
+    },
+    {
+      "name": "Registered isolated account and confirmed timetable",
+      "atSeconds": 9.9,
+      "hours": "09:00–12:00",
+      "snack": "10:30–10:45",
+      "rest": "11:30–12:00"
+    },
+    {
+      "name": "Real authenticated AI week generated",
+      "atSeconds": 107.8,
+      "source": "ai",
+      "elapsedMs": 97952
+    },
+    {
+      "name": "Synthetic pollution triggers deterministic indoor gate",
+      "atSeconds": 111.3,
+      "from": "outside",
+      "to": "inside",
+      "reason": "pollution",
+      "approvalAbsent": true,
+      "data": "synthetic polluted fixture",
+      "nonblocking": true,
+      "heldResponseMs": 1614
+    },
+    {
+      "name": "Phone-width authenticated plan",
+      "atSeconds": 113,
+      "viewport": 390
+    }
+  ],
+  "screenshots": [
+    "01-entry.png",
+    "02-demo-week.png",
+    "03-demo-air.png",
+    "04-indoor-day.png",
+    "05-outdoor-day.png",
+    "06-parent-sharing.png",
+    "07-parent-read-only.png",
+    "08-mobile-parent-390px.png",
+    "09-authenticated-plan-input.png",
+    "10-real-ai-generation.png",
+    "11-authenticated-ai-week.png",
+    "12-ai-lesson-content.png",
+    "13-nonblocking-refresh.png",
+    "14-pollution-indoor-plan.png",
+    "15-mobile-ai-plan-390px.png"
+  ],
+  "video": "demo.webm",
+  "errors": [],
+  "ai": {
+    "source": "ai",
+    "model": "gpt-5.6-terra",
+    "elapsedMs": 97952,
+    "days": 5,
+    "bilingualTodayTitle": {
+      "mk": "Јом Кипур: Тивка градина од лисја",
+      "en": "Yom Kippur: Quiet Leaf Garden"
+    },
+    "environmentalMode": "demo",
+    "initialTodayMode": "outside"
+  },
+  "adaptation": {
+    "from": "outside",
+    "to": "inside",
+    "reason": "pollution",
+    "approvalAbsent": true,
+    "data": "synthetic polluted fixture",
+    "nonblocking": true,
+    "heldResponseMs": 1614
+  },
+  "passed": true,
+  "elapsedMs": 114035,
+  "providerCalls": {
+    "demoCurriculumCalls": 1,
+    "liveCurriculumCalls": 1
+  }
+}

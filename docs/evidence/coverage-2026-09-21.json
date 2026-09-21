@@ -1,0 +1,94 @@
+{
+  "minimumLines": 91,
+  "groups": [
+    {
+      "scope": "backend/",
+      "hit": 5078,
+      "found": 5182,
+      "percent": 97.99305287533771,
+      "passed": true
+    },
+    {
+      "scope": "frontend/src/",
+      "hit": 4056,
+      "found": 4275,
+      "percent": 94.87719298245614,
+      "passed": true
+    }
+  ],
+  "criticalFiles": [
+    {
+      "path": "backend/domain/aqi.js",
+      "hit": 33,
+      "found": 33,
+      "percent": 100,
+      "minimumLines": 90,
+      "passed": true
+    },
+    {
+      "path": "backend/domain/constraints.js",
+      "hit": 246,
+      "found": 248,
+      "percent": 99.19354838709677,
+      "minimumLines": 90,
+      "passed": true
+    },
+    {
+      "path": "backend/domain/preferences.js",
+      "hit": 21,
+      "found": 21,
+      "percent": 100,
+      "minimumLines": 90,
+      "passed": true
+    },
+    {
+      "path": "backend/domain/qc.js",
+      "hit": 113,
+      "found": 113,
+      "percent": 100,
+      "minimumLines": 90,
+      "passed": true
+    },
+    {
+      "path": "backend/domain/settings.js",
+      "hit": 137,
+      "found": 137,
+      "percent": 100,
+      "minimumLines": 90,
+      "passed": true
+    },
+    {
+      "path": "backend/domain/week.js",
+      "hit": 597,
+      "found": 604,
+      "percent": 98.84105960264901,
+      "minimumLines": 90,
+      "passed": true
+    },
+    {
+      "path": "backend/http/app.js",
+      "hit": 996,
+      "found": 1002,
+      "percent": 99.40119760479043,
+      "minimumLines": 90,
+      "passed": true
+    },
+    {
+      "path": "backend/http/security.js",
+      "hit": 36,
+      "found": 38,
+      "percent": 94.73684210526316,
+      "minimumLines": 90,
+      "passed": true
+    },
+    {
+      "path": "backend/services/auth.js",
+      "hit": 90,
+      "found": 90,
+      "percent": 100,
+      "minimumLines": 90,
+      "passed": true
+    }
+  ],
+  "passed": true
+}

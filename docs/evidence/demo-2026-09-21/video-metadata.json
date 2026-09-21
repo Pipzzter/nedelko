@@ -1,0 +1,13 @@
+{
+  "durationSeconds": 114.76,
+  "width": 1280,
+  "height": 900,
+  "error": null,
+  "playback": {
+    "reachedEnd": true,
+    "rate": 8,
+    "error": null
+  },
+  "bytes": 4343408,
+  "sampledFrames": 27
+}

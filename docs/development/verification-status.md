@@ -2,6 +2,18 @@
 
 This file records actual execution limits, separately from configured targets. Historical reports are preserved in [the archive](../archive/verification-notes.md).
 
+## 2026-09-21 final main checks and fresh AI replay
+
+At main commit `e44f64c36662a52b48ec22a77d741768f05a1b4f`, `npm ci`, `npm run check`, `npm test`, `npm run test:coverage` and `npm run gate` all passed on Windows. The [full output](../evidence/final-verification-2026-09-21.txt) records 122 JavaScript files, 30 documentation files, 202 passing tests and no test failures. Backend line coverage was 97.99% (5,078/5,182), frontend 94.88% (4,056/4,275), and all nine critical-file floors passed. The live Sonar quality gate returned `PASSED` at 20:44:07 UTC. The scanner also reported one LCOV inconsistency warning; a passing gate does not mean zero findings.
+
+A fresh authenticated `npm run verify:ai` run completed at 20:35:46 UTC against `a07fdd83ec018b5dea7d4aef6e57d8048b73cdaf` in an isolated worktree. It returned five accepted bilingual days from `gpt-5.6-terra`, source `ai`, in 129,875 ms. [The artifact](../evidence/live-ai-2026-09-21.json) contains validated lessons and sessions, with explicitly synthetic environmental inputs and bundled holidays. Account details, cookies and provider request identifiers are excluded; the script checked its output against the temporary account and configured key. The only later application change is the one-line empty-occasion badge correction in PR36; backend and AI script source are unchanged.
+
+The [backup recording](../evidence/demo-2026-09-21/demo.webm) runs for 1:54.76 and was checked by full playback plus 27 sampled frames. It shows the offline demo, parent sharing, a separate real authenticated AI generation (`source: ai`, 97,952 ms), synthetic pollution moving the lesson indoors, non-modal refresh and 390-pixel parent/authenticated views. Its [record](../evidence/demo-2026-09-21/smoke-summary.json) identifies the fixture method and exact code commit; no real private plans were used. A later cosmetic empty-occasion label fix is documented separately in the release record.
+
+The [final parent rendering check](../evidence/parent-render-2026-09-21/parent-render-summary.json) passed on `e44f64c`: all rendered titles matched their API labels in English and Macedonian, empty or missing occasion lists produced no stray text, and the genuine badge remained visible. The 390-pixel view had no overflow and there were no JavaScript errors. This supplemental check used the offline demo and made no paid calls.
+
+The [release record](../evidence/release-2026-09-21.md) contains the submission checklist and remaining checks. The user's original untracked `findings.md` is preserved; it was not part of these changes. A teammate's authenticated repository access, a second-machine setup and team readiness remain unverified. Optional upstream cancellation on client disconnect remains unimplemented, and the unused `extractSchedule`, `noticeTone` and `suggestWeeklyThemes` service exports remain outside the active application flows.
+
 ## 2026-09-21 current Windows verification after application fixes
 
 This entry records the later Windows run at application merge [`a506e04`](https://github.com/AI-Tech-Summit-Filip-Avramchev/gun-mayhem-repo/commit/a506e04). It does not replace the restricted-session attempts below.

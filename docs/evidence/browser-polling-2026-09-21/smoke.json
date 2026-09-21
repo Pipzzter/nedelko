@@ -1,0 +1,125 @@
+{
+  "recordedAt": "2026-09-21T20:22:52.496Z",
+  "context": "Offline library curriculum, synthetic environmental fixtures, in-memory SQLite only",
+  "method": "Playwright browser clock advances existing application poll timers; each matching network request is held until focus/progress assertions are inspected.",
+  "checks": [
+    {
+      "name": "dashboard",
+      "originalValueRetained": true,
+      "during": {
+        "focused": true,
+        "disabled": false,
+        "modal": false,
+        "inert": false,
+        "progress": true
+      },
+      "after": {
+        "focused": true,
+        "disabled": false
+      },
+      "passed": true
+    },
+    {
+      "name": "dashboard-polluted-1",
+      "originalValueRetained": true,
+      "during": {
+        "focused": true,
+        "disabled": false,
+        "modal": false,
+        "inert": false,
+        "progress": true
+      },
+      "after": {
+        "focused": true,
+        "disabled": false
+      },
+      "passed": true
+    },
+    {
+      "name": "dashboard-polluted-2",
+      "originalValueRetained": true,
+      "during": {
+        "focused": true,
+        "disabled": false,
+        "modal": false,
+        "inert": false,
+        "progress": true
+      },
+      "after": {
+        "focused": true,
+        "disabled": false
+      },
+      "passed": true
+    },
+    {
+      "name": "notes",
+      "originalValueRetained": true,
+      "during": {
+        "focused": true,
+        "disabled": false,
+        "modal": false,
+        "inert": false,
+        "progress": true
+      },
+      "after": {
+        "focused": true,
+        "disabled": false
+      },
+      "passed": true
+    },
+    {
+      "name": "parent",
+      "originalValueRetained": true,
+      "during": {
+        "focused": true,
+        "disabled": false,
+        "modal": false,
+        "inert": false,
+        "progress": true
+      },
+      "after": {
+        "focused": true,
+        "disabled": false
+      },
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    "dashboard-pending.png",
+    "dashboard-polluted-1-pending.png",
+    "dashboard-polluted-2-pending.png",
+    "notes-pending.png",
+    "parent-pending.png",
+    "parent-390px.png"
+  ],
+  "pollutedScenario": {
+    "initialRevision": 1,
+    "polls": [
+      {
+        "selectedScenario": "polluted",
+        "responseScenario": "polluted",
+        "mode": "inside",
+        "reason": "pollution",
+        "revision": 1
+      },
+      {
+        "selectedScenario": "polluted",
+        "responseScenario": "polluted",
+        "mode": "inside",
+        "reason": "pollution",
+        "revision": 1
+      }
+    ],
+    "passed": true
+  },
+  "mobile": {
+    "viewport": 390,
+    "documentWidth": 390,
+    "fits": true
+  },
+  "providerCalls": {
+    "demoCurriculumCalls": 1,
+    "liveCurriculumCalls": 0
+  },
+  "passed": true
+}
