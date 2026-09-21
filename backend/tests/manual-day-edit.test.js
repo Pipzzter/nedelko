@@ -16,6 +16,22 @@ function fixture() {
 }
 const content = { label: pair('Заеднички појадок', 'Breakfast together'), note: pair('Го подготвуваме оброкот заедно.', 'We prepare the meal together.') };
 
+test('moving a row retains saved occasion discussion and ignores forged metadata', () => {
+  const { conditions, week, day } = fixture();
+  const original = day.timeline.at(-1);
+  original.occasionIds = ['teacher-occasion'];
+  original.occasionDiscussion = pair('Наш разговор', 'Our discussion');
+  const timeline = structuredClone(day.timeline);
+  Object.assign(timeline.at(-1), { start: '17:00', end: '18:00', occasionIds: ['forged'],
+    occasionDiscussion: pair('Туѓ разговор', 'Forged discussion') });
+  const moved = manualDayEdit(day, week.settings, { action: 'timeline', timeline }, conditions.clock);
+  assert.equal(moved.timeline.at(-1).start, '17:00');
+  assert.deepEqual(moved.timeline.at(-1).occasionIds, original.occasionIds);
+  assert.deepEqual(moved.timeline.at(-1).occasionDiscussion, original.occasionDiscussion);
+  const reordered = manualDayEdit(day, week.settings, { action: 'reorder', rowIds: day.timeline.map(row => row.id).reverse() }, conditions.clock);
+  assert.deepEqual(reordered.timeline[0].occasionDiscussion, original.occasionDiscussion);
+});
+
 test('manual meal/rest/occasion details persist through adaptation without changing times or evidence', () => {
   const { conditions, week, day } = fixture();
   for (const kind of ['meal', 'rest', 'activity', 'eco']) {

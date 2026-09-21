@@ -13,7 +13,7 @@ import { openStore } from '../storage/database.js';
 import { demoConditions } from '../services/conditions.js';
 import { LOCATIONS } from '../config/index.js';
 import { planningWeekDates } from '../domain/planner.js';
-import { calendarSnapshot } from '../domain/holidays.js';
+import { calendarSnapshot, occasionsForWeek } from '../domain/holidays.js';
 
 const row = (id, start, end, kind = 'activity') => ({ id, start, end, kind, label: pair(id, id), note: pair('Опис на активноста.', 'Activity description.') });
 function conditions(clock = '2026-09-21T05:00:00Z') {
@@ -30,6 +30,44 @@ function curriculum(c, settings = DEFAULT_SETTINGS) {
       [row('early', '05:00', '06:00', 'free'), row('late', '18:00', '20:00', 'rest')]],
     outdoorPreferences: ['outside', 'auto', 'auto', 'outside', 'auto'] };
 }
+
+test('several authored eco activities keep distinct bilingual mode variants in parent notices and projection', () => {
+  const c = conditions(); const supplied = curriculum(c);
+  const variants = [
+    { inside: pair('Трчаме во салата.', 'Run in the hall.'), outside: pair('Трчаме во дворот.', 'Run in the yard.') },
+    { inside: pair('Правиме мозаик на масата.', 'Make a mosaic at the table.'), outside: pair('Правиме мозаик во дворот.', 'Make a mosaic in the yard.') }
+  ];
+  supplied.timelines[0] = variants.map((variant, i) => ({ ...row(`eco-${i}`, i ? '10:00' : '09:00', i ? '11:00' : '10:00', 'eco'), variants: variant }));
+  c.assessment.aqi = 160;
+  const week = createWeek(DEFAULT_SETTINGS, supplied, c);
+  const parent = parentView(week, Date.parse(c.clock) + 1000, c);
+  assert.equal(week.days[0].mode, 'inside');
+  for (const [i, variant] of variants.entries()) {
+    assert.deepEqual(parent.days[0].timeline[i].variants, variant);
+    for (const lang of ['mk', 'en']) {
+      assert.ok(week.messages.daily[week.today][lang].includes(variant.inside[lang]));
+      assert.ok(!week.messages.daily[week.today][lang].includes(variant.outside[lang]));
+    }
+  }
+  assert.throws(() => validateTimeline([{ ...supplied.timelines[0][0], variants: { inside: { en: 'Only English' } } }]), { status: 400 });
+});
+
+test('authored holiday lessons receive server-owned occasion markers without rewriting their rows', () => {
+  const c = conditions(); const supplied = curriculum(c);
+  const event = occasionsForWeek(planningWeekDates(c.clock))[4][0];
+  supplied.themes[4].title = event.name;
+  for (const mode of ['inside', 'outside']) for (const lang of ['mk', 'en'])
+    supplied.themes[4][mode][lang] = `${event.name[lang]}: ${supplied.themes[4][mode][lang]}`;
+  supplied.timelines[4] = [row('occasion-eco', '09:00', '10:00', 'eco')];
+  const week = createWeek(DEFAULT_SETTINGS, supplied, c);
+  const day = week.days[4]; const lesson = day.timeline[0];
+  assert.ok(day.occasions.length);
+  assert.ok(lesson.occasionIds.includes(day.occasions[0].id));
+  assert.deepEqual(rowContent(lesson), rowContent(supplied.timelines[4][0]));
+  supplied.timelines[4][0].variants = { inside: pair('Градиме на масата.', 'Build at the table.'), outside: pair('Градиме во дворот.', 'Build in the yard.') };
+  const unrelated = createWeek(DEFAULT_SETTINGS, supplied, c).days[4].timeline[0];
+  assert.equal(unrelated.occasionIds, undefined, 'a different row variant must not inherit the day theme marker');
+});
 
 test('timeline integrity permits long, overlapping, reordered and empty days and rejects malformed rows', () => {
   const rows = [row('a', '05:00', '10:00', 'eco'), row('b', '07:00', '09:00', 'eco'), row('c', '20:00', '23:59', 'free')];

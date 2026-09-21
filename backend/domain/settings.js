@@ -86,6 +86,7 @@ export function validateTimeline(items) {
       if (end <= start) throw invalid('time_bounds');
       if (!['meal', 'rest', 'routine', 'eco', 'activity', 'free'].includes(item.kind)) throw invalid('invalid_timeline');
       return { id, start, end, kind: item.kind, label: textPair(item.label, 100),
+        ...(item.variants == null ? {} : { variants: { inside: textPair(item.variants.inside, 1200), outside: textPair(item.variants.outside, 1200) } }),
         ...(item.note == null ? {} : { note: textPair(item.note, 1200) }) };
     });
 }

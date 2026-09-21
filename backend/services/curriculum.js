@@ -5,6 +5,7 @@ import { occasionsForWeek } from '../domain/holidays.js';
 import { materialCatalog, teacherInstruction, validateTimeline } from '../domain/settings.js';
 import { assignDailyTopics, validateTopicCoverage } from '../domain/teaching-brief.js';
 import { ACTIVITY_GUIDANCE, descriptionSchema } from './learning-guidance.js';
+import { learningText } from '../domain/session-plan.js';
 
 export const pairSchema = maxLength => ({ type: 'object', additionalProperties: false,
   properties: { mk: { type: 'string', minLength: 1, maxLength }, en: { type: 'string', minLength: 1, maxLength } }, required: ['mk', 'en'] });
@@ -21,10 +22,22 @@ export const timelineSchema = { type: 'array', maxItems: 40, items: {
     start: { type: 'string', pattern: '^(?:[01][0-9]|2[0-3]):[0-5][0-9]$' },
     end: { type: 'string', pattern: '^(?:[01][0-9]|2[0-3]):[0-5][0-9]$' },
     kind: { type: 'string', enum: ['meal', 'rest', 'routine', 'eco', 'activity', 'free'] },
-    label: pairSchema(100), note: { anyOf: [pairSchema(1200), { type: 'null' }] }
-  }, required: ['id', 'start', 'end', 'kind', 'label', 'note']
+    label: pairSchema(100), note: { anyOf: [pairSchema(1200), { type: 'null' }] },
+    variants: { anyOf: [{ type: 'object', additionalProperties: false,
+      properties: { inside: pairSchema(1200), outside: pairSchema(1200) }, required: ['inside', 'outside'] }, { type: 'null' }] }
+  }, required: ['id', 'start', 'end', 'kind', 'label', 'note', 'variants']
 } };
-export const TIMETABLE_GUIDANCE = "For each day, output the full timetable. Start from the default routine, then apply the teacher's schedule instructions for that day exactly: move/shorten/lengthen/skip/add/reorder meals, rest, and activities as asked. When the teacher says nothing about timing, keep the default routine. Keep bilingual mk/en. TeacherBrief is the source of truth for the schedule. The default dayStart, dayEnd, duration and blocks are editable starting points, never constraints. Explicit instructions may extend the day beyond its default hours, remove every meal or rest, or create one five-hour activity. Do not refuse or shorten an ordinary scheduling request because it is impractical. Preserve the identity of each explicitly requested activity in its timeline label and note, not just its times: a requested run must be labelled as running and described as running, never silently replaced with walking, building, a quiet route or another lesson. Teacher-specified activities take priority over seasonal and holiday activity ideas. Add occasion learning in compatible rows or connect it without changing the requested action. The main lesson descriptions must also reflect the explicitly requested activity. Do not turn an impractical duration into a different activity. Resolve overlaps by moving subsequent rows later in their authored order, preserving every requested duration. Gaps are allowed. Use unique IDs per day, HH:MM times on the same date, and end later than start. There may be zero, one or several eco rows. Use eco for activities with a proposed outdoor alternative; this requests a location, never certifies conditions. Set outdoorPreference to outside or inside only when the teacher explicitly requests that day's location, otherwise auto. Keep all rows in the requested order; add useful bilingual notes for learning activities. Labels and notes belong to their individual rows, even when there are several eco activities. Never introduce claims about air quality, weather measurements or outdoor permission.";
+export const TIMETABLE_GUIDANCE = "For each day, output the full timetable. Start from the default routine, then apply the teacher's schedule instructions for that day exactly: move/shorten/lengthen/skip/add/reorder meals, rest, and activities as asked. When the teacher says nothing about timing, keep the default routine. Keep bilingual mk/en. TeacherBrief is the source of truth for the schedule. The default dayStart, dayEnd, duration and blocks are editable starting points, never constraints. Explicit instructions may extend the day beyond its default hours, remove every meal or rest, or create one five-hour activity. Do not refuse or shorten an ordinary scheduling request because it is impractical. Preserve the identity of each explicitly requested activity in its timeline label and note, not just its times: a requested run must be labelled as running and described as running, never silently replaced with walking, building, a quiet route or another lesson. Teacher-specified activities take priority over seasonal and holiday activity ideas. Add occasion learning in compatible rows or connect it without changing the requested action. The main lesson descriptions must also reflect the explicitly requested activity. Do not turn an impractical duration into a different activity. Resolve overlaps by moving subsequent rows later in their authored order, preserving every requested duration. Gaps are allowed. Use unique IDs per day, HH:MM times on the same date, and end later than start. There may be zero, one or several eco rows. Use eco for activities with a proposed outdoor alternative; this requests a location, never certifies conditions. Set outdoorPreference to outside or inside only when the teacher explicitly requests that day's location, otherwise auto. Keep all rows in the requested order; add useful bilingual notes for learning activities. Labels and notes belong to their individual rows, even when there are several eco activities. Every eco row must provide variants.inside and variants.outside with equivalent bilingual instructions for that specific activity; generic notes never override the selected indoor/outdoor version. Other kinds use variants: null. Never introduce claims about air quality, weather measurements or outdoor permission.";
+export function validateModelTimeline(value) {
+  const rows = validateTimeline(value);
+  for (const row of rows) {
+    learningText(row.label, 100);
+    if (row.note) learningText(row.note, 1200);
+    if (row.variants) for (const mode of ['inside', 'outside']) learningText(row.variants[mode], 1200);
+  }
+  return rows;
+}
+
 const schema = (dates, settings) => {
   const lesson = lessonSchema(settings);
   return { type: 'object', additionalProperties: false, properties: {
@@ -73,7 +86,7 @@ export async function createCurriculum(dates, settings, { useAI = true, calendar
     validateTopicCoverage(themes, dates, topicAssignments);
     if (themes.some((theme, index) => occasions[index].some(event => !lessonCoversOccasion(theme, event)) ||
         occasions[index].length && !mentionsOccasion(theme.title, occasions[index][0]))) throw new Error('missing_holiday_context');
-    const timelines = result.value.themes.map(theme => theme.timeline == null ? null : validateTimeline(theme.timeline));
+    const timelines = result.value.themes.map(theme => theme.timeline == null ? null : validateModelTimeline(theme.timeline));
     const outdoorPreferences = result.value.themes.map(theme => {
       if (theme.outdoorPreference !== undefined && !['auto', 'inside', 'outside'].includes(theme.outdoorPreference)) throw new Error('invalid_outdoor_preference');
       return theme.outdoorPreference || 'auto';

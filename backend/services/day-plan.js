@@ -1,6 +1,6 @@
 import { structuredResponse, aiStatus } from './ai.js';
 import { aiFailure } from './ai-errors.js';
-import { lessonSchema, pairSchema, timelineSchema, TIMETABLE_GUIDANCE } from './curriculum.js';
+import { lessonSchema, pairSchema, timelineSchema, TIMETABLE_GUIDANCE, validateModelTimeline } from './curriculum.js';
 import { teacherInstruction, materialCatalog } from '../domain/settings.js';
 import { localCurriculum } from '../domain/curriculum.js';
 import { protectedActivity, rowContent, validateDayChange } from '../domain/day-edit.js';
@@ -50,6 +50,7 @@ export async function suggestDayPlan(day, settings, { scope, rowId, instruction,
       })
     });
     if (scope === 'activity' && row?.kind !== 'eco') activityDescription(result.value.note);
+    if (scope === 'schedule') validateModelTimeline(result.value.timeline);
     validateDayChange(day, settings, request, result.value, clock);
     return { change: result.value, source: 'ai' };
   } catch (error) {

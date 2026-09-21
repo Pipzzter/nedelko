@@ -24,6 +24,7 @@ export function compactTimeline(rows, { consolidate = false, from = '00:00' } = 
   for (const row of [...rows].sort((a, b) => a.start.localeCompare(b.start))) {
     const previous = result.at(-1);
     const same = previous && previous.start >= from && !previous.customized && !row.customized && !previous.plannedSession && !row.plannedSession &&
+      !previous.occasionIds?.length && !row.occasionIds?.length && minutes(row.end) - minutes(previous.start) <= 90 &&
       previous.label.mk === row.label.mk && previous.label.en === row.label.en && previous.activityRole === row.activityRole &&
       previous.customized === row.customized && JSON.stringify(previous.note) === JSON.stringify(row.note);
     const generated = consolidate && previous?.activityRole && row.activityRole && !previous.customized && !row.customized && !previous.plannedSession && !row.plannedSession &&

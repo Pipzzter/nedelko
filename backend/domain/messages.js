@@ -145,7 +145,7 @@ function dailyMessage(week, day, lang, demo) {
   const ecoRows = day.timeline.filter(row => row.kind === 'eco');
   const title = hasEco ? ecoRows.map(row => row.label[lang]).join(', ') : label('Дневни активности', 'Day activities');
   const what = hasEco
-    ? ecoRows.map(row => row.note?.[lang] || row.lesson?.[outdoors ? 'outside' : 'inside']?.[lang] || day.activity?.[lang] || day.theme.inside[lang]).join(' ')
+    ? [...new Set(ecoRows.map(row => (row.lesson || row.variants || day.theme)[outdoors ? 'outside' : 'inside'][lang]))].join(' ')
     : day.timeline
         .filter((row) => ['activity', 'free', 'routine'].includes(row.kind))
                 .map((row) => row.label[lang])

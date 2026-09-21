@@ -18,6 +18,47 @@ const suitableConditions = () => {
   return c;
 };
 
+test('fallback slots and model planning context avoid the resolved routine, and generated play stays within 90 minutes', () => {
+  const c = suitableConditions();
+  const settings = { ...DEFAULT_SETTINGS, blocks: [
+    { ...DEFAULT_SETTINGS.blocks[0], start: '08:00', end: '10:00' },
+    { ...DEFAULT_SETTINGS.blocks[3], start: '09:00', end: '11:00' }
+  ] };
+  const week = makeWeek(c, settings);
+  for (const day of week.days) {
+    assert.equal(day.timeline.find(row => row.kind === 'rest').end, '12:00');
+    for (const [i, row] of day.timeline.entries()) {
+      if (i) assert.ok(row.start >= day.timeline[i - 1].end, `${row.id} overlaps`);
+      if (row.kind === 'activity') assert.ok(minutes(row.end) - minutes(row.start) <= 90);
+    }
+  }
+  for (const item of outdoorPlanningContext(week.days.map(day => day.date), settings, c)) {
+    if (item.bestWindow) assert.ok(item.bestWindow.end <= '08:00' || item.bestWindow.start >= '12:00');
+  }
+  const blocks = Array.from({ length: 3 }, (_, i) => ({ id: `play-${i}`, kind: 'activity',
+    start: ['12:00', '13:00', '14:00'][i], end: ['13:00', '14:00', '14:45'][i],
+    label: { mk: 'Игра', en: 'Play' } }));
+  assert.equal(compactTimeline(blocks).length, 3);
+});
+
+test('mode-specific instructions override an outdoor generic note in both parent languages', () => {
+  const c = suitableConditions(); const week = makeWeek(c); const day = week.days[0];
+  const row = day.timeline.find(row => row.kind === 'eco');
+  row.note = { mk: 'Излегуваме во дворот.', en: 'We go into the yard.' };
+  row.lesson = { ...day.theme, inside: { mk: 'Ги разгледуваме лисјата во училница.', en: 'We examine leaves in the classroom.' },
+    outside: { mk: 'Ги разгледуваме лисјата во дворот.', en: 'We examine leaves in the yard.' } };
+  c.assessment.aqi = 160;
+  const indoors = adaptWeek(week, c); const message = indoors.messages.daily[day.date];
+  assert.equal(indoors.days[0].mode, 'inside');
+  for (const lang of ['mk', 'en']) {
+    assert.ok(message[lang].includes(row.lesson.inside[lang]));
+    assert.ok(!message[lang].includes(row.note[lang]));
+    assert.ok(!message[lang].includes(row.lesson.outside[lang]));
+  }
+  c.assessment.aqi = 30;
+  assert.ok(adaptWeek(week, c).messages.daily[day.date].en.includes(row.lesson.outside.en));
+});
+
 test('adjacent duplicate activities merge while fixed routines, gaps and distinct translations remain intact', () => {
   const week = makeWeek();
   const friday = week.days[4].timeline;

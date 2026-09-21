@@ -8,7 +8,7 @@ import { resolveTimelineOverlaps } from './timeline.js';
 export const protectedActivity = () => false;
 export const rowContent = (row) => structuredClone({
   id: row.id, start: row.start, end: row.end, kind: row.kind,
-  label: row.label, note: row.note || null
+  label: row.label, note: row.note || null, ...(row.variants ? { variants: row.variants } : {})
 });
 export function assertUpcoming(day, clock, row) {
   const local = skopjeParts(new Date(clock));
@@ -41,8 +41,10 @@ export function authoredTimeline(day, proposed, clock) {
     const original = day.timeline.find(item => item.id === row.id);
     if (original && JSON.stringify(rowContent(row)) === JSON.stringify(rowContent(original)))
       return structuredClone(original);
-    return { ...(row.kind === 'eco' && original?.lesson ? { lesson: structuredClone(original.lesson) } : {}),
-      ...row, customized: true };
+    if (original && ['kind', 'label', 'note', 'variants'].every(key =>
+      JSON.stringify(row[key] ?? null) === JSON.stringify(original[key] ?? null)))
+      return { ...structuredClone(original), start: row.start, end: row.end, customized: true };
+    return { ...row, customized: true };
   });
 }
 

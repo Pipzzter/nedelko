@@ -1,4 +1,4 @@
-import { skopjeParts } from '../config/index.js';
+import { skopjeParts, POLICY } from '../config/index.js';
 import { planningWeekDates, findOpenActivityWindow } from './planner.js';
 import { validateSettings, validateTimeline, minutes, timeLabel, invalid } from './settings.js';
 import { validateCurriculum, SNOW_LESSON, holidayLesson, lessonCoversOccasion } from './curriculum.js';
@@ -141,6 +141,7 @@ function outdoorSlots(settings, conditions, date) {
 // Model input contains logistics-only forecast context. The server has already applied air and weather gates.
 export function outdoorPlanningContext(dates, input, conditions) {
   const settings = validateSettings(input);
+  settings.blocks = resolveTimelineOverlaps(settings.blocks);
   return dates.map((date) => {
     const summary = weatherSummary(conditions, date, settings);
     const best = outdoorSlots(settings, conditions, date)[0];
@@ -161,6 +162,7 @@ export function outdoorPlanningContext(dates, input, conditions) {
 
 function createTimeline(settings, theme, conditions, date, index, authored) {
   if (authored != null) return resolveTimelineOverlaps(validateTimeline(authored));
+  settings = { ...settings, blocks: resolveTimelineOverlaps(settings.blocks) };
   const basic = { ...settings, blocks: settings.blocks.map((b) => ({ ...b, label: b.label.mk })) };
   let slot = findOpenActivityWindow(basic, conditions, { date, useCurrentTime: false });
   const candidates = outdoorSlots(settings, conditions, date);
@@ -499,6 +501,7 @@ export function dashboard(week, conditions) {
     mode: conditions.mode,
     calendar: dates.map(date => ({ date, summary: weatherSummary(conditions, date, summaryHours(week?.days.find(day => day.date === date), week?.settings)) })),
     environment: {
+      freshnessMinutes: POLICY.freshnessMinutes,
       location: conditions.location,
       assessment,
       clock: conditions.clock,
@@ -542,7 +545,10 @@ function adaptPlannedDay({ day, conditions, week, today, finishedToday, local, c
   day.snow = !!evidence?.snow;
   day.provisional = day.date !== today;
   day.activity = plannedActivity({ day });
-  if (day.authoredTimeline) return;
+  if (day.authoredTimeline) {
+    adaptOccasionActivities(day, week.settings, today, local.minutes, { annotateOnly: true });
+    return;
+  }
   adaptActivities(day, (week.days.indexOf(day) + (week.variant || 0)) % 5, today, local.minutes);
   adaptOccasionActivities(day, week.settings, today, local.minutes);
   diversifyActivities(day, (week.days.indexOf(day) + (week.variant || 0)) % 5, today, local.minutes);

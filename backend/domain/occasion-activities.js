@@ -32,11 +32,10 @@ export function occasionDiscussion(events, date) {
 }
 
 // Add discussion within an existing slot. Never add time, infer closures or overwrite a teacher's lesson.
-export function adaptOccasionActivities(day, settings, today, clockMinutes) {
+export function adaptOccasionActivities(day, settings, today, clockMinutes, { annotateOnly = false } = {}) {
   if (!day.theme || day.closed || day.date < today) return;
   const upcoming = (row) => day.date > today || minutes(row.start) > clockMinutes;
   const events = [...(day.preparationFor ? [day.preparationFor] : []), ...(day.occasions || [])];
-  const eco = day.timeline.find((row) => row.kind === 'eco');
   for (const row of day.timeline.filter((row) => upcoming(row) && !row.customized)) {
     delete row.occasionIds;
     delete row.occasionDiscussion;
@@ -45,10 +44,12 @@ export function adaptOccasionActivities(day, settings, today, clockMinutes) {
   for (const event of events) {
     if (day.timeline.some((row) => row.customized && row.occasionIds?.includes(event.id))) continue;
     if (day.timeline.some((row) => !upcoming(row) && row.occasionIds?.includes(event.id))) continue;
-    if (eco && covers(day.theme, event, settings)) {
+    const eco = day.timeline.find(row => row.kind === 'eco' && upcoming(row) && covers(row.lesson || row.variants || day.theme, event, settings));
+    if (eco) {
       eco.occasionIds = [...new Set([...(eco.occasionIds || []), event.id])];
     } else missing.push(event);
   }
+  if (annotateOnly) return;
   if (!missing.length) return;
   const rows = day.timeline.filter(upcoming);
   const available = rows.filter((row) => row.kind === 'activity' && row.activityRole && !row.customized);

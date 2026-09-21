@@ -80,8 +80,7 @@ export function DayPlan({
     rows[0];
   const isEco = selected?.kind === 'eco';
   const activityMode = day.mode === 'outside' ? 'outside' : 'inside';
-  let description = selected?.note;
-  if (!description && isEco) description = selected.lesson?.[activityMode] || day.activity || day.theme?.inside;
+  const description = isEco ? (selected.lesson || selected.variants || day.theme)?.[activityMode] : selected?.note;
   const title = (row) => text(row.label, lang);
   const discussion = selected?.occasionDiscussion;
   const upcoming = (row) => day.date > now.date || (day.date === now.date && row.start > now.time);
@@ -374,7 +373,7 @@ function renderActivityContent({
   contentEditable,
   upcoming
 }) {
-  const theme = selected.lesson || day.theme;
+  const theme = selected.lesson || { ...day.theme, ...selected.variants };
   return html`
     <div class="activity-content">
       <p class="activity-summary">${text(description, lang) || t('description_' + selected.kind, lang)}</p>
