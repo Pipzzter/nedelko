@@ -39,7 +39,7 @@ test('a valid week arriving after the former 45-second deadline is accepted; the
   assert.equal((await delayed).source, 'ai');
   respond = false;
   const stalled = createCurriculum(dates, DEFAULT_SETTINGS);
-  t.mock.timers.tick(180001);
+  t.mock.timers.tick(220001);
   const failure = await stalled;
   assert.equal(failure.source, 'library'); assert.equal(failure.generationIssue, 'ai_timeout');
 });
@@ -52,12 +52,12 @@ test('bilingual curriculum generation ranks server-eligible outdoor days and kee
   const result = await createCurriculum(dates, { ...DEFAULT_SETTINGS, groupName: 'PRIVATE-GROUP-NAME' }, { outdoorContext });
   assert.equal(result.source, 'ai'); assert.equal(result.themes.length, 5);
   assert.deepEqual(result.outdoorOrder, dates); assert.equal(result.outdoorDecisionSource, 'ai');
-  assert.equal(sent.store, false); assert.equal(sent.max_output_tokens, 10000); assert.equal(sent.text.format.strict, true);
+  assert.equal(sent.store, false); assert.equal(sent.max_output_tokens, 12000); assert.equal(sent.text.format.strict, true);
   assert.deepEqual(sent.text.format.schema.properties.outdoorOrder.items.enum, dates);
   const lessonSchema = sent.text.format.schema.properties.themes.items.properties;
   assert.deepEqual(lessonSchema.materials.items.enum, DEFAULT_SETTINGS.materials);
-  for (const [field, limit] of [['title', 100], ['goal', 220], ['inside', 400], ['outside', 400], ['habit', 180]]) {
-    for (const lang of ['mk', 'en']) assert.deepEqual(lessonSchema[field].properties[lang], { type: 'string', minLength: 1, maxLength: limit });
+  for (const [field, limit] of [['title', 100], ['goal', 220], ['inside', 1200], ['outside', 1200], ['habit', 180]]) {
+    for (const lang of ['mk', 'en']) assert.deepEqual(lessonSchema[field].properties[lang], { type: 'string', minLength: ['inside', 'outside'].includes(field) ? 160 : 1, maxLength: limit });
   }
   assert.equal(lessonSchema.dayActivities.properties.circle.properties.en.maxLength, 100);
   const modelInput = JSON.parse(sent.input);

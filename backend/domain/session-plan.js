@@ -7,6 +7,12 @@ export function learningText(value, limit) {
   return result;
 }
 
+export function activityDescription(value) {
+  const result = learningText(value, 1200);
+  if (Object.values(result).some(text => text.length < 160 || (text.match(/[.!?](?:\s|$)/gu) || []).length < 3)) throw invalid('activity_detail_required');
+  return result;
+}
+
 export function validateSessions(value, planningDays, themes, dates) {
   const slots = planningDays.flatMap(day => day.slots.filter(row => row.kind === 'activity').map(row => ({ date: day.date, id: row.id })));
   if (!Array.isArray(value) || value.length !== slots.length) throw invalid('invalid_curriculum');
@@ -15,7 +21,7 @@ export function validateSessions(value, planningDays, themes, dates) {
     const key = `${item?.date}/${item?.slotId}`;
     if (used.has(key) || !slots.some(slot => slot.date === item?.date && slot.id === item?.slotId)) throw invalid('invalid_curriculum');
     used.add(key);
-    const title = learningText(item.title, 100); const description = learningText(item.description, 280);
+    const title = learningText(item.title, 100); const description = activityDescription(item.description);
     const dayTitles = titles.get(item.date) || Object.fromEntries(['mk', 'en'].map(lang => [lang, new Set([titleKey(themes[dates.indexOf(item.date)].title[lang])])]));
     for (const lang of ['mk', 'en']) {
       if (dayTitles[lang].has(titleKey(title[lang]))) throw invalid('duplicate_activity');

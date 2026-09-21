@@ -10,6 +10,6 @@ export async function api(path, body) {
   }
   let result; try { result = await response.json(); } catch { throw Object.assign(new Error('unexpected_error'), { code: 'unexpected_error' }); }
   if (!response.ok) throw Object.assign(new Error(result.error), { code: result.error, status: response.status,
-    generationIssue: result.generationIssue, generationError: result.generationError });
+    generationIssue: result.generationIssue, generationError: result.generationError, timing: result.timing });
   return result;
 }

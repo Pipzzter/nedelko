@@ -2,6 +2,7 @@ import { skopjeParts } from '../config/index.js';
 import { invalid, minutes, validateTimeline } from './settings.js';
 import { validateCurriculum } from './curriculum.js';
 import { learningText, titleKey } from './session-plan.js';
+import { enforceTiming } from './schedule-timing.js';
 
 export const protectedActivity = row => ['meal', 'rest', 'routine'].includes(row.kind) || !!row.occasionIds?.length;
 export const rowContent = row => structuredClone({ id: row.id, start: row.start, end: row.end, kind: row.kind, label: row.label, note: row.note || null });
@@ -29,11 +30,12 @@ export function validateDayChange(day, settings, request, change, clock) {
       next.theme = theme; next.baseTheme = structuredClone(theme); next.themePinned = true;
       next.timeline = next.timeline.map(item => item.id === row.id ? { ...item, label: theme.title, customized: true } : item);
     } else {
-      const label = learningText(change?.label, 100); const note = learningText(change?.note, 280);
+      const label = learningText(change?.label, 100); const note = learningText(change?.note, 1200);
       next.timeline = next.timeline.map(item => item.id === row.id ? { ...item, label, note, customized: true } : item);
     }
   } else if (request.scope === 'schedule') {
     const rows = validateTimeline(change?.timeline, settings);
+    enforceTiming(request.timingTargets, rows, settings);
     if (!rows.length || rows[0].start !== settings.dayStart || rows.at(-1).end !== settings.dayEnd ||
         rows.some((row, i) => i && row.start !== rows[i - 1].end)) throw invalid('schedule_gaps');
     const [theme] = validateCurriculum([change?.theme], settings, { count: 1 });
@@ -53,7 +55,7 @@ export function validateDayChange(day, settings, request, change, clock) {
       if (day.date === local.date && minutes(row.start) <= local.minutes) throw invalid('activity_finished', 409);
       const raw = change.timeline.find(item => item.id === row.id);
       const label = row.kind === 'eco' ? theme.title : learningText(row.label, 100);
-      const note = raw.note == null ? undefined : learningText(raw.note, 280);
+      const note = raw.note == null ? undefined : learningText(raw.note, 1200);
       return { ...original, ...row, label, ...(note ? { note } : {}), customized: true };
     });
     next.theme = theme; next.baseTheme = structuredClone(theme); next.themePinned = true;
