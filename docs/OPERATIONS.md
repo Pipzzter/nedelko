@@ -69,3 +69,5 @@ Schedule proposals expire after ten minutes or any change to the saved revision.
 ## Planning navigation
 
 Home contains setup, the calendar, selected-day editing, messages and sharing. **Manage week** contains **Regenerate week** and **Delete week**. Cancelling or failed regeneration preserves the saved plan. Deletion requires confirmation and retains settings. Older weekly-plan URLs open Home; create URLs open the inline setup state.
+
+Parent notes are stored in the `parent_notes` table in the same account database. An owner can read their inbox across saved weeks; anonymous parent links can only submit a note to their linked week. Notes are limited to 1,200 characters, 30 submissions per link per hour and 250 notes per week. A note submission ID makes retries idempotent. Parent links remain read-only for all plan changes. Demo notes disappear on restart. Include `parent_notes` when deliberately resetting local application data; restarting normally must retain it.

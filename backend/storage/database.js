@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
+import { parentNoteStore } from './parent-notes.js';
 
 export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuvar.sqlite', import.meta.url))) {
   if (filename !== ':memory:') mkdirSync(dirname(filename), { recursive: true });
@@ -29,6 +30,7 @@ export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuva
       week_start TEXT NOT NULL, expires_at INTEGER NOT NULL, UNIQUE(user_id, week_start)
     );`);
   return {
+    ...parentNoteStore(db),
     db,
     userByName: username => db.prepare('SELECT * FROM users WHERE username = ?').get(username),
     addUser(user) { db.prepare('INSERT INTO users VALUES (?, ?, ?, ?, ?)').run(user.id, user.username, user.displayName, user.hash, Date.now()); },
@@ -88,7 +90,7 @@ export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuva
       // Keep only the revision as a tombstone, so stale tabs cannot edit a regenerated week.
       const removed = !!db.prepare("UPDATE weeks SET payload = 'null', revision = revision + 1 WHERE user_id = ? AND week_start = ? AND revision = ? AND payload != 'null'")
         .run(userId, start, expectedRevision).changes;
-      if (removed) this.revokeShare(userId, start);
+      if (removed) { this.revokeShare(userId, start); this.deleteParentNotes(userId, start); }
       return removed;
     },
     close() { db.close(); },

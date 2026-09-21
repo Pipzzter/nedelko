@@ -6,7 +6,7 @@ import { randomUUID, randomInt, randomBytes } from 'node:crypto';
 import { LOCATIONS, skopjeParts, POLICY, SCENARIOS } from '../config/index.js';
 import { demoWeekById, demoWeekOptions, DEFAULT_DEMO_WEEK } from '../config/demo.js';
 import { prepareDemoWeek } from '../domain/demo-week.js';
-import { DEFAULT_SETTINGS, MATERIALS, validateSettings, validateGenerationSettings, invalid, minutes, teacherInstruction } from '../domain/settings.js';
+import { DEFAULT_SETTINGS, MATERIALS, validateSettings, validateGenerationSettings, invalid, minutes, teacherInstruction, pair } from '../domain/settings.js';
 import { planningWeekDates } from '../domain/planner.js';
 import { createWeek, adaptWeek, editWeek, dashboard, outdoorPlanningContext, dailyPlanningContext, replaceDayTheme, applyDayChange } from '../domain/week.js';
 import { getConditions } from '../services/conditions.js';
@@ -22,12 +22,14 @@ import { calendarSnapshot } from '../domain/holidays.js';
 import { register, login, tokenHash, readSessionCookie, createSession } from '../services/auth.js';
 import { openStore } from '../storage/database.js';
 import { securityHeaders, jsonBody, rateLimiter } from './security.js';
+import { validateParentNote, informationalNote } from '../domain/parent-notes.js';
+import { suggestParentNote } from '../services/parent-notes.js';
 
 const FRONTEND = fileURLToPath(new URL('../../frontend/', import.meta.url));
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 
 export function createApp({ store = openStore(), conditionsProvider = getConditions, curriculumProvider = createCurriculum,
-  dayCurriculumProvider = createDayCurriculum, dayPlanProvider = suggestDayPlan, holidayProvider = getHolidayCalendar, autoRefreshMs = 0 } = {}) {
+  dayCurriculumProvider = createDayCurriculum, dayPlanProvider = suggestDayPlan, noteAdviceProvider = suggestParentNote, holidayProvider = getHolidayCalendar, autoRefreshMs = 0 } = {}) {
   const limit = rateLimiter(); const demos = new Map(); const locks = new Map(); const proposals = new Map();
   const withLock = async (key, operation) => {
     if (locks.has(key)) throw invalid('operation_pending', 409);
@@ -60,6 +62,17 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
     return { ...dashboard(week, conditions), demoId, share: sharing(user, demoId, week),
       profile: !demoId && user ? store.profile(user.id) : null,
       ...(demoId ? { demoScenario: demoRecord(demoId).scenario || 'normal' } : {}) };
+  }
+  function notesFor(user, demoId, week) {
+    return demoId ? (demoRecord(demoId).notes || []).map(({ nonce: _nonce, ...note }) => note).sort((a, b) => b.createdAt.localeCompare(a.createdAt)) : store.parentNotes(user.id);
+  }
+  function noteSnapshot(user, demoId, week) {
+    const notes = notesFor(user, demoId, week); return { notes, unread: notes.filter(note => !note.readAt).length };
+  }
+  function updateNote(user, demoId, week, note, status, advice) {
+    if (demoId) Object.assign(demoRecord(demoId).notes.find(item => item.id === note.id), { readAt: note.readAt || new Date().toISOString(), ...(status ? { status, advice } : {}) });
+    else if (status) store.updateParentNote(user.id, note.weekStart, note.id, status, advice);
+    else store.readParentNote(user.id, note.weekStart, note.id);
   }
   async function refreshStoredWeek(userId, start) {
     return withLock(userId, async () => {
@@ -96,6 +109,26 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
       if (request.method === 'GET' && url.pathname === '/api/config') return send(200, { locations: LOCATIONS, defaults: DEFAULT_SETTINGS, materials: MATERIALS, ai: aiStatus(), demoWeeks: demoWeekOptions(), defaultDemoWeek: DEFAULT_DEMO_WEEK, demoScenarios: SCENARIOS, version: '1.0.0' });
       if (url.pathname.startsWith('/api/parents/')) {
         response.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        const noteMatch = url.pathname.match(/^\/api\/parents\/([a-f0-9]{64})\/notes$/);
+        if (noteMatch && request.method === 'POST') {
+          const input = await jsonBody(request); const token = noteMatch[1];
+          limit(`parent-note:${token}`, 30, 3600000);
+          for (const record of demos.values()) {
+            if (record.parentToken !== token) continue;
+            if (Date.now() - record.at > 3600000 || !record.week) throw invalid('parent_link_unavailable', 404);
+            const fields = validateParentNote(input, record.week); record.notes ||= [];
+            const duplicate = record.notes.find(note => note.nonce === fields.nonce);
+            if (duplicate) return send(200, { received: true });
+            if (record.notes.length >= 250) throw invalid('parent_note_limit', 429);
+            record.notes.push({ ...fields, weekStart: record.week.weekStart, id: randomUUID(), createdAt: new Date().toISOString(), readAt: null, status: 'new', advice: null });
+            return send(201, { received: true });
+          }
+          const owner = store.sharedWeek(token);
+          const week = owner && store.week(owner.userId, owner.weekStart);
+          if (!owner || !week) throw invalid('parent_link_unavailable', 404);
+          store.addParentNote(owner.userId, owner.weekStart, validateParentNote(input, week));
+          return send(201, { received: true });
+        }
         if (request.method !== 'GET') throw invalid('method_not_allowed', 405);
         const token = url.pathname.slice('/api/parents/'.length);
         if (!/^[a-f0-9]{64}$/.test(token)) throw invalid('parent_link_unavailable', 404);
@@ -148,6 +181,66 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
       const scenario = demoId ? body.scenario || url.searchParams.get('scenario') || demoRecord(demoId).scenario || 'normal' : 'normal';
       if (!SCENARIOS.includes(scenario)) throw invalid('invalid_scenario');
       const demoWeek = demoId ? demoRecord(demoId).demoWeek : undefined;
+      if (url.pathname === '/api/parent-notes' && request.method === 'GET') return send(200, noteSnapshot(user, demoId, currentWeek()));
+      if (request.method === 'POST' && ['/api/parent-notes/read', '/api/parent-notes/suggest', '/api/parent-notes/apply'].includes(url.pathname)) {
+        return await withLock(demoId || user.id, async () => {
+          const week = currentWeek();
+          if (url.pathname.endsWith('/read')) {
+            const note = notesFor(user, demoId, week).find(note => note.id === body.noteId);
+            if (!note) throw invalid('parent_note_unavailable', 404);
+            updateNote(user, demoId, week, note); return send(200, noteSnapshot(user, demoId, week));
+          }
+          if (!week) throw invalid('no_plan', 404);
+          const owner = demoId || user.id;
+          if (url.pathname.endsWith('/apply')) {
+            const proposal = proposals.get(body.proposalId);
+            if (!proposal || proposal.type !== 'parent-note' || proposal.owner !== owner || proposal.expiresAt <= Date.now() || proposal.revision !== week.revision || body.revision !== week.revision) throw invalid('proposal_expired', 409);
+            const note = notesFor(user, demoId, week).find(note => note.id === proposal.noteId);
+            if (!note || note.weekStart !== week.weekStart || note.status === 'applied') throw invalid('proposal_expired', 409);
+            const conditions = await conditionsProvider({ locationId: week.settings.locationId, mode, scenario, demoWeek, fresh: true });
+            let next;
+            if (proposal.scope === 'inside') {
+              const day = week.days.find(day => day.date === proposal.date);
+              assertUpcoming(day, conditions.clock, day.timeline.find(row => row.kind === 'eco'));
+              next = editWeek(week, { settings: week.settings, days: week.days.map(day => day.date === proposal.date ? { ...day, outdoorPreference: 'inside' } : day) }, conditions);
+            } else next = applyDayChange(week, proposal, conditions);
+            next = save(user, demoId, next, week.revision);
+            updateNote(user, demoId, week, note, 'applied', proposal.advice); proposals.delete(body.proposalId);
+            return send(200, present(next, conditions, user, demoId));
+          }
+          const note = notesFor(user, demoId, week).find(note => note.id === body.noteId);
+          if (!note) throw invalid('parent_note_unavailable', 404);
+          if (body.revision !== week.revision) throw invalid('plan_changed', 409);
+          if (note.status === 'applied') throw invalid('proposal_expired', 409);
+          limit(`ai-note:${owner}`, 12, 3600000);
+          const clock = demoId ? week.clock : new Date().toISOString();
+          const advice = (note.weekStart !== week.weekStart ? { kind: 'informational', explanation: pair('Белешката се однесува на друга недела. Прочитајте ја како информација; нема да го менуваме тековниот план.', 'This note concerns another week. Review it as information; the current plan will not be changed.') } : informationalNote(note.text)) || await noteAdviceProvider(note, week, { useAI: !demoId, clock });
+          if (!['informational', 'actionable'].includes(advice.kind)) return send(503, { error: 'ai_day_failed', generationIssue: advice.generationIssue || 'ai_invalid_output' });
+          const publicAdvice = { kind: advice.kind, explanation: advice.explanation };
+          if (advice.kind === 'informational') {
+            updateNote(user, demoId, week, note, 'informational', publicAdvice);
+            return send(200, { advice: publicAdvice, proposal: null });
+          }
+          const day = week.days.find(day => day.date === advice.date);
+          if (!['activity', 'schedule', 'inside'].includes(advice.scope)) throw invalid('invalid_note_advice');
+          const row = day?.timeline.find(row => row.id === (advice.scope === 'inside' ? 'eco' : advice.rowId));
+          if (advice.scope !== 'schedule' && !row) throw invalid('invalid_timeline');
+          assertUpcoming(day, clock, advice.scope === 'schedule' ? undefined : row);
+          let result; let preview;
+          if (advice.scope === 'inside') preview = day;
+          else {
+            result = await dayPlanProvider(day, week.settings, { scope: advice.scope, rowId: advice.rowId, instruction: teacherInstruction(advice.instruction), clock, useAI: !demoId, weekDays: week.days });
+            if (!result.change) return send(503, { error: 'ai_day_failed', generationIssue: result.generationIssue });
+            preview = validateDayChange(day, week.settings, { ...advice, timingTargets: result.timingTargets }, result.change, clock);
+          }
+          for (const [id, pending] of proposals) if (pending.expiresAt <= Date.now() || proposals.size >= 100) proposals.delete(id);
+          const proposalId = randomUUID();
+          const proposal = { type: 'parent-note', owner, noteId: note.id, revision: week.revision, date: day.date, scope: advice.scope, rowId: advice.rowId,
+            change: result?.change, timingTargets: result?.timingTargets || [], source: result?.source || 'teacher', advice: publicAdvice, expiresAt: Date.now() + 10 * 60000 };
+          proposals.set(proposalId, proposal); updateNote(user, demoId, week, note, 'suggested', publicAdvice);
+          return send(200, { advice: publicAdvice, proposal: { proposalId, date: day.date, scope: proposal.scope, timeline: preview.timeline, theme: preview.theme, timingTargets: proposal.timingTargets } });
+        });
+      }
       if (request.method === 'GET' && url.pathname === '/api/holidays') {
         if (demoId) demoRecord(demoId);
         const year = Number(url.searchParams.get('year'));
@@ -275,7 +368,7 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
           const old = currentWeek();
           if (!old) throw invalid('no_plan', 404);
           if (old.revision !== body.revision) throw invalid('plan_changed', 409);
-          if (demoId) { const record = demoRecord(demoId); record.week = null; record.parentToken = null; record.revision++; }
+          if (demoId) { const record = demoRecord(demoId); record.week = null; record.parentToken = null; record.notes = []; record.revision++; }
           else if (!store.deleteWeek(user.id, old.weekStart, old.revision)) throw invalid('plan_changed', 409);
           return send(200, { week: null, settings: old.settings });
         });
