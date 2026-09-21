@@ -224,7 +224,7 @@ function renderTimelineRow({
         <span class="timeline-time">${row.start}<small>${row.end}</small></span
         ><span class="activity-icon"><${Icon} name=${activityIcon({ row })} size=${18} /></span
         ><span class="timeline-description"
-          ><span>${title(row)}</span>${row.occasionIds?.length && html`
+          ><span>${title(row)}</span>${row.occasionIds?.length > 0 && html`
  <small>${t('occasion', lang)}</small>
 `}${
             row.kind === 'eco' && html`
