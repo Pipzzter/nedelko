@@ -44,18 +44,9 @@ export function CreatePlan({ config, lang, initial, onGenerate, onCancel, busy, 
   const selectedLocation = config.locations.find(location => location.id === settings.locationId);
   return html`
     <form class="plan-builder" novalidate onSubmit=${submit}>
-      <div class="planning-welcome">
-        <span class="welcome-symbol"><${Icon} name="leaf" size=${29} /></span>
-        <div>
-          <span class="eyebrow">${t('startHere', lang)}</span>
-          <h2>${t('planningWelcome', lang)}</h2>
-          <p>${t('planningIntro', lang)}</p>
-        </div>
-      </div>
       ${replacing && html`
  <p class="alert planning-replace">${t('regenerateHelp', lang)}</p>
 `}
-      <p class="required-legend">${t('requiredLegend', lang)}</p>
       ${
         attempted &&
         issues.length > 0 &&
@@ -135,7 +126,7 @@ export function CreatePlan({ config, lang, initial, onGenerate, onCancel, busy, 
               </div>
               <div>
                 <dt>${t('materials', lang)}</dt>
-                <dd>${settings.materials.length}/${config.materials.length}</dd>
+                <dd>${settings.materials.length}/${(config.materials.length + (settings.customMaterials?.length || 0))}</dd>
               </div>
             </dl>
           </div>

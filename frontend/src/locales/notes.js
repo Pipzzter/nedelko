@@ -7,7 +7,7 @@ export const notesCopy = {
   parentNoteSent: ['Белешката е испратена до воспитувачот.', 'Your note has reached the teacher.'],
   unreadNotes: ['непрочитани белешки', 'unread notes'], unread: ['Непрочитана', 'Unread'],
   noParentNotes: ['Сè уште нема белешки од родители.', 'No parent notes yet.'],
-  noteChangeRules: ['Белешките не го менуваат планот сами. Може да предложиме идни игри, распоред или ден внатре или надвор. Оброците, одморот, празниците и започнатите активности се заштитени. Индивидуалната грижа останува информација за воспитувачот. Секоја промена ја потврдувате вие.', 'Notes never edit the plan automatically. Suggestions can change upcoming games, schedules or a group’s indoor or outdoor preference. Meals, rest, holidays and started activities are protected. Individual care stays informational for the teacher. You confirm each change.'],
+  noteChangeRules: ['Белешките не го менуваат планот автоматски. Предлозите може да го променат преостанатиот распоред, вклучувајќи оброци и одмор. Започнатите активности остануваат исти. Индивидуалната грижа е информација за воспитувачот. Секоја промена ја потврдувате вие.', 'Notes never edit the plan automatically. Suggestions can change the remaining timetable, including meals and rest. Activities that have started stay unchanged. Individual care stays informational for the teacher. You confirm each change.'],
   applyNoteChange: ['Примени промена', 'Apply change'], noteChangeApplied: ['Промената е применета.', 'Change applied.'],
   removedActivity: ['Отстранета активност', 'Removed activity'],
   noteInsideChange: ['За овој ден ќе се избере планот внатре за целата група. Времињата остануваат исти.', 'Choose the indoor plan for the whole group on this day. Times stay the same.'],

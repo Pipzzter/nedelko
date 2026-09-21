@@ -6,7 +6,7 @@ export function ActivityEditor({ day, row, lang, materials, revision, busy, onSa
   const baseRevision = useRef(revision);
   const [draft, setDraft] = useState(() =>
     eco
-      ? { theme: structuredClone(day.theme), occasionDiscussion: row.occasionDiscussion }
+      ? { theme: structuredClone(row.lesson || day.theme), occasionDiscussion: row.occasionDiscussion }
       : {
           label: { ...row.label },
           note: row.note || { mk: t(`description_${row.kind}`, 'mk'), en: t(`description_${row.kind}`, 'en') },

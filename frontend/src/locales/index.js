@@ -151,7 +151,7 @@ const errors = {
   password_length: ['За нова сметка, лозинката треба да има 10–128 знаци.', 'For a new account, use a password of 10–128 characters.'], email_taken: ['Веќе постои градинка со оваа е-пошта.', 'A kindergarten with this email is already registered.'],
   kindergarten_details: ['Проверете ги името, возраста и локацијата на градинката.', 'Check the kindergarten name, age group and location.'],
   sign_in_required: ['Најавете се повторно за да продолжите.', 'Please sign in again to continue.'],
-  overlapping_times: ['Две активности се преклопуваат. Променете ги времињата.', 'Two activities overlap. Please adjust their times.'], time_bounds: ['Проверете ги времињата. Активностите мора да бидат во текот на работниот ден.', 'Check the times. Activities must fit within the kindergarten day.'],
+  overlapping_times: ['Две активности се преклопуваат. Променете ги времињата.', 'Two activities overlap. Please adjust their times.'], time_bounds: ['Проверете ги времињата. Крајот мора да биде по почетокот, во истиот календарски ден.', 'Check the times. Each activity must end after it starts, within the same calendar date.'],
   no_activity_space: ['Оставете слободен термин за еко-активноста.', 'Leave a free slot for the eco activity.'],
   plan_changed: ['Планот се променил во друга проверка. Освежете го пред повторно зачувување.', 'The plan changed during another check. Refresh before saving again.'],
   recheck_required: ['Направете нова проверка денес пред да ја одобрите пораката.', 'Run a fresh check today before approving the message.'],

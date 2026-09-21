@@ -37,11 +37,15 @@
   .brief-privacy { margin-top:13px; padding:13px 15px; background:#f4f6ec; border-radius:10px; line-height:1.7; }
   .plan-builder .materials-select { border:0; border-top:1px solid var(--line); padding:24px 0 0; min-width:0; margin:27px 0; }
   .plan-builder .materials-select legend { font-weight:600; font-size:14px; padding:0 12px 0 0; }
-  .plan-builder .material-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
-  .plan-builder .material-options label { display:flex; align-items:center; gap:10px; padding:15px 13px; min-height:58px; background:#fafbf5; border-radius:13px; font-size:12px; line-height:1.5; color:#5c6952; position:relative; }
+  .plan-builder .material-options { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+  .plan-builder .material-options label { display:flex; align-items:center; gap:7px; padding:6px 9px; min-height:34px; max-width:100%; background:#fafbf5; border-radius:8px; font-size:12px; line-height:1.35; color:#5c6952; position:relative; cursor:pointer; }
   .plan-builder .material-options label:hover { border-color:#9aaa88; }
   .plan-builder .material-options label.chosen { background:#ecf2e3; border-color:#aabd97; color:#36532c; }
   .plan-builder .material-options input { width:18px; height:18px; min-height:18px; margin:0; }
+  .add-material { display:flex; align-items:flex-end; gap:8px; margin-top:14px; }
+  .add-material label { flex:1; min-width:0; }
+  .plan-builder .add-material input { min-height:40px; padding:8px 10px; }
+  .add-material .button { min-height:40px; padding:8px 12px; }
   .choice-tick { display:none; margin-left:auto; flex-shrink:0; }.chosen .choice-tick { display:block; }
   .plan-builder .weather-preferences { margin-top:25px; padding-top:16px; }
   .plan-builder .weather-preferences summary { display:flex; justify-content:space-between; align-items:center; gap:13px; min-height:56px; padding:9px 0; list-style:none; color:#4d6245; font-size:13px; }
@@ -90,7 +94,7 @@
     .planning-welcome { padding:23px; gap:14px; }.welcome-symbol { width:42px; height:42px; border-radius:14px; }.planning-welcome h2 { font-size:22px; }.planning-welcome p { font-size:12px; }
     .planning-section { padding:22px 19px; }.planning-section-heading { gap:12px; }.planning-section-heading h2 { font-size:20px; }.plan-builder .form-grid { grid-template-columns:1fr; gap:21px; }.plan-builder .span-2 { grid-column:auto; }
     .plan-builder input:not([type=checkbox]),.plan-builder select,.plan-builder textarea { font-size:16px; }
-    .plan-builder .material-options { grid-template-columns:1fr 1fr; gap:8px; }.plan-builder .material-options label { padding:13px 10px; font-size:12px; }.choice-tick { display:none !important; }
+    .plan-builder .material-options label { padding:8px; min-height:40px; font-size:12px; }.choice-tick { display:none !important; }
     .plan-builder .routine-editor summary { flex-wrap:wrap; padding:14px; gap:10px; }.routine-summary-name { flex-basis:60%; }.plan-builder .routine-editor time { margin-left:50px; }.plan-builder .routine-editor summary > svg { margin-left:auto; }.routine-edit-body { padding:16px; }
     .planning-companion { grid-template-columns:1fr; }.planning-progress { grid-row:auto; }
     .plan-save-bar { flex-direction:column; align-items:stretch; gap:13px; padding:16px; bottom:8px; }.plan-save-bar > p { max-width:none; }.plan-save-bar > div { display:grid; grid-template-columns:auto 1fr; }.plan-save-bar .button { padding:11px 14px; }

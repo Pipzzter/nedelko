@@ -5,7 +5,7 @@ import { html, render, localizedDate } from '../src/lib/ui.js';
 import { InlineText } from '../src/components/InlineText.js';
 import { DayAssistant } from '../src/components/DayAssistant.js';
 import { WeekActions } from '../src/components/WeekActions.js';
-import { PairInput, SettingsForm } from '../src/components/SettingsForm.js';
+import { PairInput, SettingsForm, MaterialPicker } from '../src/components/SettingsForm.js';
 import { ParentNoteForm } from '../src/components/ParentNoteForm.js';
 import { ParentShare } from '../src/components/ParentShare.js';
 import { AirCard } from '../src/components/AirCard.js';
@@ -14,7 +14,6 @@ import { Auth } from '../src/pages/Auth.js';
 import { focusPlanField } from '../src/lib/plan-form.js';
 import { LOCATIONS } from '../../backend/config/index.js';
 import { ActivityEditor } from '../src/components/ActivityEditor.js';
-import { ScheduleEditor } from '../src/components/ScheduleEditor.js';
 import { DayPlan } from '../src/components/DayPlan.js';
 import { DEFAULT_SETTINGS, MATERIALS } from '../../backend/domain/settings.js';
 import { localCurriculum } from '../../backend/domain/curriculum.js';
@@ -38,6 +37,33 @@ function dom(t) {
   };
   return { root, fire, wait };
 }
+
+test('teachers add and select a custom classroom tool with Enter without submitting the plan', async t => {
+  const { root, fire, wait } = dom(t);
+  let value = structuredClone(DEFAULT_SETTINGS);
+  const paint = () => render(html`<${MaterialPicker} value=${value} config=${{ materials: MATERIALS }} lang="en"
+    onChange=${next => { value = next; paint(); }}/>`, root);
+  paint();
+  const input = root.querySelector('#new-material');
+  assert.equal(root.querySelector('button').disabled, true);
+  input.value = 'Magnifying glasses'; fire(input, 'input');
+  await wait(() => !root.querySelector('button').disabled);
+  const event = fire(input, 'keydown', { key: 'Enter' });
+  assert.equal(event.defaultPrevented, true);
+  await wait(() => value.customMaterials.length === 1);
+  const custom = value.customMaterials[0];
+  assert.ok(value.materials.includes(custom.id));
+  assert.equal(custom.label.en, 'Magnifying glasses');
+  assert.equal(root.querySelector('#new-material').value, '');
+  input.value = 'Magnifying glasses'; fire(input, 'input');
+  await wait(() => !root.querySelector('button').disabled);
+  fire(root.querySelector('button'), 'click');
+  assert.equal(value.customMaterials.length, 1, 'adding an existing name selects the same tool');
+  const checkbox = root.querySelector(`input[value="${custom.id}"]`);
+  checkbox.checked = false; fire(checkbox, 'change');
+  assert.equal(value.materials.includes(custom.id), false);
+  assert.ok(root.querySelector(`input[value="${custom.id}"]`), 'unselected custom tools stay available');
+});
 
 test('inline editing preserves typing, supports cancel and distinguishes multiline Enter from commit', async t => {
   const { root, fire } = dom(t); let begins = 0; let commits = 0; let cancels = 0; let draft;
@@ -156,18 +182,6 @@ test('eco detail editing exposes both alternatives, goals, materials and holiday
   assert.ok(root.textContent.includes('A habit for home'));
 });
 
-test('schedule time edits show propagated boundaries and require review before saving', async t => {
-  const { root, fire, wait } = dom(t); let saved;
-  render(html`<${ScheduleEditor} day=${editableDay()} clock="2026-09-21T06:00:00Z" lang="en" onSave=${value => { saved = value; }}/>`, root);
-  assert.equal(root.querySelector('input').disabled, true);
-  const field = root.querySelectorAll('input')[2]; field.value = '09:30'; fire(field, 'input');
-  await wait(() => !root.querySelector('button').disabled);
-  assert.match(root.querySelectorAll('li')[1].textContent, /09:30/);
-  fire(root.querySelector('button'), 'click'); await wait(() => root.querySelector('.schedule-review'));
-  assert.equal(saved, undefined); fire(root.querySelector('.primary'), 'click'); await wait(() => saved);
-  assert.deepEqual(saved.starts, ['08:00', '09:00', '09:30']); assert.equal(saved.action, 'timing');
-});
-
 test('top-level dragging and keyboard movement send complete row order; parent view exposes neither', async t => {
   const { root, fire, wait } = dom(t); const changes = []; const day = editableDay();
   const props = { day, data: { today: '2026-09-21', week: { settings: DEFAULT_SETTINGS } }, clock: '2026-09-21T06:00:00Z', lang: 'en', materials: MATERIALS, onEdit: request => changes.push(request) };
@@ -182,6 +196,17 @@ test('top-level dragging and keyboard movement send complete row order; parent v
   fire(root.querySelector('.edit-activity'), 'click'); await wait(() => root.querySelector('.activity-editor'));
   render(html`<${DayPlan} ...${props} onEdit=${undefined} readOnly=${true}/>`, root);
   assert.equal(root.querySelector('.edit-activity, .activity-editor, .reorder-controls, [draggable="true"]'), null);
+});
+
+test('empty upcoming days retain the prompt so a teacher can add activities again', async t => {
+  const { root, fire, wait } = dom(t);
+  const day = { ...editableDay(), timeline: [] };
+  render(html`<${DayPlan} day=${day} data=${{ today: '2026-09-21', week: { settings: DEFAULT_SETTINGS } }}
+    clock="2026-09-21T06:00:00Z" lang="en" materials=${MATERIALS} onSuggest=${async () => ({ proposalId: 'test' })} onApply=${async () => true}/>`, root);
+  assert.equal(root.querySelector('.timeline li'), null);
+  fire(root.querySelector('.change-schedule button'), 'click');
+  await wait(() => root.querySelector('.change-schedule textarea'));
+  assert.equal(root.querySelector('.schedule-editor, .place-options'), null);
 });
 
 test('parent notes mount without randomUUID and preserve a valid nonce when retrying a failed submission', async t => {

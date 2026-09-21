@@ -32,12 +32,12 @@ test('form validation reads the supplied configuration instead of retaining lite
   assert.deepEqual(planIssues(value, config), []);
   assert.ok(planIssues(value, changed).some(issue => issue.field === 'maxWindKmh'));
 });
-test('planning finds overlaps, missing translations and insufficient activity space before generation',()=>{
+test('planning validates translations and time integrity while allowing any default routine',()=>{
   const value=ready();value.blocks[1].start='08:45';value.blocks[0].label.en='';
-  assert.ok(planIssues(value,config).some(i=>i.key==='checkRoutineTimes'&&i.field==='routine-snack'));
+  assert.equal(planIssues(value,config).some(i=>i.key==='checkRoutineTimes'), false);
   assert.ok(planIssues(value,config).some(i=>i.key==='checkRoutineNames'));
   const full=ready();full.blocks=[{id:'all-day',start:'07:30',end:'16:00',label:{mk:'Рутина',en:'Routine'}}];
-  assert.ok(planIssues(full,config).some(i=>i.key==='checkActivitySpace'));
+  assert.deepEqual(planIssues(full,config), []);
   const reversed=ready();reversed.dayEnd='06:30';
   assert.ok(planIssues(reversed,config).some(i=>i.key==='checkDayTimes'));
 });

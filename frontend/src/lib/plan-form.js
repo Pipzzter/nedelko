@@ -10,18 +10,7 @@ export function planIssues(value, config, rhythmConfirmed = true) {
   const timesValid = validDayBounds({ value });
   if (!timesValid) add('dayStart', 'checkDayTimes', 2);
   const rows = [...value.blocks].sort((a, b) => a.start.localeCompare(b.start));
-  if (!['meal', 'rest'].every((kind) => rows.some((row) => row.kind === kind)))
-    add('routines', 'dailyRoutinesRequired', 2);
-  validateRoutineRows({ rows, add, value });
-  if (timesValid && !issues.some((i) => i.key === 'checkRoutineTimes')) {
-    let cursor = minutes(value.dayStart);
-    let gap = 0;
-    for (const row of rows) {
-      gap = Math.max(gap, minutes(row.start) - cursor);
-      cursor = minutes(row.end);
-    }
-    if (Math.max(gap, minutes(value.dayEnd) - cursor) < value.duration) add('routines', 'checkActivitySpace', 2);
-  }
+  validateRoutineRows({ rows, add });
   addPreferenceIssues(value.preferences, config.preferenceBounds, add);
   if (!rhythmConfirmed) add('rhythmConfirmed', 'confirmRhythmError', 2);
   return issues;
@@ -50,16 +39,13 @@ export function focusPlanField(field) {
   (control || target).focus?.({ preventScroll: true });
 }
 
-function validateRoutineRows({ rows, add, value }) {
-  for (const [i, row] of rows.entries()) {
+function validateRoutineRows({ rows, add }) {
+  for (const row of rows) {
     if (!row.label.mk?.trim() || !row.label.en?.trim()) add(`routine-${row.id}`, 'checkRoutineNames', 2);
     if (
       !timePattern.test(row.start) ||
       !timePattern.test(row.end) ||
-      row.start >= row.end ||
-      row.start < value.dayStart ||
-      row.end > value.dayEnd ||
-      (i > 0 && row.start < rows[i - 1].end)
+      row.start >= row.end
     )
       add(`routine-${row.id}`, 'checkRoutineTimes', 2);
   }

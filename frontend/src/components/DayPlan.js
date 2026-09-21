@@ -12,7 +12,7 @@ const shift = (time, delta) => {
 };
 function displayTimeline(day, lang) {
   const eco = day.timeline.find((row) => row.kind === 'eco');
-  if (day.mode !== 'outside' || !eco) return day.timeline;
+  if (day.authoredTimeline || day.mode !== 'outside' || !eco) return day.timeline;
   const startMinutes = Number(eco.start.slice(0, 2)) * 60 + Number(eco.start.slice(3));
   const endMinutes = Number(eco.end.slice(0, 2)) * 60 + Number(eco.end.slice(3));
   if (endMinutes - startMinutes < 30) return day.timeline;
@@ -79,14 +79,16 @@ export function DayPlan({
     rows.find((row) => row.kind === 'eco') ||
     rows[0];
   const isEco = selected?.kind === 'eco';
-  const description = isEco ? day.activity || day.theme?.inside : selected?.note;
-  const title = (row) => text(row.kind === 'eco' ? day.theme.title : row.label, lang);
+  const activityMode = day.mode === 'outside' ? 'outside' : 'inside';
+  let description = selected?.note;
+  if (!description && isEco) description = selected.lesson?.[activityMode] || day.activity || day.theme?.inside;
+  const title = (row) => text(row.label, lang);
   const discussion = selected?.occasionDiscussion;
   const upcoming = (row) => day.date > now.date || (day.date === now.date && row.start > now.time);
   const contentEditable =
-    onEdit && selected && (day.date > now.date || (day.date === now.date && selected.end > now.time));
+    onEdit && selected && (day.date > now.date || (day.date === now.date && selected.start > now.time));
   const editable =
-    selected && ['activity', 'eco'].includes(selected.kind) && !selected.occasionIds?.length && upcoming(selected);
+    selected && upcoming(selected);
   return html`
     <section class="card day-plan" id="day-plan">
       <div class="card-heading">
@@ -118,7 +120,7 @@ export function DayPlan({
           html`
             <label class="home-place"
               >${t('activityPlace', lang)}<select
-                disabled=${busy || day.date < now.date || (today && day.timeline.some((row) => row.kind === 'eco' && row.end <= now.time))}
+                disabled=${busy || day.date < now.date || (today && !day.timeline.some(row => row.kind === 'eco' && row.end > now.time))}
                 value=${day.outdoorPreference || 'auto'}
                 onChange=${(e) => onPlace(e.currentTarget.value)}
               >
@@ -372,6 +374,7 @@ function renderActivityContent({
   contentEditable,
   upcoming
 }) {
+  const theme = selected.lesson || day.theme;
   return html`
     <div class="activity-content">
       <p class="activity-summary">${text(description, lang) || t('description_' + selected.kind, lang)}</p>
@@ -384,6 +387,7 @@ function renderActivityContent({
       }
       ${
         isEco &&
+        !day.authoredTimeline &&
         day.mode === 'outside' &&
         html`
           <ol class="activity-transitions">
@@ -404,19 +408,19 @@ function renderActivityContent({
             html`
               <details class="indoor-backup" open>
                 <summary>${t('indoorBackup', lang)}</summary>
-                <p>${text(day.theme.inside, lang)}</p>
+                <p>${text(theme.inside, lang)}</p>
               </details>
 
 `
           }
           <div class="lesson-detail">
             <span>${t('goal', lang)}</span>
-            <p>${text(day.theme.goal, lang)}</p>
+            <p>${text(theme.goal, lang)}</p>
           </div>
           <div class="lesson-detail">
             <span>${t('materials', lang)}</span>
             <div class="material-tags">
-              ${day.theme.materials.map(
+              ${theme.materials.map(
                 (id) => html`
  <span key=${id}>${text(materials.find((m) => m.id === id)?.label, lang)}</span>
 `
@@ -428,7 +432,7 @@ function renderActivityContent({
 `}
           <div class="habit">
             <${Icon} name="leaf" size=${18} />
-            <p>${text(day.theme.habit, lang)}</p>
+            <p>${text(theme.habit, lang)}</p>
           </div>
 
 `
@@ -536,7 +540,7 @@ function renderDayActivities({
     </div>
     ${
       onSuggest &&
-      day.timeline.some(upcoming) &&
+      day.date >= now.date &&
       html`
         <${ChangeAssistant}
           key=${day.date}
@@ -547,11 +551,6 @@ function renderDayActivities({
           demo=${demo}
           onSuggest=${onSuggest}
           onApply=${onApply}
-          onPlace=${onPlace}
-          onEdit=${onEdit}
-          clock=${clock}
-          revision=${data.week.revision}
-          placeDisabled=${day.date < now.date || (today && day.timeline.some((row) => row.kind === 'eco' && row.end <= now.time))}
         />
 
 `

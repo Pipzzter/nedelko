@@ -122,7 +122,7 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   clickText('МК'); await wait(() => document.documentElement.lang === 'mk');
   assert.match(document.querySelector('.activity-summary').textContent, /Подготовка за оброкот/);
   clickText('EN'); await wait(() => document.documentElement.lang === 'en');
-  assert.equal(document.querySelector('.change-activity'), null, 'meal details have no AI control');
+  assert.ok(document.querySelector('.change-activity'), 'upcoming meal details are editable by prompt');
   assert.ok(document.querySelector('.edit-activity'), 'meal details have a pencil editor');
   document.querySelector('.edit-activity').dispatchEvent(new window.Event('click', { bubbles: true }));
   await wait(() => document.querySelector('.activity-editor textarea[lang="en"]'));
@@ -167,12 +167,9 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   await wait(() => document.querySelector('#activity-title').textContent === 'A musical game');
   assert.equal(document.querySelector('.change-activity textarea'), null);
   clickText('Change schedule'); await wait(() => document.querySelector('.change-schedule textarea'));
-  assert.ok(document.querySelector('.change-schedule .location-actions button'), 'the schedule assistant can move a day inside or outside');
+  assert.equal(document.querySelector('.change-schedule .location-actions, .change-schedule input[type=time]'), null, 'the schedule assistant only asks for the prompt');
   await enter('.change-schedule textarea', 'Move the last game to 15:00');
   document.querySelector('.change-schedule .change-form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
-  await wait(() => document.querySelector('.schedule-proposal'));
-  assert.doesNotMatch(document.querySelector('.timeline li:last-child .timeline-time').textContent, /^15:00/);
-  clickText('Confirm and apply schedule');
   await wait(() => document.querySelector('.timeline li:last-child .timeline-time').textContent.startsWith('15:00'));
   assert.equal(document.querySelector('.schedule-proposal'), null);
   clickText('Create parent link'); await wait(() => document.querySelector('.share-url'));

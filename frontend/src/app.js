@@ -442,7 +442,7 @@ function renderPage({
           data=${data}
           lang=${lang}
           clock=${clock}
-          materials=${config.materials}
+          materials=${[...config.materials, ...(data.week.settings.customMaterials || [])]}
           busy=${busy}
           demo=${!!demoId}
           onSuggest=${(request) =>
