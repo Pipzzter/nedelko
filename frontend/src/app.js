@@ -11,7 +11,6 @@ import { CreatePlan } from './pages/CreatePlan.js';
 import { WeekActions } from './components/WeekActions.js';
 import { DemoControls } from './components/DemoControls.js';
 import { ParentShare } from './components/ParentShare.js';
-import { GenerationStatus } from './components/GenerationStatus.js';
 import { ParentWeek } from './pages/ParentWeek.js';
 import { PlanChanges } from './components/PlanChanges.js';
 import { ParentNotes } from './components/ParentNotes.js';
@@ -423,7 +422,6 @@ function renderPage({
 `;
   }
   return html`
-    <${GenerationStatus} week=${data.week} lang=${lang} />
     <div class="overview-grid">
       <${Calendar} data=${data} lang=${lang} selected=${selected} onSelect=${setSelected} /><${AirCard}
         environment=${data.environment}
@@ -504,6 +502,7 @@ function renderPage({
     />
     <${WeekActions}
       lang=${lang}
+      source=${data.week.source}
       busy=${busy}
       onRegenerate=${() => navigate('create')}
       onDelete=${() =>

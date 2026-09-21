@@ -41,9 +41,6 @@
   .teacher-brief label, .day-assistant label, .profile-fields label { display: grid; gap: 8px; margin-top: 18px; font-weight: 600; }
   .teacher-brief textarea, .day-assistant textarea { width: 100%; resize: vertical; min-height: 105px; line-height: 1.6; background: #fffefa; padding: 16px; border: 1px solid #c5d1bd; border-radius: 14px; }
   .brief-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin: 8px 0; font-size: 12px; color: var(--forest); }
-  .generation-status { display: grid; gap: 8px; padding: 17px 21px; border: 1px solid var(--line); border-left: 3px solid #719364; border-radius: 12px; background: #f1f5ec; margin-bottom: 22px; font-size: 13px; }
-  .generation-status.has-issue { border-left-color: #af8140; background: #fcf5e8; }
-  .generation-status p { max-width: 90ch; }
   .profile-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
   .day-assistant { border: 1px solid #c8d7c0; border-radius: 16px; padding: 22px; margin-bottom: 24px; background: #f1f6eb; }
   .day-assistant h3 { margin: 5px 0 8px; }

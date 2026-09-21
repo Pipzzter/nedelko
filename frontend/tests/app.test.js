@@ -70,7 +70,8 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   await submit(); await wait(() => document.querySelector('.day-plan'));
   assert.equal(document.querySelectorAll('.calendar-day').length, 5);
   assert.ok(document.querySelector('.air-card'));
-  assert.match(document.querySelector('.generation-status').textContent, /quota/);
+  assert.equal(document.querySelector('.generation-status'), null);
+  assert.match(document.querySelector('.week-actions .soft-note').textContent, /example library/);
   assert.doesNotMatch(document.body.textContent, /How this plan was created|Little habits. Big discoveries.|Your changes are saved/);
   assert.equal(generatedSettings.teacherPrompt, 'PRIVATE-BRIEF: Autumn through music');
   const firstTitle = document.querySelector('.lesson-card h3').textContent;
@@ -82,6 +83,7 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   clickText('Regenerate week'); await wait(() => document.querySelector('.planning-replace'));
   await submit(); await wait(() => document.querySelector('.day-plan'));
   assert.equal(document.querySelector('.generation-status'), null);
+  assert.equal(document.querySelector('.week-actions .soft-note'), null);
   assert.equal(document.querySelector('.week-editor'), null);
   window.location.hash = '#plan'; window.dispatchEvent(new window.Event('hashchange'));
   await wait(() => document.querySelector('.day-plan'));
