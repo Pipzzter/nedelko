@@ -86,6 +86,12 @@ export function openStore(filename = fileURLToPath(new URL('../../.local/ekocuva
         .run(payload, userId, week.weekStart, expectedRevision);
       return result.changes ? { ...week, revision: expectedRevision + 1 } : null;
     },
+    refreshWeek(userId, week, expectedRevision) {
+      const payload = JSON.stringify({ ...week, revision: undefined });
+      const result = db.prepare("UPDATE weeks SET payload = ? WHERE user_id = ? AND week_start = ? AND revision = ? AND payload != 'null'")
+        .run(payload, userId, week.weekStart, expectedRevision);
+      return result.changes ? { ...week, revision: expectedRevision } : null;
+    },
     deleteWeek(userId, start, expectedRevision) {
       // Keep only the revision as a tombstone, so stale tabs cannot edit a regenerated week.
       const removed = !!db.prepare("UPDATE weeks SET payload = 'null', revision = revision + 1 WHERE user_id = ? AND week_start = ? AND revision = ? AND payload != 'null'")

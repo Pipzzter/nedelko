@@ -17,6 +17,7 @@ import {
   pair
 } from '../domain/settings.js';
 import { planningWeekDates } from '../domain/planner.js';
+import { PREFERENCE_BOUNDS } from '../domain/preferences.js';
 import {
   createWeek,
   adaptWeek,
@@ -97,6 +98,19 @@ export function createApp({
     if (updateProfile) store.saveProfile(user.id, result.settings);
     return result;
   }
+  function refreshView(user, demoId, week) {
+    const owner = demoId || user.id;
+    for (const [id, proposal] of proposals) if (proposal.owner === owner) proposals.delete(id);
+    if (demoId) {
+      const record = demoRecord(demoId);
+      if (record.week?.revision !== week.revision) throw invalid('plan_changed', 409);
+      record.week = week;
+      return week;
+    }
+    const result = store.refreshWeek(user.id, week, week.revision);
+    if (!result) throw invalid('plan_changed', 409);
+    return result;
+  }
   function sharing(user, demoId, week) {
     if (!week) return null;
     if (!demoId) return store.sharing(user.id, week.weekStart);
@@ -175,11 +189,15 @@ export function createApp({
     let week = store.week(owner.userId, owner.weekStart);
     if (!week) throw invalid('parent_link_unavailable', 404);
     const today = skopjeParts(new Date()).date;
-    if (today >= week.weekStart && today <= week.days.at(-1).date)
+    const refreshPending = locks.has(owner.userId);
+    if (!refreshPending && today >= week.weekStart && today <= week.days.at(-1).date)
       week = await refreshStoredWeek(owner.userId, owner.weekStart);
     const conditions = await conditionsProvider({ locationId: week.settings.locationId, mode: 'live' });
     // Re-check revocation after any awaited refresh.
     if (!store.sharedWeek(token)) throw invalid('parent_link_unavailable', 404);
+    // A public read never waits for a writer. Screen the stored snapshot against
+    // available observations without claiming the stored plan was refreshed.
+    if (refreshPending) week = { ...adaptWeek(week, conditions), conditionsCheckedAt: week.conditionsCheckedAt };
     return send(200, parentView(week, store.sharing(owner.userId, owner.weekStart).expiresAt, conditions));
   }
 
@@ -303,10 +321,11 @@ export function createApp({
     });
   }
 
-  async function handleHolidays({ demoId, url, send }) {
+  async function handleHolidays({ demoId, user, url, send }) {
     if (demoId) demoRecord(demoId);
     const year = Number(url.searchParams.get('year'));
     if (!Number.isInteger(year) || year < 2024 || year > 2100) throw invalid('invalid_calendar_year');
+    limit(`holidays:${demoId || user.id}`, 30, 3600000);
     const calendar = demoId ? calendarSnapshot(year) : await holidayProvider(year);
     return send(200, { calendar });
   }
@@ -319,14 +338,14 @@ export function createApp({
         url.searchParams.get('location') ||
         (!demoId && store.profile(user.id)?.locationId) ||
         'centar';
-      if (old) old = save(user, demoId, { ...old, approval: null, checkedAt: null, checkedDate: null }, old.revision);
+      if (old) old = refreshView(user, demoId, { ...old, approval: null, checkedAt: null, checkedDate: null });
       const years = old ? [...new Set(old.days.map((day) => Number(day.date.slice(0, 4))))] : [];
       const [conditions, calendars] = await Promise.all([
         conditionsProvider({ locationId, mode, scenario, demoWeek, fresh: url.searchParams.get('fresh') === '1' }),
         calendarsForYears(years, demoId)
       ]);
       const week = old
-        ? save(user, demoId, adaptWeek({ ...old, holidayCalendars: calendars }, conditions), old.revision)
+        ? refreshView(user, demoId, adaptWeek({ ...old, holidayCalendars: calendars }, conditions))
         : null;
       if (demoId) demoRecord(demoId).scenario = scenario;
       return send(200, present(week, conditions, user, demoId));
@@ -335,6 +354,7 @@ export function createApp({
 
   async function handleWeekGenerate({ demoId, user, body, currentWeek, mode, scenario, demoWeek, send }) {
     return await withLock(demoId || user.id, async () => {
+      if (!demoId) limit(`ai-week:${user.id}`, 6, 3600000);
       const settings = validateGenerationSettings(body.settings);
       const old = currentWeek();
       if (old ? body.revision !== old.revision : body.revision) throw invalid('plan_changed', 409);
@@ -971,6 +991,7 @@ async function handleConfig({ send }) {
     return send(200, {
       locations: LOCATIONS,
       defaults: DEFAULT_SETTINGS,
+      preferenceBounds: PREFERENCE_BOUNDS,
       materials: MATERIALS,
       ai: aiStatus(),
       demoWeeks: demoWeekOptions(),

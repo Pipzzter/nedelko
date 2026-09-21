@@ -1260,6 +1260,53 @@
           ]
         },
         {
+          "name": "Old revision cannot overwrite an approved plan",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/recheck",
+            "description": "The approval write advances the revision, so a prior revision cannot overwrite it. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{previousRevision}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: plan_changed', () => pm.expect(body.error).to.equal('plan_changed'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Pollution refresh moves today indoors and invalidates approval",
           "protocolProfileBehavior": {
             "disableCookies": true
@@ -1294,54 +1341,8 @@
                   "  pm.expect(today.reason).to.equal('pollution');",
                   "  pm.expect(body.week.approval).to.equal(null);",
                   "  pm.expect(body.week.checkedAt).to.equal(null);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Old revision cannot overwrite a refreshed plan",
-          "protocolProfileBehavior": {
-            "disableCookies": true
-          },
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Cookie",
-                "value": "{{sessionCookie}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/week/recheck",
-            "description": "Old revision cannot overwrite a refreshed plan. Run the collection in order; runtime IDs and revisions are captured from server responses.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{previousRevision}}\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
-                  "const body = pm.response.json();",
-                  "pm.test('Error code: plan_changed', () => pm.expect(body.error).to.equal('plan_changed'));"
+                  "});",
+                  "pm.test('Dashboard reads preserve the editor revision', () => pm.expect(String(body.week.revision)).to.equal(pm.environment.get('previousRevision')));"
                 ]
               }
             }
@@ -1375,7 +1376,8 @@
                 "exec": [
                   "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
                   "const body = pm.response.json();",
-                  "pm.test('Refresh leaves approval empty', () => pm.expect(body.week.approval).to.equal(null));"
+                  "pm.test('Refresh leaves approval empty', () => pm.expect(body.week.approval).to.equal(null));",
+                  "pm.test('Dashboard reads preserve the editor revision', () => pm.expect(String(body.week.revision)).to.equal(pm.environment.get('previousRevision')));"
                 ]
               }
             }

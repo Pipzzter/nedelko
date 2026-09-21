@@ -30,3 +30,33 @@ test('accounts, session hashes and private plans persist after closing and reope
   assert.equal(store.parentNotes('another-account', '2026-09-21').length, 0);
   assert.equal(store.session(tokenHash(token), Date.now() + 8 * 86400000), undefined);
 });
+
+test('read refresh persists notice invalidation without changing revision or crossing owners and tombstones', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'ekocuvar-refresh-test-'));
+  const filename = join(directory, 'test.sqlite'); let store = openStore(filename);
+  t.after(async () => {
+    store.close();
+    for (const suffix of ['', '-wal', '-shm']) await rm(filename + suffix, { force: true });
+    await rmdir(directory);
+  });
+  for (const id of ['owner', 'other']) store.addUser({ id, username: id, displayName: id, hash: 'test-only' });
+  const original = { weekStart: '2026-09-21', days: [], approval: { at: '2026-09-21T06:45:00Z' }, checkedAt: '2026-09-21T06:45:00Z' };
+  const owned = store.saveWeek('owner', original, 0);
+  const other = store.saveWeek('other', { ...original, marker: 'other-account' }, 0);
+  const cleared = { ...owned, approval: null, checkedAt: null, checkedDate: null };
+  assert.equal(store.refreshWeek('missing', cleared, owned.revision), null);
+  assert.equal(store.refreshWeek('owner', { ...cleared, weekStart: '2026-09-28' }, owned.revision), null);
+  assert.equal(store.refreshWeek('owner', cleared, owned.revision + 1), null);
+  const refreshed = store.refreshWeek('owner', cleared, owned.revision);
+  assert.deepEqual(refreshed, cleared); assert.deepEqual(store.week('other', original.weekStart), other);
+  store.close(); store = openStore(filename);
+  assert.deepEqual(store.week('owner', original.weekStart), cleared, 'cleared approval survives restart');
+  const edited = store.saveWeek('owner', { ...cleared, marker: 'teacher-edit' }, owned.revision);
+  assert.equal(edited.revision, owned.revision + 1);
+  assert.equal(store.refreshWeek('owner', cleared, owned.revision), null);
+  assert.deepEqual(store.week('owner', original.weekStart), edited);
+  assert.equal(store.deleteWeek('owner', original.weekStart, edited.revision), true);
+  assert.equal(store.refreshWeek('owner', cleared, edited.revision + 1), null);
+  assert.equal(store.week('owner', original.weekStart), null);
+  assert.deepEqual(store.week('other', original.weekStart), other);
+});

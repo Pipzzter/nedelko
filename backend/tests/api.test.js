@@ -9,6 +9,8 @@ import { LOCATIONS } from '../config/index.js';
 import { DEFAULT_SETTINGS as EMPTY_SETTINGS } from '../domain/settings.js';
 import { createCurriculum } from '../services/curriculum.js';
 import { demoWeekById } from '../config/demo.js';
+import { rateLimiter } from '../http/security.js';
+import { PREFERENCE_BOUNDS } from '../domain/preferences.js';
 
 const DEFAULT_SETTINGS = { ...EMPTY_SETTINGS, gradinka: { name: 'Test kindergarten', locationId: 'centar' }, groupName: 'Test group', teacherPrompt: 'Explore nature through music, movement and reused materials.' };
 
@@ -38,6 +40,91 @@ test('holiday endpoint needs a session or valid isolated demo, and cannot accept
   assert.equal(result.status, 200); assert.equal(result.body.calendar.events.length, 27);
   assert.match(result.body.calendar.sourceUrl, /^https:\/\/www\.economy\.gov\.mk\//);
   assert.equal((await request(`/api/holidays?year=-1&demoId=${demo.demoId}`)).status, 400);
+});
+
+test('weekly generation allows six owner attempts per hour, isolates accounts and leaves demos uncapped', async t => {
+  const startedAt = Date.parse('2026-09-21T06:45:00Z');
+  t.mock.timers.enable({ apis: ['Date'], now: startedAt });
+  let liveCalls = 0; let demoCalls = 0;
+  const { client, store } = await app(t, { curriculumProvider: async (dates, settings, options) => {
+    if (options.useAI) liveCalls++; else demoCalls++;
+    return createCurriculum(dates, settings, { ...options, useAI: false });
+  } });
+  const owner = client(); const other = client(); const anotherSession = client();
+  const user = (await owner('/api/auth/register', account)).body.user;
+  await other('/api/auth/register', { ...account, email: 'other.limit@test.mk' });
+  let week;
+  for (let index = 0; index < 6; index++) {
+    const result = await owner('/api/week/generate', { settings: DEFAULT_SETTINGS, revision: week?.revision });
+    assert.equal(result.status, 201); week = result.body.week;
+  }
+  const denied = await owner('/api/week/generate', { settings: DEFAULT_SETTINGS, revision: week.revision });
+  assert.equal(denied.status, 429); assert.equal(denied.body.error, 'rate_limited');
+  assert.equal(liveCalls, 6); assert.deepEqual(store.week(user.id, week.weekStart), week);
+  await anotherSession('/api/auth/login', account);
+  assert.equal((await anotherSession('/api/week/generate', { settings: DEFAULT_SETTINGS, revision: week.revision })).status, 429);
+  assert.equal((await other('/api/week/generate', { settings: DEFAULT_SETTINGS })).status, 201);
+  assert.equal(liveCalls, 7);
+  let demo = (await owner('/api/demo', {})).body;
+  for (let index = 0; index < 7; index++) {
+    const result = await owner('/api/week/generate', { ...demoBody(demo), settings: DEFAULT_SETTINGS });
+    assert.equal(result.status, 201); demo = result.body;
+  }
+  assert.equal(demoCalls, 8); assert.equal(liveCalls, 7);
+  t.mock.timers.setTime(startedAt + 3600000 - 1);
+  assert.equal((await owner('/api/week/generate', { settings: DEFAULT_SETTINGS, revision: week.revision })).status, 429);
+  t.mock.timers.setTime(startedAt + 3600000);
+  assert.equal((await owner('/api/week/generate', { settings: DEFAULT_SETTINGS, revision: week.revision })).status, 201);
+  assert.equal(liveCalls, 8);
+});
+
+test('failed weekly AI retries consume the owner budget without replacing the saved plan', async t => {
+  let calls = 0;
+  const { client, store } = await app(t, { curriculumProvider: async (dates, settings, options) => {
+    calls++;
+    return { ...await createCurriculum(dates, settings, { ...options, useAI: false }), generationIssue: 'ai_timeout' };
+  } });
+  const request = client(); const user = (await request('/api/auth/register', account)).body.user;
+  const week = (await request('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
+  const retry = { settings: DEFAULT_SETTINGS, revision: week.revision, requireAI: true };
+  for (let index = 0; index < 5; index++) assert.equal((await request('/api/week/generate', retry)).status, 503);
+  assert.equal((await request('/api/week/generate', retry)).status, 429);
+  assert.equal(calls, 6); assert.deepEqual(store.week(user.id, week.weekStart), week);
+});
+
+test('holiday requests stop at thirty per owner and hour, including isolated demos', async t => {
+  const startedAt = Date.parse('2026-09-21T06:45:00Z');
+  t.mock.timers.enable({ apis: ['Date'], now: startedAt });
+  let calls = 0;
+  const { client } = await app(t, { holidayProvider: async year => { calls++; return calendarSnapshot(year); } });
+  const owner = client(); const other = client();
+  await owner('/api/auth/register', account);
+  await other('/api/auth/register', { ...account, email: 'calendar.limit@test.mk' });
+  for (let index = 0; index < 30; index++) assert.equal((await owner(`/api/holidays?year=${2026 + index % 2}`)).status, 200);
+  const denied = await owner('/api/holidays?year=2027');
+  assert.equal(denied.status, 429); assert.equal(denied.body.error, 'rate_limited'); assert.equal(calls, 30);
+  assert.equal((await other('/api/holidays?year=2027')).status, 200); assert.equal(calls, 31);
+  const demo = (await owner('/api/demo', {})).body;
+  const endpoint = `/api/holidays?year=2026&demoId=${demo.demoId}`;
+  for (let index = 0; index < 30; index++) assert.equal((await owner(endpoint)).status, 200);
+  assert.equal((await owner(endpoint)).status, 429); assert.equal(calls, 31, 'demos never contact the ministry');
+  t.mock.timers.setTime(startedAt + 3600000 - 1);
+  assert.equal((await owner('/api/holidays?year=2027')).status, 429);
+  t.mock.timers.setTime(startedAt + 3600000);
+  assert.equal((await owner('/api/holidays?year=2027')).status, 200); assert.equal(calls, 32);
+});
+
+test('rate buckets reset at the boundary without extending the window on rejected calls', t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  const limit = rateLimiter();
+  limit('first', 1, 100);
+  assert.throws(() => limit('first', 1, 100), { code: 'rate_limited', status: 429 });
+  assert.doesNotThrow(() => limit('second', 1, 100));
+  t.mock.timers.setTime(1099);
+  assert.throws(() => limit('first', 1, 100), { code: 'rate_limited' });
+  t.mock.timers.setTime(1100);
+  assert.doesNotThrow(() => limit('first', 1, 100));
+  assert.throws(() => limit('first', 1, 100), { code: 'rate_limited' });
 });
 
 test('registration normalizes the kindergarten email, hashes passwords, stores the profile and manages sessions', async t => {
@@ -237,6 +324,7 @@ test('only frontend files are served and configuration never leaks secrets', asy
   const { client, base } = await app(t); const request = client();
   for (const path of ['/.env', '/backend/server.js', '/%2e%2e%5cbackend%5cserver.js', '/AGENTS.md', '/.local/ekocuvar.sqlite', '/tests/app.test.js']) assert.equal((await request(path)).status, 404);
   const config = await request('/api/config'); assert.equal(config.status, 200); assert.equal(config.body.locations.length, 24);
+  assert.deepEqual(config.body.preferenceBounds, PREFERENCE_BOUNDS);
   assert.doesNotMatch(JSON.stringify(config.body), /OPENAI|sk-proj-|password_hash/);
   const page = await fetch(base); assert.equal(page.status, 200); assert.match(page.headers.get('content-security-policy'), /frame-ancestors 'none'/); assert.doesNotMatch(page.headers.get('content-security-policy'), /unsafe/);
   assert.match(await page.text(), /\/src\/app.js/);

@@ -46,6 +46,122 @@ test('kindergarten and teaching brief validate and keep one canonical location',
   for (const teacherPrompt of [123, '<script>', 'x'.repeat(2001)]) assert.throws(() => validateSettings({ ...DEFAULT_SETTINGS, teacherPrompt }), { code: 'invalid_instruction' });
 });
 
+test('two dashboard reads preserve the editor revision for both accounts and isolated demos', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-21T06:45:00Z') });
+  const { client, store } = await fixture(t); const teacher = client();
+  const user = (await teacher('/api/auth/register', account)).body.user;
+  const accountWeek = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body;
+  const demoWeek = (await teacher('/api/demo', {})).body;
+  for (const original of [accountWeek, demoWeek]) {
+    const query = original.demoId ? `?demoId=${original.demoId}` : '';
+    const first = await teacher(`/api/dashboard${query}`);
+    const second = await teacher(`/api/dashboard${query}`);
+    assert.equal(first.status, 200); assert.equal(second.status, 200);
+    assert.equal(first.body.week.revision, original.week.revision);
+    assert.equal(second.body.week.revision, original.week.revision);
+    const edited = await teacher('/api/week/edit', {
+      demoId: original.demoId, revision: original.week.revision,
+      settings: { ...original.week.settings, groupName: 'Reviewed group' }, days: original.week.days,
+    });
+    assert.equal(edited.status, 200); assert.equal(edited.body.week.settings.groupName, 'Reviewed group');
+    assert.equal(edited.body.week.revision, original.week.revision + 1);
+    assert.equal((await teacher('/api/week/edit', {
+      demoId: original.demoId, revision: original.week.revision,
+      settings: original.week.settings, days: original.week.days,
+    })).status, 409, 'a genuine edit still rejects stale revisions');
+  }
+  assert.equal(store.week(user.id, accountWeek.week.weekStart).settings.groupName, 'Reviewed group');
+});
+
+test('a failed dashboard refresh durably clears approval without renewing evidence or changing revision', async t => {
+  const startedAt = Date.parse('2026-09-21T06:45:00Z');
+  t.mock.timers.enable({ apis: ['Date'], now: startedAt });
+  const conditions = demoConditions(LOCATIONS[0], 'normal', startedAt);
+  let fail = false;
+  const { client, store } = await fixture(t, { conditionsProvider: async () => {
+    if (fail) throw new Error('test upstream unavailable');
+    return conditions;
+  } });
+  const teacher = client(); const user = (await teacher('/api/auth/register', account)).body.user;
+  const original = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
+  const checked = (await teacher('/api/week/recheck', { revision: original.revision })).body.week;
+  const approved = (await teacher('/api/week/approve', { revision: checked.revision })).body.week;
+  assert.ok(approved.approval);
+  t.mock.timers.setTime(startedAt + 120000); fail = true;
+  assert.equal((await teacher('/api/dashboard?fresh=1')).status, 500);
+  const saved = store.week(user.id, original.weekStart);
+  assert.equal(saved.revision, approved.revision);
+  assert.equal(saved.approval, null); assert.equal(saved.checkedAt, null); assert.equal(saved.checkedDate, null);
+  assert.equal(saved.conditionsCheckedAt, approved.conditionsCheckedAt);
+  const denied = await teacher('/api/week/approve', { revision: approved.revision });
+  assert.equal(denied.status, 409); assert.equal(denied.body.error, 'recheck_required');
+});
+
+test('dashboard cached refresh keeps measurement timestamps and marks unavailable air as unknown', async t => {
+  const startedAt = Date.parse('2026-09-21T06:45:00Z');
+  t.mock.timers.enable({ apis: ['Date'], now: startedAt });
+  const conditions = demoConditions(LOCATIONS[0], 'normal', startedAt);
+  let failedRefresh = false;
+  const { client, store } = await fixture(t, { conditionsProvider: async () => ({
+    ...conditions, clock: new Date().toISOString(), cached: failedRefresh, failedRefresh,
+  }) });
+  const teacher = client(); const user = (await teacher('/api/auth/register', account)).body.user;
+  const week = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
+  assert.equal(week.days[0].mode, 'outside');
+  t.mock.timers.setTime(startedAt + 120000); failedRefresh = true;
+  const result = await teacher('/api/dashboard?fresh=1');
+  assert.equal(result.status, 200); assert.equal(result.body.week.revision, week.revision);
+  assert.equal(result.body.week.days[0].mode, 'inside'); assert.equal(result.body.week.days[0].reason, 'unknown_air');
+  assert.equal(result.body.environment.cached, true); assert.equal(result.body.environment.failedRefresh, true);
+  assert.equal(result.body.environment.fetchedAt, conditions.fetchedAt);
+  assert.equal(result.body.environment.assessment.oldestObservation, conditions.assessment.oldestObservation);
+  assert.equal(store.week(user.id, week.weekStart).approval, null);
+});
+
+test('public parent reads serve a conservative stored snapshot during writes and still honor revocation', { timeout: 10000 }, async t => {
+  const startedAt = Date.parse('2026-09-21T06:45:00Z');
+  t.mock.timers.enable({ apis: ['Date'], now: startedAt });
+  const conditions = demoConditions(LOCATIONS[0], 'normal', startedAt);
+  const writeEntered = Promise.withResolvers(); const releaseWrite = Promise.withResolvers();
+  const readEntered = Promise.withResolvers(); const releaseRead = Promise.withResolvers();
+  let holdWrite = false; let holdRead = false;
+  const { client, store } = await fixture(t, { conditionsProvider: async ({ fresh }) => {
+    if (holdWrite && fresh) { writeEntered.resolve(); await releaseWrite.promise; }
+    if (holdRead && !fresh) { readEntered.resolve(); await releaseRead.promise; }
+    return { ...conditions, clock: new Date().toISOString(), cached: holdWrite, failedRefresh: holdWrite };
+  } });
+  const teacher = client(); const parent = client();
+  const user = (await teacher('/api/auth/register', account)).body.user;
+  const week = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
+  const share = (await teacher('/api/week/share', { action: 'enable' })).body.share;
+  const endpoint = `/api/parents/${share.path.split('/').at(-1)}`;
+  const day = week.days.at(-1); const row = day.timeline.find(item => item.kind === 'meal');
+  holdWrite = true; t.mock.timers.setTime(startedAt + 120000);
+  const pending = teacher('/api/week/day/edit', { revision: week.revision, action: 'content', date: day.date, rowId: row.id,
+    content: { label: { mk: 'Наш појадок', en: 'Our breakfast' }, note: { mk: 'Јадеме заедно.', en: 'We eat together.' } } });
+  try {
+    await writeEntered.promise;
+    const stored = store.week(user.id, week.weekStart);
+    const result = await parent(endpoint);
+    assert.equal(result.status, 200); assert.equal(result.body.weekStart, week.weekStart);
+    assert.equal(result.body.days[0].mode, 'inside'); assert.equal(result.body.days[0].reason, 'unknown_air');
+    assert.equal(result.body.updatedAt, stored.conditionsCheckedAt);
+    assert.equal(result.body.environment.fetchedAt, conditions.fetchedAt);
+    assert.equal(result.body.environment.failedRefresh, true);
+    assert.deepEqual(store.week(user.id, week.weekStart), stored, 'the public fallback does not write while the lock is held');
+    assert.doesNotMatch(JSON.stringify(result.body), /"(?:approval|checkedAt|teacherPrompt|userId)":/);
+    holdRead = true;
+    const revokedRead = parent(endpoint);
+    await readEntered.promise;
+    assert.equal((await teacher('/api/week/share', { action: 'revoke' })).status, 200);
+    releaseRead.resolve();
+    assert.equal((await revokedRead).status, 404, 'revocation is checked after the cached read resolves');
+  } finally {
+    releaseRead.resolve(); releaseWrite.resolve();
+    assert.equal((await pending).status, 200);
+  }
+});
+
 test('parent link gives a stable read-only projection; revocation and ownership are enforced', async t => {
   const { client, store } = await fixture(t);
   const teacher = client(); const other = client(); const parent = client();
@@ -100,11 +216,13 @@ test('demo links are isolated and immediately show adapted pollution messages', 
   assert.equal(store.db.prepare('SELECT count(*) AS n FROM weeks').get().n, 0);
 });
 
-test('sharing survives background revision changes and expiry renewal without changing the URL', async t => {
+test('sharing survives dashboard reads, explicit rechecks and expiry renewal without changing the URL', async t => {
   const { client, store } = await fixture(t); const teacher = client();
   const user = (await teacher('/api/auth/register', account)).body.user;
   const original = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
-  const refreshed = (await teacher('/api/dashboard?fresh=1')).body.week;
+  const dashboard = (await teacher('/api/dashboard?fresh=1')).body.week;
+  assert.equal(dashboard.revision, original.revision);
+  const refreshed = (await teacher('/api/week/recheck', { revision: original.revision })).body.week;
   assert.ok(refreshed.revision > original.revision);
   const created = await teacher('/api/week/share', { action: 'enable', revision: original.revision });
   assert.equal(created.status, 200); const path = created.body.share.path;
