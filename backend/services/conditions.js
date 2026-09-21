@@ -7,8 +7,6 @@ import { locationById, LOCATIONS, POLICY, SCENARIOS, skopjeParts } from '../conf
 import { demoWeekById } from '../config/demo.js';
 
 const CACHE_DIR = fileURLToPath(new URL('../../.cache/', import.meta.url));
-const memory = new Map();
-const pending = new Map();
 const ALLOWED_HOSTS = new Set([...LOCATIONS.map(l => `${l.pulseCity}.pulse.eco`), 'air-quality-api.open-meteo.com', 'api.open-meteo.com']);
 async function boundedJson(response, maxBytes = 8_000_000) {
   if (!response.ok) throw new Error(`upstream-${response.status}`);
@@ -20,36 +18,43 @@ async function boundedJson(response, maxBytes = 8_000_000) {
   }
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
-export async function cachedFetch(url, { ttl = 120000, fresh = false } = {}) {
-  const parsed = new URL(url);
-  if (parsed.protocol !== 'https:' || !ALLOWED_HOSTS.has(parsed.hostname)) throw new Error('upstream-not-allowed');
-  const key = createHash('sha256').update(url).digest('hex');
-  if (pending.has(key)) return pending.get(key);
-  let saved = memory.get(key);
-  if (!saved) {
-    try { saved = JSON.parse(await readFile(resolve(CACHE_DIR, `${key}.json`), 'utf8')); } catch { /* Empty cache is normal. */ }
-  }
-  if (!fresh && saved && Date.now() - Date.parse(saved.fetchedAt) < ttl) return { ...saved, cached: true, failedRefresh: false };
-  const request = (async () => {
-    try {
-      const headers = { Accept: 'application/json', 'User-Agent': 'EkoCuvar-LocalPlanner/1.0' };
-      if (parsed.hostname.endsWith('.pulse.eco') && process.env.PULSE_USERNAME && process.env.PULSE_PASSWORD) {
-        headers.Authorization = `Basic ${Buffer.from(`${process.env.PULSE_USERNAME}:${process.env.PULSE_PASSWORD}`).toString('base64')}`;
-      }
-      const response = await fetch(url, { headers, signal: AbortSignal.timeout(9000), redirect: 'error' });
-      const entry = { data: await boundedJson(response), fetchedAt: new Date().toISOString() };
-      memory.set(key, entry);
-      if (memory.size > 100) memory.delete(memory.keys().next().value);
-      try { await mkdir(CACHE_DIR, { recursive: true }); await writeFile(resolve(CACHE_DIR, `${key}.json`), JSON.stringify(entry)); } catch { /* A read-only disk must not break live data. */ }
-      return { ...entry, cached: false, failedRefresh: false };
-    } catch {
-      if (saved) return { ...saved, cached: true, failedRefresh: true };
-      return { data: null, fetchedAt: null, cached: false, failedRefresh: true };
-    } finally { pending.delete(key); }
-  })();
-  pending.set(key, request);
-  return request;
+export function createCachedFetch({ cacheDir = CACHE_DIR, fetcher = (...args) => fetch(...args), now = Date.now } = {}) {
+  const memory = new Map();
+  const pending = new Map();
+  return async function cachedFetch(url, { ttl = 120000, fresh = false } = {}) {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' || !ALLOWED_HOSTS.has(parsed.hostname)) throw new Error('upstream-not-allowed');
+    const key = createHash('sha256').update(url).digest('hex');
+    if (pending.has(key)) return pending.get(key);
+    let saved = memory.get(key);
+    if (!saved && cacheDir) {
+      try { saved = JSON.parse(await readFile(resolve(cacheDir, `${key}.json`), 'utf8')); } catch { /* Empty cache is normal. */ }
+    }
+    // Another cold request may have started while the disk read was pending.
+    if (pending.has(key)) return pending.get(key);
+    if (!fresh && saved && now() - Date.parse(saved.fetchedAt) < ttl) return { ...saved, cached: true, failedRefresh: false };
+    const request = (async () => {
+      try {
+        const headers = { Accept: 'application/json', 'User-Agent': 'EkoCuvar-LocalPlanner/1.0' };
+        if (parsed.hostname.endsWith('.pulse.eco') && process.env.PULSE_USERNAME && process.env.PULSE_PASSWORD) {
+          headers.Authorization = `Basic ${Buffer.from(`${process.env.PULSE_USERNAME}:${process.env.PULSE_PASSWORD}`).toString('base64')}`;
+        }
+        const response = await fetcher(url, { headers, signal: AbortSignal.timeout(9000), redirect: 'error' });
+        const entry = { data: await boundedJson(response), fetchedAt: new Date(now()).toISOString() };
+        memory.set(key, entry);
+        if (memory.size > 100) memory.delete(memory.keys().next().value);
+        if (cacheDir) try { await mkdir(cacheDir, { recursive: true }); await writeFile(resolve(cacheDir, `${key}.json`), JSON.stringify(entry)); } catch { /* A read-only disk must not break live data. */ }
+        return { ...entry, cached: false, failedRefresh: false };
+      } catch {
+        if (saved) return { ...saved, cached: true, failedRefresh: true };
+        return { data: null, fetchedAt: null, cached: false, failedRefresh: true };
+      } finally { pending.delete(key); }
+    })();
+    pending.set(key, request);
+    return request;
+  };
 }
+export const cachedFetch = createCachedFetch();
 function forecastRows(data) {
   const h = data?.hourly;
   if (!Array.isArray(h?.time) || !Array.isArray(h.pm2_5)) return [];
@@ -127,19 +132,19 @@ export function demoConditions(location, scenario = 'normal', realNow = Date.now
     provenance: 'Синтетички пример · примерен час 08:45 · не е мерење во живо.',
     policyVersion: POLICY.version };
 }
-export async function getConditions({ locationId = 'centar', mode = 'demo', scenario = 'normal', fresh = false, demoWeek } = {}) {
+export async function getConditions({ locationId = 'centar', mode = 'demo', scenario = 'normal', fresh = false, demoWeek } = {}, { fetchConditions = cachedFetch, now: clock = Date.now } = {}) {
   const location = locationById(locationId);
   if (!['demo', 'live'].includes(mode) || !SCENARIOS.includes(scenario)) throw Object.assign(new Error('Непознат режим или сценарио.'), { status: 400 });
-  if (mode === 'demo') return demoConditions(location, scenario, Date.now(), demoWeekById(demoWeek));
-  const now = Date.now();
+  if (mode === 'demo') return demoConditions(location, scenario, clock(), demoWeekById(demoWeek));
+  const now = clock();
   const forecastUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${location.lat}&longitude=${location.lon}&hourly=pm2_5,pm10&timezone=GMT&forecast_days=7&domains=cams_europe`;
   const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lon}&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m&timezone=GMT&forecast_days=7`;
   const pulseBase = `https://${location.pulseCity}.pulse.eco/rest`;
   const [metadata, current, prediction, weatherPrediction] = await Promise.all([
-    cachedFetch(`${pulseBase}/sensor`, { ttl: 3600000, fresh }),
-    cachedFetch(`${pulseBase}/current`, { fresh }),
-    cachedFetch(forecastUrl, { ttl: 1800000, fresh }),
-    cachedFetch(weatherUrl, { ttl: 1800000, fresh }),
+    fetchConditions(`${pulseBase}/sensor`, { ttl: 3600000, fresh }),
+    fetchConditions(`${pulseBase}/current`, { fresh }),
+    fetchConditions(forecastUrl, { ttl: 1800000, fresh }),
+    fetchConditions(weatherUrl, { ttl: 1800000, fresh }),
   ]);
   const catalog = new Map((Array.isArray(metadata.data) ? metadata.data : []).map((s) => [String(s.sensorId), s]));
   const currentRows = (Array.isArray(current.data) ? current.data : []).filter((r) => r.type === 'pm25');
@@ -154,7 +159,7 @@ export async function getConditions({ locationId = 'centar', mode = 'demo', scen
   // Fixed hourly bounds permit cache reuse across local requests.
   const start = new Date(Math.floor(now / 3600000) * 3600000 - 12 * 3600000).toISOString();
   const end = new Date(Math.ceil(now / 3600000) * 3600000).toISOString();
-  const history = await Promise.all(candidates.map((s) => cachedFetch(`${pulseBase}/dataRaw?sensorId=${encodeURIComponent(s.id)}&type=pm25&from=${encodeURIComponent(start)}&to=${encodeURIComponent(end)}`, { fresh })));
+  const history = await Promise.all(candidates.map((s) => fetchConditions(`${pulseBase}/dataRaw?sensorId=${encodeURIComponent(s.id)}&type=pm25&from=${encodeURIComponent(start)}&to=${encodeURIComponent(end)}`, { fresh })));
   const sensors = candidates.map((sensor, index) => {
     const rows = Array.isArray(history[index].data) ? history[index].data : [];
     const dedup = new Map([...rows, sensor.row].filter((r) => r.type === 'pm25')
