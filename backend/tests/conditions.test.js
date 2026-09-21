@@ -78,6 +78,29 @@ test('live projection uses validated nearby sensors and separates observations f
   assert.equal(invalid.forecast[0].pm25, null); assert.equal(invalid.weather[0].precipitationProbability, null);
 });
 
+test('malformed provider rows and forecast timestamps produce unknown evidence, never a 500 or clean air', async () => {
+  for (const target of ['/sensor', '/current', '/dataRaw']) {
+    const normal = liveFixture();
+    const result = await getConditions({ mode: 'live' }, { now: () => instant, fetchConditions: async source => {
+      const response = await normal(source);
+      if (source.includes(target)) response.data = [...response.data, null];
+      return response;
+    } });
+    assert.equal(result.assessment.valid, false, target);
+    assert.equal(result.assessment.aqi, null); assert.equal(result.failedRefresh, true);
+  }
+  for (const stamp of [null, 'bad', '2026-02-30T09:00', '2026-09-21T25:00']) {
+    const normal = liveFixture();
+    const result = await getConditions({ mode: 'live' }, { now: () => instant, fetchConditions: async source => {
+      const response = await normal(source);
+      if (response.data.hourly) response.data.hourly.time = [stamp];
+      return response;
+    } });
+    assert.equal(result.forecastAvailable, false); assert.equal(result.weatherAvailable, false);
+    assert.deepEqual(result.forecast, []); assert.deepEqual(result.weather, []);
+  }
+});
+
 test('failed refresh, stale forecasts and missing responses never become clean-air approval', async () => {
   const failed = await getConditions({ mode: 'live' }, { now: () => instant, fetchConditions: liveFixture({ failed: true }) });
   assert.equal(failed.assessment.valid, false); assert.equal(failed.assessment.aqi, null);

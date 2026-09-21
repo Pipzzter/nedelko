@@ -29,7 +29,7 @@ export function checkSensor(sensor, now = Date.now()) {
     };
   const ageMinutes = (now - Date.parse(latest.stamp)) / 60000;
   if (ageMinutes > POLICY.freshnessMinutes) flags.push('stale');
-  if (ageMinutes < -5) flags.push('future');
+  if (ageMinutes < 0) flags.push('future');
   if (latest.value < 0) flags.push('negative');
   if (latest.value >= POLICY.extremeReviewAt) flags.push('extreme-review');
   const recent = samples.filter((r) => now - Date.parse(r.stamp) <= 12 * 3600000 && now >= Date.parse(r.stamp));

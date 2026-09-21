@@ -1,10 +1,21 @@
-import { html, localizedDate, safeHref } from '../lib/ui.js';
+import { html, useState, useEffect, localizedDate, safeHref } from '../lib/ui.js';
 import { t } from '../locales/index.js';
 import { Icon } from './Icon.js';
 export function AirCard({ environment: e, lang, refresh, busy }) {
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    if (e?.mode === 'demo') return;
+    const tick = () => setNow(Date.now());
+    const timer = setInterval(tick, 1000);
+    document.addEventListener('visibilitychange', tick);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', tick); };
+  }, [e?.mode]);
   if (!e) return null;
   const a = e.assessment;
-  const valid = a.valid && !e.failedRefresh;
+  const clock = e.mode === 'demo' ? Date.parse(e.clock) : Math.max(now, Date.parse(e.clock));
+  const age = clock - Date.parse(a.oldestObservation);
+  const valid = a.valid && !e.failedRefresh && Number.isFinite(a.aqi) &&
+    age >= 0 && age <= (e.freshnessMinutes ?? 60) * 60000;
   const state = airState(valid, a.aqi);
   return html`
     <section class=${'card air-card air-' + state}>

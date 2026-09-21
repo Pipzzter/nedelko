@@ -77,9 +77,12 @@ export function createCachedFetch({
   };
 }
 export const cachedFetch = createCachedFetch();
+const hourlyTimes = h => Array.isArray(h?.time) && h.time.every(stamp =>
+  typeof stamp === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(stamp) &&
+  Number.isFinite(Date.parse(`${stamp}:00Z`)) && new Date(`${stamp}:00Z`).toISOString().slice(0, 16) === stamp);
 function forecastRows(data) {
   const h = data?.hourly;
-  if (!Array.isArray(h?.time) || !Array.isArray(h.pm2_5)) return [];
+  if (!hourlyTimes(h) || !Array.isArray(h.pm2_5)) return [];
   return h.time.map((stamp, index) => ({
     stamp: `${stamp}:00Z`,
     local: skopjeParts(new Date(`${stamp}:00Z`)),
@@ -89,7 +92,7 @@ function forecastRows(data) {
 }
 function weatherRows(data) {
   const h = data?.hourly;
-  if (!Array.isArray(h?.time) || !Array.isArray(h.temperature_2m)) return [];
+  if (!hourlyTimes(h) || !Array.isArray(h.temperature_2m)) return [];
   const valid = (value, minimum = -Infinity) => (Number.isFinite(value) && value >= minimum ? value : null);
   return h.time.map((stamp, index) => ({
     stamp: `${stamp}:00Z`,
@@ -192,8 +195,13 @@ export async function getConditions(
     fetchConditions(forecastUrl, { ttl: 1800000, fresh }),
     fetchConditions(weatherUrl, { ttl: 1800000, fresh })
   ]);
-  const catalog = new Map((Array.isArray(metadata.data) ? metadata.data : []).map((s) => [String(s.sensorId), s]));
-  const currentRows = (Array.isArray(current.data) ? current.data : []).filter((r) => r.type === 'pm25');
+  const record = value => value && typeof value === 'object' && !Array.isArray(value);
+  const identified = value => record(value) && ['string', 'number'].includes(typeof value.sensorId) && String(value.sensorId).trim();
+  const readings = value => record(value) && typeof value.type === 'string';
+  const rowsValid = (data, validate) => Array.isArray(data) && data.every(row => validate(row));
+  let malformed = !rowsValid(metadata.data, identified) || !rowsValid(current.data, row => identified(row) && readings(row));
+  const catalog = new Map((Array.isArray(metadata.data) ? metadata.data : []).filter(identified).map((s) => [String(s.sensorId), s]));
+  const currentRows = (Array.isArray(current.data) ? current.data : []).filter((r) => identified(r) && r.type === 'pm25');
   const candidates = currentRows
     .map((row) => {
       const meta = catalog.get(String(row.sensorId)) ?? {};
@@ -231,10 +239,11 @@ export async function getConditions(
     )
   );
   const sensors = candidates.map((sensor, index) => {
+    if (!rowsValid(history[index].data, readings)) malformed = true;
     const rows = Array.isArray(history[index].data) ? history[index].data : [];
     const dedup = new Map(
       [...rows, sensor.row]
-        .filter((r) => r.type === 'pm25')
+        .filter((r) => readings(r) && r.type === 'pm25')
         .map((r) => [
           r.stamp,
           {
@@ -246,7 +255,7 @@ export async function getConditions(
     return { ...sensor, samples: [...dedup.values()] };
   });
   const assessment = assessSensors(sensors, now);
-  const failedRefresh = metadata.failedRefresh || current.failedRefresh || history.some((h) => h.failedRefresh);
+  const failedRefresh = malformed || metadata.failedRefresh || current.failedRefresh || history.some((h) => h.failedRefresh);
   if (failedRefresh) {
     assessment.valid = false;
     assessment.aqi = null;
@@ -254,10 +263,12 @@ export async function getConditions(
     assessment.category = { key: 'unknown', label: 'Нема свежа проверка', color: '#89948f' };
   }
   const forecastAge = (now - Date.parse(prediction.fetchedAt)) / 3600000;
-  const forecastAvailable = !!prediction.data && !prediction.failedRefresh && forecastAge <= POLICY.maxForecastAgeHours;
+  const forecast = forecastRows(prediction.data);
+  const weather = weatherRows(weatherPrediction.data);
+  const forecastAvailable = forecast.length > 0 && !prediction.failedRefresh && forecastAge >= 0 && forecastAge <= POLICY.maxForecastAgeHours;
   const weatherAge = (now - Date.parse(weatherPrediction.fetchedAt)) / 3600000;
   const weatherAvailable =
-    !!weatherPrediction.data && !weatherPrediction.failedRefresh && weatherAge <= POLICY.maxForecastAgeHours;
+    weather.length > 0 && !weatherPrediction.failedRefresh && weatherAge >= 0 && weatherAge <= POLICY.maxForecastAgeHours;
   return {
     mode,
     scenario,
@@ -273,8 +284,8 @@ export async function getConditions(
     forecastAvailable,
     weatherAvailable,
     assessment,
-    forecast: forecastRows(prediction.data),
-    weather: weatherRows(weatherPrediction.data),
+    forecast,
+    weather,
     provenance: current.cached
       ? 'Зачуван вистински одговор од pulse.eco · проверете го времето на мерењето.'
       : 'Вистински набљудувања од pulse.eco · прогнози од CAMS и Open-Meteo.',

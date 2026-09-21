@@ -1,4 +1,5 @@
-import test from 'node:test';
+import test, { beforeEach } from 'node:test';
+beforeEach(t => t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-21T06:45:00Z') }));
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { createApp } from '../http/app.js';
@@ -47,7 +48,7 @@ test('kindergarten and teaching brief validate and keep one canonical location',
 });
 
 test('two dashboard reads preserve the editor revision for both accounts and isolated demos', async t => {
-  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-21T06:45:00Z') });
+  t.mock.timers.setTime(Date.parse('2026-09-21T06:45:00Z'));
   const { client, store } = await fixture(t); const teacher = client();
   const user = (await teacher('/api/auth/register', account)).body.user;
   const accountWeek = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body;
@@ -75,7 +76,7 @@ test('two dashboard reads preserve the editor revision for both accounts and iso
 
 test('a failed dashboard refresh durably clears approval without renewing evidence or changing revision', async t => {
   const startedAt = Date.parse('2026-09-21T06:45:00Z');
-  t.mock.timers.enable({ apis: ['Date'], now: startedAt });
+  t.mock.timers.setTime(startedAt);
   const conditions = demoConditions(LOCATIONS[0], 'normal', startedAt);
   let fail = false;
   const { client, store } = await fixture(t, { conditionsProvider: async () => {
@@ -99,7 +100,7 @@ test('a failed dashboard refresh durably clears approval without renewing eviden
 
 test('dashboard cached refresh keeps measurement timestamps and marks unavailable air as unknown', async t => {
   const startedAt = Date.parse('2026-09-21T06:45:00Z');
-  t.mock.timers.enable({ apis: ['Date'], now: startedAt });
+  t.mock.timers.setTime(startedAt);
   const conditions = demoConditions(LOCATIONS[0], 'normal', startedAt);
   let failedRefresh = false;
   const { client, store } = await fixture(t, { conditionsProvider: async () => ({
@@ -120,7 +121,7 @@ test('dashboard cached refresh keeps measurement timestamps and marks unavailabl
 
 test('public parent reads serve a conservative stored snapshot during writes and still honor revocation', { timeout: 10000 }, async t => {
   const startedAt = Date.parse('2026-09-21T06:45:00Z');
-  t.mock.timers.enable({ apis: ['Date'], now: startedAt });
+  t.mock.timers.setTime(startedAt);
   const conditions = demoConditions(LOCATIONS[0], 'normal', startedAt);
   const writeEntered = Promise.withResolvers(); const releaseWrite = Promise.withResolvers();
   const readEntered = Promise.withResolvers(); const releaseRead = Promise.withResolvers();
@@ -335,6 +336,21 @@ test('automatic refresh adapts an active week and messages without a browser or 
   assert.equal(refreshCount, 1); assert.equal(week.days[0].mode, 'inside');
   assert.match(week.messages.daily[dates[0]].en, /elevated PM2.5/);
   worker.stop(); await worker.tick(); assert.equal(refreshCount, 1);
+});
+
+test('background refresh catches queue and per-plan failures, reports only fixed codes and retries', async t => {
+  let brokenQueue = true; let brokenPlan = true; const errors = [];
+  const worker = startAutoRefresh({ intervalMs: 1000,
+    store: { weeksToRefresh: () => { if (brokenQueue) throw new Error('PRIVATE-SQL'); return [{ userId: 'PRIVATE-USER', weekStart: '2026-09-21' }]; } },
+    refreshWeek: async () => { if (brokenPlan) throw new Error('PRIVATE-PLAN'); },
+    onError: code => { errors.push(code); throw new Error('Sink unavailable'); }
+  });
+  t.after(() => worker.stop());
+  await worker.tick(); brokenQueue = false;
+  await worker.tick(); brokenPlan = false;
+  await worker.tick();
+  assert.deepEqual(errors, ['refresh_queue_failed', 'week_refresh_failed']);
+  assert.deepEqual(worker.status(), { completed: 1, failed: 2, lastFailure: 'week_refresh_failed', running: false, stopped: false });
 });
 
 test('day replacement preserves custom rows and refuses elapsed eco lessons', () => {
