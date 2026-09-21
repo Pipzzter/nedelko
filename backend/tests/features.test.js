@@ -62,6 +62,12 @@ test('parent link gives a stable read-only projection; revocation and ownership 
   const page = await parent(`/api/parents/${token}`);
   assert.equal(page.status, 200); assert.equal(page.body.days.length, 5);
   assert.equal(page.body.kindergarten, 'Sun Garden'); assert.equal(page.body.groupName, 'Sunflowers');
+  assert.equal(page.body.environment.location.id, week.settings.locationId);
+  assert.equal(page.body.environment.assessment.valid, true);
+  assert.deepEqual(page.body.days.map(day => day.timeline.map(row => row.note)), week.days.map(day => day.timeline.map(row => row.note || null)));
+  assert.deepEqual(page.body.days[0].theme.materials, week.days[0].theme.materials);
+  assert.deepEqual(page.body.days[0].theme.inside, week.days[0].theme.inside);
+  assert.deepEqual(page.body.days[0].occasions.map(event => event.name), week.days[0].occasions.map(event => event.name));
   assert.doesNotMatch(JSON.stringify(page.body), /PRIVATE-TEACHER-BRIEF|teacherPrompt|password|userId|generationError|outdoorOrder|token/);
   assert.equal((await parent(`/api/parents/${token}`, {})).status, 405);
   assert.equal((await parent('/api/week/edit', { revision: week.revision, settings, days: week.days, token })).status, 401);

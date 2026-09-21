@@ -1,4 +1,5 @@
 export const featureCopy = {
+  readOnlyPlan: ['План само за читање', 'Read-only plan'],
   createKindergarten: ['Создај градинка', 'Create kindergarten'],
   kindergartenStart: ['Внесете ги групата, идеите и дневниот ритам за да го создадете планот.', 'Add your group, learning ideas and daily rhythm to create the plan.'],
   manageWeek: ['Управувај со неделата', 'Manage week'],

@@ -4,7 +4,7 @@ import { Icon } from './Icon.js';
 import { Occasions } from './Holidays.js';
 import { ChangeAssistant } from './ChangeAssistant.js';
 
-export function DayPlan({ day, data, lang, clock, materials, busy, onPlace, onSuggest, onApply, demo }) {
+export function DayPlan({ day, data, lang, clock, materials, busy, onPlace, onSuggest, onApply, demo, readOnly = false }) {
   const [selection, setSelection] = useState(null);
   const detail = useRef(null);
   useEffect(() => {
@@ -20,6 +20,7 @@ export function DayPlan({ day, data, lang, clock, materials, busy, onPlace, onSu
   const upcoming = row => day.date > now.date || day.date === now.date && row.start > now.time;
   const editable = selected && ['activity', 'eco'].includes(selected.kind) && !selected.occasionIds?.length && upcoming(selected);
   return html`<section class="card day-plan" id="day-plan"><div class="card-heading"><div class="day-heading"><span class="date-tile">${Number(day.date.slice(8))}</span><div><span class="eyebrow">${today ? t('today', lang) : t('dailyPlan', lang)}</span><h2>${dayName(day.date, lang)}</h2></div></div>
+      ${readOnly && day.theme && !day.closed && html`<div class="home-place"><small>${t('activityPlace', lang)}</small><span>${t(day.outdoorPreference === 'auto' ? 'automatic' : day.outdoorPreference || 'automatic', lang)}</span></div>`}
       ${day.theme && !day.closed && onPlace && html`<label class="home-place">${t('activityPlace', lang)}<select disabled=${busy || day.date < now.date || today && day.timeline.some(row => row.kind === 'eco' && row.end <= now.time)} value=${day.outdoorPreference || 'auto'} onChange=${e => onPlace(e.currentTarget.value)}>${['auto', 'inside', 'outside'].map(value => html`<option value=${value}>${t(value === 'auto' ? 'automatic' : value, lang)}</option>`)}</select></label>`}</div>
     <${Occasions} day=${day} lang=${lang}/>
     ${!day.theme || day.closed ? html`<p class="empty-day">${t(day.closed ? 'closed' : 'noDay', lang)} ${!day.theme && day.date < data.today ? t('pastEmpty', lang) : ''}</p>` : html`

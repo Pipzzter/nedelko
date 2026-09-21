@@ -102,7 +102,9 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
         for (const [id, record] of demos) {
           if (record.parentToken !== token) continue;
           if (Date.now() - record.at > 3600000 || !record.week) throw invalid('parent_link_unavailable', 404);
-          return send(200, parentView(record.week, sharing(null, id, record.week).expiresAt));
+          const conditions = await conditionsProvider({ locationId: record.week.settings.locationId, mode: 'demo', scenario: record.scenario || 'normal', demoWeek: record.demoWeek });
+          if (record.parentToken !== token || Date.now() - record.at > 3600000 || !record.week) throw invalid('parent_link_unavailable', 404);
+          return send(200, parentView(record.week, sharing(null, id, record.week).expiresAt, conditions));
         }
         const owner = store.sharedWeek(token);
         if (!owner) throw invalid('parent_link_unavailable', 404);
@@ -110,9 +112,10 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
         if (!week) throw invalid('parent_link_unavailable', 404);
         const today = skopjeParts(new Date()).date;
         if (today >= week.weekStart && today <= week.days.at(-1).date) week = await refreshStoredWeek(owner.userId, owner.weekStart);
+        const conditions = await conditionsProvider({ locationId: week.settings.locationId, mode: 'live' });
         // Re-check revocation after any awaited refresh.
         if (!store.sharedWeek(token)) throw invalid('parent_link_unavailable', 404);
-        return send(200, parentView(week, store.sharing(owner.userId, owner.weekStart).expiresAt));
+        return send(200, parentView(week, store.sharing(owner.userId, owner.weekStart).expiresAt, conditions));
       }
       if (request.method === 'POST' && ['/api/auth/register', '/api/auth/login'].includes(url.pathname)) {
         limit(`auth:${request.socket.remoteAddress}`, 12, 15 * 60000);
