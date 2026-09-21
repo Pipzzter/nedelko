@@ -4,7 +4,7 @@ These records use the reference calorie-tracking app’s structure: context, dri
 
 Records 0001–0003 capture existing decisions retrospectively on 2026-09-21; their dates do not claim when the implementation was first written. Records 0004–0005 describe the new engineering workflow. Accepted design does not imply completed integration verification; see [verification status](../../development/verification-status.md).
 
-Record 0006 separately documents the existing SQLite database choice, also retrospectively.
+Record 0006 separately documents the existing SQLite database choice, also retrospectively. Records 0007–0008 describe the later conservative forecast/refresh boundaries and tighter local analysis setup.
 
 | ADR | Decision | Status |
 | --- | --- | --- |
@@ -14,5 +14,7 @@ Record 0006 separately documents the existing SQLite database choice, also retro
 | [0004](0004-containerized-local-stack.md) | Local Docker app and SonarQube with separate persistence | Accepted |
 | [0005](0005-local-quality-gates.md) | Complete coverage reports and required pre-push gates | Accepted |
 | [0006](0006-sqlite-application-database.md) | SQLite through built-in node:sqlite for application persistence | Accepted |
+| [0007](0007-conservative-forecast-and-refresh-boundaries.md) | Complete future air forecasts and revision-stable, approval-invalidating reads | Accepted |
+| [0008](0008-critical-coverage-and-analysis-secrets.md) | Critical-file coverage floors and required private Sonar database password | Accepted |
 
 Use the [template](template.md). Number records sequentially. Preserve accepted records; supersede a decision with a new linked record when its premise changes.

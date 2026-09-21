@@ -2,11 +2,14 @@
 
 Start with the [project README](../README.md). Active guidance is grouped by purpose; previous branch narratives and verification notes are historical records, not current acceptance evidence.
 
+Nedelko was built with substantial AI coding assistance. Optional runtime AI supplies validated bilingual curriculum, supporting sessions and a preferred outdoor-date order. Environmental decisions, scheduling constraints, approvals and parent-message templates remain deterministic; the templates can embed accepted educational text. The [live-generation evidence](evidence/README.md) separates a real model call from synthetic conditions and from offline tests.
+
 | Area | Documents |
 | --- | --- |
 | Architecture | [Overview](architecture/overview.md), [decision basis](architecture/decision-basis.md), [ADRs](architecture/adrs/README.md) |
 | Development | [Quality gates](development/quality-gates.md), [Postman API tests](development/api-tests.md), [verification status](development/verification-status.md), [team PR workflow skill](development/skills/ekocuvar-pr-workflow/SKILL.md) |
 | Operations | [Native development and demos](operations/local-development.md), [Docker and persistence](operations/docker.md) |
+| Evidence | [Live AI generation and its limits](evidence/README.md) |
 | Product | [Research and roadmap](product/research.md) |
 | Reference | [Sources](reference/sources.md), [third-party code](reference/third-party.md), [licenses](reference/licenses/) |
 | Archive | [Earlier verification notes](archive/verification-notes.md), [original feature branches](archive/feature-branches.md), [planner fix branches](archive/planner-fix-branches.md) |

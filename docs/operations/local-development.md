@@ -14,7 +14,13 @@ Home omits the saved generation-warning banner. Library or mixed-source informat
 
 `credit_balance_exhausted` means OpenAI reported an empty prepaid balance for the organization used by that request. If credits are available, verify that the `.env` key belongs to that funded organization and project. `insufficient_quota` alone is broader; spending limits and rate limits are reported separately. Do not repeatedly retry billing failures. See the [OpenAI error reference](https://developers.openai.com/api/docs/guides/error-codes). The app remains usable with explicitly labeled library activities.
 
-Generation allows OpenAI up to 180 seconds, and the browser waits up to 270 seconds including environmental/calendar requests. The weekly request uses low reasoning effort for the verified GPT-5.6 Sol/Terra/Luna and GPT-6 Astra families, keeping the configured model and the same validated output. Other model families receive no added reasoning setting. A timeout does not establish that credits are exhausted. There are no automatic retries that could duplicate model charges.
+Weekly generation allows OpenAI up to 220 seconds and 30,000 output tokens, and the browser waits up to 270 seconds including environmental/calendar requests. The weekly request uses low reasoning effort for the verified GPT-5.6 Sol/Terra/Luna and GPT-6 Astra families, keeping the configured model and the same validated output. Other model families receive no added reasoning setting. A timeout does not establish that credits are exhausted. There are no automatic retries that could duplicate model charges.
+
+Day/schedule model calls have a 90-second deadline, note assessment has 45 seconds, and schedule timing-intent extraction has 25 seconds. A parent-note suggestion can involve more than one call. Browser deadlines are 120 seconds for day/schedule suggestions, 190 seconds for note suggestions and 60 seconds for other requests; these are distinct from the server's request-body and header timeouts.
+
+Authenticated weekly generation is limited to six attempts per account per hour, before provider work. Demo generation is exempt. Holiday reads allow 30 requests per account or demo per hour. These process-memory counters reset on restart; a shared network address does not merge separate owners' limits. A `429` response preserves the saved plan.
+
+The opt-in `npm run verify:ai` command makes a paid live model request and requires server-side provider configuration. It uses an isolated in-memory account, fixed synthetic conditions and the bundled holiday snapshot, and rejects library fallback. It writes only a bounded, privacy-checked evidence projection under [docs/evidence](../evidence/README.md). Normal tests and push gates do not run it.
 
 On Home, select an activity and choose **Change activity**. Submitting replaces only that item. **Change schedule** accepts activity and time changes, displays a complete proposal and requires confirmation. If generation times out, refresh to check whether a result was saved before retrying.
 
@@ -36,7 +42,7 @@ A public deployment is separate work: HTTPS and Secure cookies, a configured ori
 
 Default recurring routines live in `backend/domain/settings.js`; educational dates and the lesson library live in `backend/domain/curriculum.js`. Confirm routine times during setup. Teachers can directly edit bilingual meal, sleep and holiday content, reorder upcoming activities, or review changed time boundaries. Model proposals still protect meals, sleep and holiday lessons. The model returns both language versions. Holiday context alone does not establish a closure.
 
-Generation creates this week’s remaining weekdays, or next Monday–Friday when used on a weekend. There is no arbitrary future-week picker. Plans adapt when the app loads, refreshes, saves an edit, changes location or performs a recheck. While Home remains visible, it refreshes every minute. The running server also checks active weeks every minute without an open browser. The parent page refreshes every minute while visible. Parents do not receive automatic notifications. A sleeping/stopped computer cannot refresh plans.
+Generation creates this week’s remaining weekdays, or next Monday–Friday when used on a weekend. There is no arbitrary future-week picker. Plans adapt when the app loads, refreshes, saves an edit, changes location or performs a recheck. While Home remains visible, it refreshes every minute without a waiting modal or disabling a focused editor. Unsaved draft text and the selected demo scenario are retained. The running server also checks active weeks every minute without an open browser. The parent page refreshes every minute while visible. Parents do not receive automatic notifications. A sleeping/stopped computer cannot refresh plans.
 
 ## Ready-to-show examples
 
@@ -62,13 +68,13 @@ All six air scenarios are available for every example. Refreshing, changing loca
 
 ## Parent links and daily changes
 
-On Home, choose **Create parent link**, then **Copy link only**. Weekly message copying also uses only the URL once sharing is enabled. Daily copying includes the selected-language notice and its link, so a pollution change can be shared with context. **Disable link** revokes future access. Links expire after fourteen days; a demo link expires with its one-hour example and on restart. Revocation cannot erase information a recipient already copied.
+On Home, choose **Create parent link**, then **Copy link only**. Both weekly and daily message copying include the selected-language notice and its enabled link, so a pollution change can be shared with context. **Disable link** revokes future access. Links expire after fourteen days; a demo link expires with its one-hour example and on restart. Revocation cannot erase information a recipient already copied.
 
 Both account and demo links open the same read-only weekly activity view. Parent pages have no login, registration or teacher-navigation controls; open the teacher and parent views in separate tabs for the showcase. The page is accessible to anyone holding the URL, so share it only with the intended group. Do not put child-specific or private staff information in shared activity descriptions. An HTTPS hosted deployment and family-specific revocable links are separate work; the current localhost links work only on this computer.
 
 Home starts with **Create kindergarten**. Kindergarten name, location, group, age range, teaching brief, materials, daily meals and rest are required. Confirm routine times before generation. The server validates the same essentials. The brief is limited to 2,000 characters, sent to the configured AI provider and omitted from parent responses. Explicit daily-topic requests are assigned across remaining weekdays and checked for visible coverage.
 
-Schedule proposals expire after ten minutes or any change to the saved revision. An error preserves the saved plan. Condition-based indoor switching uses the existing alternate lesson without a new model call. Parent notices still require their same-morning recheck and teacher approval.
+Schedule proposals expire after ten minutes or any change to the saved revision. Dashboard reads keep that edit revision stable, but clear approval and invalidate pending day/schedule proposals when refreshing conditions. An error preserves the saved plan. Condition-based indoor switching uses the existing alternate lesson without a new model call. Parent notices still require their same-morning recheck and teacher approval.
 
 ## Planning navigation
 

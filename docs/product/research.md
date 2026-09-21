@@ -1,10 +1,14 @@
-# EkoCuvar: product research and a path to an excellent daily app
+# Nedelko / EkoCuvar: product research and a path to a useful daily app
 
-Research date: 20 September 2026. Brand retained: ЕкоЧувар / EkoCuvar.
+Desk research began on 20 September 2026; this record was updated on 21 September 2026. The current product brand is Неделко / Nedelko, with ЕкоЧувар / EkoCuvar retained in the project identity.
 
 **Recommendation:** build around one dependable daily loop: the teacher plans, the family knows what to expect, children enjoy the activity, and a short reflection improves the next plan. The strongest opportunity is a locally relevant, bilingual planner that responds clearly to changing conditions and connects classroom play with home.
 
-This is desk research and product judgment, informed by the current code and primary sources. No parent/teacher interviews or child-outcome study have been conducted. “10/10” needs to be earned through observed usefulness, reliability and trust.
+This is desk research and product judgment, informed by the current code and primary sources, plus the owner-reported teacher pilot described below. It is not a formal interview study or a measured child-outcome study. “10/10” needs to be earned through observed usefulness, reliability and trust.
+
+## Pilot feedback
+
+The project owner reports a pilot session with a practising kindergarten teacher. According to the owner's account, she found the app promising, valued the weekly AI activity suggestions, and expected the combined weather, air-pollution and holiday information to reduce the work of daily and weekly planning. This is an attributed paraphrase, not a recorded quotation. Her identity, kindergarten and session date are not published, and no before/after planning-time measurement or wider adoption is claimed.
 
 ## What the sources suggest
 
@@ -26,11 +30,12 @@ These sources support design principles and comparisons. They do not establish d
 - A single-day AI request, a preview, and a separate Apply action.
 - Visible AI/library provenance and distinct failure handling.
 - A read-only parent week with day navigation, Macedonian/English copy and printing.
-- Revocable, expiring links; weekly sharing can copy just the URL.
-- A server worker that revisits active plans every five minutes, selecting indoor alternatives and rebuilding parent drafts when conditions change.
+- Revocable, expiring links; a dedicated control copies just the URL, while weekly and daily notice copies include the notice and enabled link.
+- Private parent notes through the shared link, a teacher inbox and teacher-confirmed suggestions; a note cannot edit the plan itself.
+- A server worker that revisits active plans every minute, selecting indoor alternatives and rebuilding parent drafts when conditions change.
 - Responsive parent and teacher improvements while retaining EkoCuvar’s identity.
 
-Current boundaries: the app runs on localhost; family links work on this computer. A link grants access to anyone holding it, without verifying parent identity. There is no email, push or SMS delivery. Both account and demo modes focus on planning, editing and read-only parent sharing. The earlier classroom simulation has been removed: neither mode offers parent replies, child rosters, attendance, individual learning records or packing acknowledgements. Demo examples remain synthetic and isolated from account data. Automatic checks require the server and computer to be running. The opportunities below are proposals, not implemented features or evidence of demand.
+Current boundaries: the app runs on localhost; family links work on this computer. A link grants access to anyone holding it, without verifying parent identity. There is no email, push or SMS delivery. Both account and demo modes focus on planning, editing and read-only parent sharing. The earlier classroom simulation has been removed: neither mode offers two-way family conversations, child rosters, attendance, individual learning records or packing acknowledgements. The implemented private parent-note submission is a narrower teacher-review workflow. Demo examples remain synthetic and isolated from account data. Automatic checks require the server and computer to be running. The opportunities below are proposals, not implemented features or evidence of demand.
 
 ## Prioritized opportunities
 
@@ -43,7 +48,7 @@ Effort is relative engineering scope, not a delivery promise: **S** = an existin
 | 3 | History and undo | Version history, changes highlighted, restore a prior lesson while rechecking current conditions | Teachers can experiment with AI without fear of losing work | M; revision storage and conflict handling |
 | 4 | Better AI planning quality | Teacher-reviewed bilingual evaluation set, repetition checks, regenerate one activity, preserve approved content | More useful first drafts with fewer corrections | M; educator review and measurable quality rubric |
 | 5 | A classroom preparation checklist | Weekly materials grouped by day, reuse suggestions, who brings what, printable checklist | Less preparation work and fewer missing materials | S–M; uses current lesson/material data |
-| 6 | Parent contributions | One optional prompt: “What has interested your child lately?” plus a private teacher reply | Family knowledge can influence the next plan | M; family-scoped links and visibility rules |
+| 6 | Family-scoped parent contributions | Build on private notes with one optional prompt, verified family access and a private teacher reply | Family knowledge can influence the next plan | M; family-scoped links and visibility rules |
 | 7 | A five-minute home activity | One optional activity connected to today’s learning; no purchases; “we tried it” or a short observation | An easy connection between classroom and family life | S–M; starts from the existing home habit |
 | 8 | Inclusive activity variants | Teacher-selected seated, lower-noise, simpler-language and different age-band alternatives | More children can participate in the same group activity | M; educator-reviewed adaptations |
 | 9 | Co-teacher handover | Owner/editor roles, daily responsibilities and visible concurrent edits | Staff can share planning without overwriting each other | L; organization/group identity and history |
@@ -69,11 +74,11 @@ Build an initial set of 40 synthetic briefs across Macedonian/English, age bands
 
 Track provider failures, validation failures, latency, teacher acceptance and size of edits separately. Start with bounded retries only for clearly transient failures; credit/auth failures need a visible explanation. A daily change must preserve the timetable and untouched lesson content. Keep weather/AQI calculations and permissions deterministic.
 
-The live checks in this update successfully generated a complete bilingual week and revised a single day. An initial daily response produced overly long session labels; requesting short, complete titles improved the subsequent result. These few checks are useful smoke tests, not a measured long-term success rate.
+The committed [live-AI evidence](../evidence/README.md) records a successful complete bilingual week from `gpt-5.6-terra` on 21 September 2026, with accepted source `ai`. It used an isolated account and explicitly synthetic environmental conditions. Earlier smoke-test notes remain [historical records](../archive/planner-fix-branches.md), separate from this repeatable weekly proof. These runs do not establish a long-term success rate or pedagogical quality.
 
 ## Proposed pilot and success criteria
 
-Start with one willing kindergarten, two educators and approximately 8–12 families for four weeks. This is a proposed research plan; no participants have been recruited or contacted.
+Start with one willing kindergarten, two educators and approximately 8–12 families for four weeks. This remains a proposed research plan, separate from the owner-reported teacher pilot; that feedback does not establish recruitment or completion of this four-week study.
 
 1. **Before building more:** observe how teachers currently plan and how parents receive changes. Record the time spent, confusing steps and communication channels. Ask which missing information causes calls or messages.
 2. **Week 1:** let teachers create and revise real plans while retaining their normal sharing process. Observe mistakes, especially unsaved edits and unclear AI fallback.

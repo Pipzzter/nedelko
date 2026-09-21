@@ -1,5 +1,7 @@
 # Planner fixes, September 2026
 
+> Historical branch and smoke-test record. The 20 September check below is separate from the later repeatable authenticated generation in [live-AI evidence](../evidence/README.md). See [current verification status](../development/verification-status.md) for the subsequent full Windows tests, coverage, Sonar gate and browser observations. Earlier counts and limitations are retained as recorded.
+
 Six local branches form a stack based on `feat/simplify-planning-navigation` at `a8b0704`. Review and merge in this order; each branch includes its predecessors. No publishing is part of this work.
 
 | Order | Branch | Scope |

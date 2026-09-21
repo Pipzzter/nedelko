@@ -2,6 +2,21 @@
 
 This file records actual execution limits, separately from configured targets. Historical reports are preserved in [the archive](../archive/verification-notes.md).
 
+## 2026-09-21 current Windows verification after application fixes
+
+This entry records the later Windows run at application merge [`a506e04`](https://github.com/AI-Tech-Summit-Filip-Avramchev/gun-mayhem-repo/commit/a506e04). It does not replace the restricted-session attempts below.
+
+Environment: Windows, Node 24.15.0, npm 11.12.1, Docker 29.7.2 and Compose 5.4.0.
+
+Observed checks:
+
+- The required pre-push gate for [PR #34](https://github.com/AI-Tech-Summit-Filip-Avramchev/gun-mayhem-repo/pull/34) passed all 202 tests using the normal project runner. Backend line coverage was 97.99% (5,078/5,182); frontend was 94.88% (4,056/4,275). Every authored application module was represented and all nine critical-file floors passed.
+- The live SonarQube quality gate passed at 20:23:34 UTC. This is an observed server result, separate from the configured thresholds and earlier fixture-only checks.
+- Browser checks held dashboard requests and advanced existing browser timers to exercise normal and two polluted-scenario polls. The editor retained focus and draft text, the selected scenario remained active, the edit revision stayed at 1, and no waiting modal or inert background appeared. At a 390-pixel viewport there was no horizontal overflow. These are targeted browser observations, not a full accessibility audit.
+- [Committed live-AI evidence](../evidence/README.md) records an authenticated `gpt-5.6-terra` weekly generation on 21 September 2026 with accepted `source: ai`. The provider call was real; the environmental inputs and clock were synthetic and the holiday data was the bundled snapshot. The artifact records its exact elapsed time and validated output. No live-environment, deployment or educational-outcome claim follows from it.
+
+Remaining release checks: the final repeat of the live-AI command and release recording are pending at this documentation checkpoint. A teammate's repository access and clean-machine setup have not been verified; an anonymous repository fetch returned 404, which does not establish their authenticated permissions. The owner-reported teacher pilot is documented as an attributed paraphrase in [research](../product/research.md), without measured time savings.
+
 ## 2026-09-21 engineering setup
 
 The implementation session uses Node 26.8.1, npm 11.19.0, Docker CLI 29.5.2 and Compose v5.1.4. The supported application minimum remains Node 24.

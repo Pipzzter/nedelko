@@ -9,19 +9,19 @@ docker compose up --build -d --wait
 docker compose ps
 ```
 
-The root stack starts only the application at `http://127.0.0.1:4173`. Start the separate analysis stack with `npm --prefix static-analysis start`; Sonar is at `http://127.0.0.1:9000`. PostgreSQL has no host port. The app and analysis services use separate networks. Start just the app with `docker compose up --build -d --wait app`. Sonar is not an app dependency.
+The root stack starts only the application at `http://127.0.0.1:4173`. Before starting the separate analysis stack, create the private `static-analysis/.env` from its example if absent and set `SONAR_DB_PASSWORD`. Then run `npm --prefix static-analysis start`; Sonar is at `http://127.0.0.1:9000`. PostgreSQL has no host port. The app and analysis services use separate networks. Start just the app with `docker compose up --build -d --wait app`. Sonar is not an app dependency.
 
 `Dockerfile` copies the native application and vendored browser assets. It runs as the Node user without an installation/build step. Compose makes the root filesystem read-only and provides writable data/cache volumes and a small temporary filesystem. The app health check reads public configuration without querying external providers.
 
 ## Configuration and secrets
 
-Root Compose reads `.env` for app substitutions; the analysis stack reads `static-analysis/.env`. Keep existing values; never overwrite a configured file just to follow a setup example. Optional variables:
+Root Compose reads `.env` for app substitutions; the analysis stack reads `static-analysis/.env`. Keep existing values; never overwrite a configured file just to follow a setup example. The database password is required before analysis starts; other values are optional:
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `APP_PORT` | `4173` | Host loopback app port; container stays on 4173 |
 | `SONAR_PORT` | `9000` | Host loopback Sonar port |
-| `SONAR_DB_PASSWORD` | `ekocuvar-local-development` | Local analysis DB password; set before the first initialization |
+| `SONAR_DB_PASSWORD` | Required, no default | Private analysis DB password; set before the first initialization and retain for existing volumes |
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | Empty | Optional server-side educational generation |
 | `PULSE_USERNAME`, `PULSE_PASSWORD` | Empty | Optional upstream credentials |
 
@@ -43,7 +43,7 @@ docker compose cp app:/app/.local ./ekocuvar-backup
 docker compose start app
 ```
 
-Keep backups outside version control and treat them as private. For Sonar metadata, back up its PostgreSQL database using PostgreSQL’s backup tools before upgrades. Changing `SONAR_DB_PASSWORD` after initialization does not rotate the database role password automatically.
+Keep backups outside version control and treat them as private. For Sonar metadata, back up its PostgreSQL database using PostgreSQL’s backup tools before upgrades. For existing volumes, retain the matching private password. Changing `SONAR_DB_PASSWORD` in the environment after initialization does not rotate the database role password automatically; coordinate a deliberate PostgreSQL password change if rotation is needed.
 
 `docker compose down` retains volumes. `down -v` deletes persistent data belonging to the selected stack; it is not the routine stop command. Restarting destroys only in-memory demos.
 
@@ -52,7 +52,7 @@ Keep backups outside version control and treat them as private. For Sonar metada
 Follow [quality gate setup](../development/quality-gates.md). A scanner run is a one-shot container, not a background app service. It waits for the server’s quality-gate result.
 
 - **Port busy:** stop the native app or choose another `APP_PORT`.
-- **Sonar unhealthy:** inspect `docker compose -f static-analysis/compose.yaml logs sonarqube sonar-db`; check memory and Linux limits.
+- **Sonar unhealthy:** inspect `docker compose --env-file static-analysis/.env -f static-analysis/compose.yaml logs sonarqube sonar-db`; check memory and Linux limits.
 - **Docker permission denied:** use a host/session that can access the Docker daemon.
 - **Scanner permission errors:** scanner UID 1000 needs to read source and coverage mounts; avoid making private files world-readable to fix unrelated mounts.
 - **Apple Silicon:** app and Sonar image support depends on the pinned tags. Docker Desktop may emulate scanner images without an ARM variant; account for startup cost.

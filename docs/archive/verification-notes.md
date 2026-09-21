@@ -1,5 +1,7 @@
 # Verification and attempts to break it
 
+> Historical record. The earlier test counts, failed provider attempts and weather-only future-draft behavior below describe their original sessions. Later Windows checks and successful live-AI generation are recorded in [current verification status](../development/verification-status.md) and [provider evidence](../evidence/README.md). The [current decision basis](../architecture/decision-basis.md) now requires complete future air forecasts. These later results do not rewrite the earlier attempts.
+
 Run `npm.cmd ci`, `npm.cmd test`, and `npm.cmd run check`. Tests use Node’s test runner, isolated SQLite stores, controlled environmental/model responses and a development-only DOM implementation. They do not contact OpenAI or create accounts in the running app.
 
 | Attempt | Behaviour checked | Evidence |
