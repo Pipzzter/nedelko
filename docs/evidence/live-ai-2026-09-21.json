@@ -1,0 +1,450 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-21T19:56:12.500Z",
+  "model": "gpt-5.6-terra",
+  "elapsedMs": 155166,
+  "source": "ai",
+  "tokenUsage": null,
+  "tokenUsageNote": "The curriculum service does not expose provider token usage.",
+  "scope": {
+    "authenticated": true,
+    "storage": "isolated in-memory SQLite",
+    "conditions": "fixed synthetic fixtures, not live observations",
+    "holidays": "bundled calendar snapshot, not a live ministry fetch",
+    "validation": "real server curriculum, session and decision validators"
+  },
+  "week": {
+    "weekStart": "2026-09-21",
+    "source": "ai",
+    "outdoorOrder": [
+      "2026-09-22",
+      "2026-09-21",
+      "2026-09-25",
+      "2026-09-24",
+      "2026-09-23"
+    ],
+    "days": [
+      {
+        "date": "2026-09-21",
+        "theme": {
+          "title": {
+            "mk": "Јом Кипур: Мост на внимателност",
+            "en": "Yom Kippur: A Bridge of Thoughtfulness"
+          },
+          "goal": {
+            "mk": "Децата градат и испробуваат картонски мостови, вежбаат внимателно слушање и повторно користат чист материјал во заедничка игра.",
+            "en": "Children build and test cardboard bridges, practise attentive listening, and reuse clean material in collaborative play."
+          },
+          "inside": {
+            "mk": "За Јом Кипур, како заедничка можност да учиме за соседите, возрасниот објаснува дека денес внимателно ќе градиме мост на добри зборови, без да претпоставуваме дека некој го одбележува денот. Тимовите превиткуваат чист картон во лакови, поставуваат хартиени фигури и предвидуваат кој мост ќе остане исправен. Едно дете е градител, едно е внимателен испитувач, а едно со боичка црта знак за мостот што успешно стои. По секој обид, сите тивко кажуваат една љубезна реченица и избираат дали да додадат преклоп, поширока основа или втор лак. Возрасниот надгледува, а финалето е мала приказна во која фигурите безбедно минуваат преку најстабилниот мост.",
+            "en": "For Yom Kippur, as a shared opportunity to learn about neighbours, the adult explains that the class will carefully build a bridge of kind words without assuming that any child observes the day. Teams fold clean cardboard into arches, place paper figures on them, and predict which bridge will stay upright. One child is a builder, one is a careful tester, and one uses crayons to draw a sign for the bridge that succeeds. After each trial, everyone quietly offers one kind sentence and chooses whether to add a fold, a wider base, or a second arch. The adult supervises, and the finale is a small story in which the figures safely cross the strongest bridge."
+          },
+          "outside": {
+            "mk": "Надвор, Јом Кипур е повод групата да вежба мирно забележување и почит кон различни соседи додека бара место за мост од чист картон. Возрасниот означува рамна, безбедна површина, а тимовите носат само лесни картонски делови и хартиени фигури. Децата предвидуваат дали ветерот или нерамната земја ќе го сменат нивниот мост, па пробуваат поширока основа или пониска конструкција. Може да направат патека од паднати лисја до мостот без да креваат или собираат отпад. На крај, секој тим покажува еден тивок премин и прашува: „Која промена му помогна на мостот да остане?“",
+            "en": "Outside, Yom Kippur gives the group a reason to practise quiet noticing and respect for different neighbours while finding a place for a clean-cardboard bridge. The adult identifies a flat, safe surface, and teams carry only light cardboard pieces and paper figures. Children predict whether wind or uneven ground will change their bridge, then try a wider base or a lower structure. They may make a leaf path to the bridge without picking up or handling litter. At the end, each team shows one quiet crossing and asks, “Which change helped the bridge stay up?”"
+          },
+          "habit": {
+            "mk": "Пред да земеме нов лист, проверуваме дали чистата хартија или картон може да добие нова задача.",
+            "en": "Before taking a new sheet, we check whether clean paper or cardboard can have a new job."
+          },
+          "dayActivities": {
+            "circle": {
+              "mk": "Приказна за тивкиот мост",
+              "en": "Story of the Quiet Bridge"
+            },
+            "creative": {
+              "mk": "Знаци за добар премин",
+              "en": "Signs for a Kind Crossing"
+            },
+            "movement": {
+              "mk": "Премини без да ја допреш реката",
+              "en": "Cross Without Touching the River"
+            },
+            "reflection": {
+              "mk": "Што го држеше мостот?",
+              "en": "What Held the Bridge?"
+            }
+          },
+          "materials": [
+            "paper",
+            "cardboard",
+            "crayons"
+          ]
+        },
+        "sessions": [
+          {
+            "start": "09:00",
+            "end": "09:15",
+            "title": {
+              "mk": "Порака за мостот",
+              "en": "Message for the Bridge"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата слушаат како хартиена фигура бара безбеден мост за да пренесе љубезна порака. Во круг, секое дете додава еден збор кон приказната, а возрасниот го запишува или црта на користена хартија. Децата избираат дали пораката ќе биде тивка, весела или храбра и покажуваат со гест како патува. На крај, фигурата прашува: „Каков збор би му помогнал на мостот да ги спои пријателите?“.",
+              "en": "With adult supervision, children hear how a paper figure needs a safe bridge to carry a kind message. In a circle, each child adds one word to the story, while the adult writes or draws it on used paper. Children choose whether the message is quiet, cheerful, or brave and show with a gesture how it travels. At the end, the figure asks, “What word could help a bridge bring friends together?”"
+            }
+          },
+          {
+            "start": "10:00",
+            "end": "10:30",
+            "title": {
+              "mk": "Хартиени чувари на мостот",
+              "en": "Paper Bridge Keepers"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата цртаат големи хартиени чувари кои ќе кажуваат љубезни зборови кај мостот. Секој избира чувар, му додава лице и знак, а потоа го поставува до картонска основа. Тимовите тестираат дали чуварот стои подобро со еден или со два превиткани картонски потпирачи. Кога чуварите се готови, кој ќе измисли најљубезен поздрав за преминување?",
+              "en": "With adult supervision, children draw large paper keepers who will say kind words at the bridge. Each child chooses a keeper, adds a face and a sign, then places it beside a cardboard base. Teams test whether a keeper stands better with one or two folded cardboard supports. When the keepers are ready, who can invent the kindest greeting for crossing?"
+            }
+          },
+          {
+            "start": "10:45",
+            "end": "11:30",
+            "title": {
+              "mk": "Река од бавни чекори",
+              "en": "River of Slow Steps"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата играат преминување на замислена река меѓу големи картонски острови. Едно дете покажува бавен чекор, друго кажува „стоп“, а другите чекаат простор пред да продолжат. Групата може да смени правило и да проба тивко одење, чекорење наназад или премин со рацете како крилја. На крај, кој тим ќе покаже премин што му остава доволно место и на следниот пријател?",
+              "en": "With adult supervision, children play at crossing an imaginary river between large cardboard islands. One child shows a slow step, another says “stop,” and the others wait for space before continuing. The group may change a rule and try quiet walking, backward steps, or crossing with arms like wings. At the end, which team can show a crossing that leaves enough space for the next friend?"
+            }
+          }
+        ]
+      },
+      {
+        "date": "2026-09-22",
+        "theme": {
+          "title": {
+            "mk": "Лисја како тајни траги",
+            "en": "Leaves as Secret Clues"
+          },
+          "goal": {
+            "mk": "Децата набљудуваат есенски лисја, споредуваат траги и создаваат заедничка мистерија со повторно употребена хартија.",
+            "en": "Children observe autumn leaves, compare clues, and create a collaborative mystery with reused paper."
+          },
+          "inside": {
+            "mk": "Возрасниот носи неколку паднати лисја како „тајни траги“ и ги поставува на чист картон за внимателно набљудување. Детективските тимови гледаат линии, рабови и големини, па на користена хартија цртаат карта до измисленото скривалиште на шумскиот посетител. Еден тим остава три траги, а друг тим прашува прашања и тестира дали картата навистина води до нив. Децата избираат дали нивниот посетител е брз, тивок или тежок и додаваат соодветни хартиени стапалки. По мирна пауза, групата ја раскажува мистеријата од почеток до откритие, со возрасен што го надгледува материјалот.",
+            "en": "The adult brings a few fallen leaves as “secret clues” and places them on clean cardboard for careful observation. Detective teams look at lines, edges, and sizes, then draw a map on used paper to an imaginary forest visitor’s hiding place. One team leaves three clues while another asks questions and tests whether the map truly leads there. Children choose whether their visitor is quick, quiet, or heavy and add matching paper footprints. After a calm pause, the group tells the mystery from beginning to discovery, with the adult supervising the materials."
+          },
+          "outside": {
+            "mk": "Надвор, тимовите со возрасен бараат паднати лисја што веќе лежат на земјата и ги споредуваат без да ги кинат растенијата. Секој тим избира едно безбедно место, прави набљудувачка карта на користена хартија и остава цртани стрели за следниот тим. Децата предвидуваат дали ќе најдат два лисја со сличен раб или две различни бои, па ја проверуваат својата идеја. Наместо да носат многу лисја, избираат само неколку за кратко гледање и ги враќаат каде што биле. Финалето е детективско откритие: кој тим ја следел картата највнимателно?",
+            "en": "Outside, teams search with the adult for fallen leaves already lying on the ground and compare them without tearing plants. Each team chooses one safe place, makes an observation map on used paper, and leaves drawn arrows for the next team. Children predict whether they will find two leaves with a similar edge or two different colours, then check their idea. Rather than carrying many leaves, they select only a few for brief looking and return them where they were. The finale is a detective reveal: which team followed the map most carefully?"
+          },
+          "habit": {
+            "mk": "Кога гледаме природа, набљудуваме нежно и оставаме живи растенија да растат.",
+            "en": "When we explore nature, we observe gently and let living plants keep growing."
+          },
+          "dayActivities": {
+            "circle": {
+              "mk": "Кој остави трага?",
+              "en": "Who Left the Clue?"
+            },
+            "creative": {
+              "mk": "Карти на лиснати патеки",
+              "en": "Maps of Leafy Paths"
+            },
+            "movement": {
+              "mk": "Детективи со замрзнати чекори",
+              "en": "Detectives With Frozen Steps"
+            },
+            "reflection": {
+              "mk": "Три траги, едно решение",
+              "en": "Three Clues, One Solution"
+            }
+          },
+          "materials": [
+            "paper",
+            "cardboard",
+            "leaves",
+            "crayons"
+          ]
+        },
+        "sessions": [
+          {
+            "start": "09:00",
+            "end": "09:15",
+            "title": {
+              "mk": "Кутија со тајни траги",
+              "en": "Box of Secret Clues"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата гледаат лист и хартиена трага што се појавиле во картонска детективска кутија. Возрасниот опишува три видливи детали, а децата ги покажуваат со прст без да ја земаат трагата. Секое дете избира дали ќе нацрта линија, раб или боја како нова трага на користена хартија. На крај, кој детектив може да постави прашање што ќе ни помогне да ја решиме мистеријата?",
+              "en": "With adult supervision, children look at a leaf and a paper clue that have appeared in a cardboard detective box. The adult describes three visible details, and children point to them without picking up the clue. Each child chooses whether to draw a line, edge, or colour as a new clue on used paper. At the end, which detective can ask a question that helps us solve the mystery?"
+            }
+          },
+          {
+            "start": "10:00",
+            "end": "10:30",
+            "title": {
+              "mk": "Таен код од линии",
+              "en": "Secret Line Code"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, тимовите создаваат големи кодови со боички на користена хартија за детективска игра. Еден тим црта три едноставни линии или симболи, а друг тим ги набљудува и ги повторува на свој лист. Децата избираат дали кодот ќе означува брзо, бавно или тивко движење низ училницата. На крај, дали новиот тим може да го прочита кодот и да стигне до картонската детективска станица?",
+              "en": "With adult supervision, teams create large crayon codes on used paper for a detective game. One team draws three simple lines or symbols, while another observes and repeats them on its own sheet. Children choose whether the code means fast, slow, or quiet movement across the classroom. At the end, can the new team read the code and reach the cardboard detective station?"
+            }
+          },
+          {
+            "start": "10:45",
+            "end": "11:30",
+            "title": {
+              "mk": "Детективска парада на траги",
+              "en": "Detective Clue Parade"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата се движат како детективи што следат големи хартиени траги низ просторот. Едно дете е водач и покажува чекори, друго е набљудувач што кажува кога групата треба да замрзне. Тие можат да сменат правило со скокање преку замислена линија или со движење како тивок лист. На крај, каде нè одведоа трагите и кое правило направи играта поинтересна?",
+              "en": "With adult supervision, children move like detectives following large paper clues around the space. One child is the leader who shows steps, while another is the observer who says when the group must freeze. They may change a rule by jumping over an imaginary line or moving like a quiet leaf. At the end, where did the clues lead us, and which rule made the game more interesting?"
+            }
+          }
+        ]
+      },
+      {
+        "date": "2026-09-23",
+        "theme": {
+          "title": {
+            "mk": "Картонска поправна работилница",
+            "en": "Cardboard Repair Workshop"
+          },
+          "goal": {
+            "mk": "Децата играат поправна работилница, предлагаат решенија за повторна употреба и испробуваат стабилни картонски конструкции.",
+            "en": "Children play a repair workshop, suggest reuse solutions, and test sturdy cardboard constructions."
+          },
+          "inside": {
+            "mk": "Во поправната работилница, возрасниот претставува картонска кутија со измислен проблем: „Пратката не може да стои исправено.“ Децата се механичари, клиенти и проверувачи, па цртаат план на користена хартија и градат потпори со превиткан чист картон. Секој тим предвидува дали една, две или три потпори ќе ја држат кутијата стабилна, а проверувачот нежно ја допира конструкцијата. По секој обид, улогите се менуваат и децата одлучуваат дали поправката треба да биде висока, ниска, широка или со знак за внимание. Возрасниот надгледува, а на крај клиентите даваат аплауз за поправката што најдобро го решава проблемот.",
+            "en": "In the repair workshop, the adult presents a cardboard box with an imaginary problem: “The parcel cannot stand upright.” Children become mechanics, customers, and inspectors, draw a plan on used paper, and build supports from folded clean cardboard. Each team predicts whether one, two, or three supports will hold the box steady, while the inspector gently touches the construction. After every trial, roles change and children decide whether the repair should be tall, low, wide, or have a careful-use sign. The adult supervises, and the finale is customer applause for the repair that solves the problem best."
+          },
+          "outside": {
+            "mk": "Надвор, поправната работилница станува станица за „поправка на патека“ со картонски ознаки и лесни мостови за хартиени фигури. Возрасниот избира мирен, рамен простор и ги потсетува децата дека не менуваат ништо во дворот. Тимовите предвидуваат дали нивната ознака ќе остане видлива и нивната потпора исправена, потоа пробуваат понизок картонски преклоп или поширока основа. Клиентите носат само хартиени пораки до станицата, а механичарите објаснуваат како повторната употреба спасила материјал од фрлање. Со тивко собирање на сопствените материјали, сите избираат: која поправка би ја препорачале на следен тим?",
+            "en": "Outside, the repair workshop becomes a “path repair” station with cardboard signs and light bridges for paper figures. The adult chooses a calm, level space and reminds children that they do not alter anything in the yard. Teams predict whether their sign will remain visible and their support upright, then try a lower cardboard fold or a wider base. Customers carry only paper messages to the station, while mechanics explain how reuse saved material from being thrown away. With a quiet collection of their own materials, everyone chooses: which repair would they recommend to the next team?"
+          },
+          "habit": {
+            "mk": "Кога нешто чисто е свиткано или нестабилно, прво смислуваме како може повторно да служи.",
+            "en": "When something clean is bent or wobbly, we first think of how it can be useful again."
+          },
+          "dayActivities": {
+            "circle": {
+              "mk": "Кутијата што не стоеше",
+              "en": "The Box That Would Not Stand"
+            },
+            "creative": {
+              "mk": "Планови за паметна поправка",
+              "en": "Plans for Smart Repairs"
+            },
+            "movement": {
+              "mk": "Механичари во брза смена",
+              "en": "Mechanics on Quick Shift"
+            },
+            "reflection": {
+              "mk": "Која потпора успеа?",
+              "en": "Which Support Worked?"
+            }
+          },
+          "materials": [
+            "paper",
+            "cardboard",
+            "crayons"
+          ]
+        },
+        "sessions": [
+          {
+            "start": "09:00",
+            "end": "09:45",
+            "title": {
+              "mk": "Повик до поправната служба",
+              "en": "Call to the Repair Service"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата слушаат телефонски повик во кој картонска кутија бара помош да застане исправено. Едни деца се клиенти, други механичари, а возрасниот им дава голем лист за цртање на проблемот. Тимовите избираат дали проблемот е крив агол, слаба основа или премногу висока кула. На крај, кој механичар може јасно да каже што прво ќе провери?",
+              "en": "With adult supervision, children hear a telephone call in which a cardboard box asks for help to stand upright. Some children are customers, others are mechanics, and the adult gives them a large sheet to draw the problem. Teams choose whether the problem is a bent corner, a weak base, or a tower that is too tall. At the end, which mechanic can clearly say what they would check first?"
+            }
+          },
+          {
+            "start": "10:45",
+            "end": "11:30",
+            "title": {
+              "mk": "Градба на силна потпора",
+              "en": "Building a Strong Support"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата добиваат предизвик да направат картонска потпора за хартиена фигура. Тие превиткуваат големи картонски парчиња, поставуваат фигура и внимателно гледаат дали таа останува исправена. Секој тим избира да проба широк преклоп, триаголен облик или две потпори една до друга. На крај, која потпора би ја избрале за фигурата што сака да стои најдолго?",
+              "en": "With adult supervision, children receive a challenge to make a cardboard support for a paper figure. They fold large cardboard pieces, place the figure on them, and carefully watch whether it remains upright. Each team chooses to try a wide fold, a triangle shape, or two supports side by side. At the end, which support would they choose for the figure that wants to stand the longest?"
+            }
+          }
+        ]
+      },
+      {
+        "date": "2026-09-24",
+        "theme": {
+          "title": {
+            "mk": "Оркестар од повторна употреба",
+            "en": "Reuse Sound Orchestra"
+          },
+          "goal": {
+            "mk": "Децата создаваат ритам и звучна приказна со безбедно користени хартија, картон и есенски набљудувања.",
+            "en": "Children create rhythm and a sound-effects story with safely used paper, cardboard, and autumn observations."
+          },
+          "inside": {
+            "mk": "Возрасниот започнува приказна за ветар што бара изгубена есенска порака, а децата избираат звуци со нежно шушкање хартија, тапкање картон и тивко триење боички по хартија. Во мали оркестри, едно дете е раскажувач, две деца се звучни мајстори, а друго дете е диригент што покажува стоп и почеток. Тимовите предвидуваат кој звук ќе биде најтивок и го тестираат со слушање додека сите седат на своето место. Потоа менуваат ритам, брзина или редослед и измислуваат нов крај за приказната. Возрасниот надгледува, а финалето е заеднички настап со прашањето: „Кој звук ни ја покажа есента?“",
+            "en": "The adult begins a story about wind seeking a lost autumn message, while children choose sounds by gently rustling paper, tapping cardboard, and softly rubbing crayons on paper. In small orchestras, one child is the storyteller, two are sound makers, and another is the conductor who signals stop and start. Teams predict which sound will be quietest and test it by listening while everyone stays in their place. Then they change the rhythm, speed, or order and invent a new ending for the story. The adult supervises, and the finale is a shared performance with the question, “Which sound showed us autumn?”"
+          },
+          "outside": {
+            "mk": "Надвор, групата слуша краток „концерт на дворот“ пред да создаде своја приказна со хартија и картон, под надзор на возрасен. Децата стојат во широко распоредени полукругови и прво предвидуваат дали нивниот шушкави звук ќе се слуша над тивкиот ветер. Диригентот избира кога оркестарот почнува, замолкнува и прави пауза за да се слушнат природните звуци. Секој тим избира дали приказната ќе има брз дожд од хартиени звуци, бавен картонски чекор или тивко листо, без да користи други предмети. На крај, сите прават мирна пауза и одлучуваат кој звук сакаат да го однесат во следната приказна.",
+            "en": "Outside, the group listens to a short “yard concert” before creating its own story with paper and cardboard under adult supervision. Children stand in widely spaced semicircles and first predict whether their rustling sound will be heard above the gentle wind. The conductor chooses when the orchestra starts, becomes silent, and pauses to hear natural sounds. Each team chooses whether the story has fast paper rain sounds, a slow cardboard step, or a quiet leaf, without using other objects. At the end, everyone takes a calm pause and decides which sound they want to carry into the next story."
+          },
+          "habit": {
+            "mk": "Го користиме тивкиот глас и внимателните раце кога другите слушаат.",
+            "en": "We use quiet voices and careful hands when others are listening."
+          },
+          "dayActivities": {
+            "circle": {
+              "mk": "Каде се скри ветрот?",
+              "en": "Where Did the Wind Hide?"
+            },
+            "creative": {
+              "mk": "Картички за звучна приказна",
+              "en": "Cards for a Sound Story"
+            },
+            "movement": {
+              "mk": "Ритам, стоп и статуа",
+              "en": "Rhythm, Stop, and Statue"
+            },
+            "reflection": {
+              "mk": "Нашиот најтивок звук",
+              "en": "Our Quietest Sound"
+            }
+          },
+          "materials": [
+            "paper",
+            "cardboard",
+            "leaves",
+            "crayons"
+          ]
+        },
+        "sessions": [
+          {
+            "start": "09:00",
+            "end": "09:15",
+            "title": {
+              "mk": "Приказна со исчезнат звук",
+              "en": "Story With a Missing Sound"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата слушаат приказна во која недостига звукот на есенскиот ветер. Возрасниот застанува на означени места, а децата предлагаат шушкање хартија, тапкање картон или тивок глас. Секое дете избира еден звук и пробува дали е доволно тивок за да ги слушнеме другите. На крај, кој звук најдобро ѝ помогна на приказната да продолжи?",
+              "en": "With adult supervision, children hear a story in which the sound of autumn wind is missing. The adult pauses at marked places, and children suggest paper rustling, cardboard tapping, or a quiet voice. Each child chooses one sound and tests whether it is quiet enough for us to hear others. At the end, which sound helped the story continue best?"
+            }
+          },
+          {
+            "start": "10:00",
+            "end": "10:30",
+            "title": {
+              "mk": "Диригентски знаци од картон",
+              "en": "Cardboard Conductor Signs"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата прават големи картонски знаци за почеток, стоп и тивко слушање. Тимовите цртаат јасни симболи со боички, а потоа еден диригент ги крева во договорен редослед. Децата тестираат дали оркестарот подобро разбира знак со боја, линија или едноставна слика. На крај, кој знак му помогна на целиот оркестар да запре заедно?",
+              "en": "With adult supervision, children make large cardboard signs for start, stop, and quiet listening. Teams draw clear symbols with crayons, then one conductor lifts them in an agreed order. Children test whether the orchestra understands a colour, line, or simple picture sign best. At the end, which sign helped the whole orchestra stop together?"
+            }
+          },
+          {
+            "start": "10:45",
+            "end": "11:30",
+            "title": {
+              "mk": "Ритамски статуи на есента",
+              "en": "Autumn Rhythm Statues"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата се движат низ училницата на мек ритам од раце и картон. Кога диригентот покаже стоп, сите се претвораат во статуа на лист, ветер или дождовен облак. Групата избира дали следниот ритам ќе биде брз, бавен или со две паузи за слушање. На крај, кој може да покаже статуа што одговара на најтивкиот ритам?",
+              "en": "With adult supervision, children move around the classroom to a gentle rhythm made with hands and cardboard. When the conductor shows stop, everyone becomes a statue of a leaf, wind, or rain cloud. The group chooses whether the next rhythm will be fast, slow, or have two listening pauses. At the end, who can show a statue that matches the quietest rhythm?"
+            }
+          }
+        ]
+      },
+      {
+        "date": "2026-09-25",
+        "theme": {
+          "title": {
+            "mk": "Меѓународен ден на Бошњаците: Патека за соседи",
+            "en": "International Bosniak Day: Neighbour Path"
+          },
+          "goal": {
+            "mk": "Децата соработуваат на патека и игра со правила што ги менуваат, учејќи дека различни соседи придонесуваат во заедницата.",
+            "en": "Children collaborate on a pathway and a rule-changing game, learning that different neighbours contribute to a community."
+          },
+          "inside": {
+            "mk": "Како подготовка за претстојниот Меѓународен ден на Бошњаците, групата создава патека за добредојде што покажува дека соседите можат да соработуваат, без да претпоставуваме кој го одбележува денот. Децата цртаат големи картонски станици со боички: поздрав, помош, слушање и игра, а потоа ги редат во бавна патека за хартиени фигури. Еден тим предлага правило, како „застани кај поздравот“, а следниот тим го менува правилото и проверува дали патеката сè уште е лесна за следење. Возрасниот надгледува и им помага да изберат доволно широки, безбедни места за фигурите и картоните. Финалето е заедничка приказна: како секоја станица му помогна на нов сосед да се чувствува добредојден?",
+            "en": "As preparation for the upcoming International Bosniak Day, the group creates a welcome pathway showing that neighbours can cooperate, without assuming who observes the day. Children draw large cardboard stations in crayon, such as greeting, helping, listening, and playing, then arrange them into a slow route for paper figures. One team suggests a rule, such as “stop at the greeting,” while the next team changes the rule and tests whether the path is still easy to follow. The adult supervises and helps them choose sufficiently wide, safe places for figures and cardboard. The finale is a shared story: how did each station help a new neighbour feel welcome?"
+          },
+          "outside": {
+            "mk": "Како подготовка за претстојниот Меѓународен ден на Бошњаците, децата надвор прават привремена патека за добредојде со свои картонски знаци на безбедна површина. Возрасниот поставува граници, а тимовите носат лесни знаци до станици за поздрав, слушање, помош и заедничка игра. Децата избираат правило за бавно движење, го испробуваат со хартиена фигура, па го менуваат ако следниот тим не може лесно да ја следи патеката. Тие забележуваат есенски бои околу себе и можат да нацртаат една боја на својот знак, без да берат растенија. На крај, секој тим му дава на следниот тим љубезна покана: „Која станица прво би ја посетил соседот?“",
+            "en": "As preparation for the upcoming International Bosniak Day, children make a temporary welcome path outside with their own cardboard signs on a safe surface. The adult sets boundaries, and teams carry light signs to stations for greeting, listening, helping, and playing together. Children choose a rule for slow movement, test it with a paper figure, then change it if the next team cannot easily follow the path. They notice autumn colours around them and may draw one colour on their sign without picking plants. At the end, each team gives the next team a kind invitation: “Which station would a neighbour visit first?”"
+          },
+          "habit": {
+            "mk": "Кога некој се приклучува во игра, правиме место, објаснуваме правило и слушаме идеја.",
+            "en": "When someone joins a game, we make space, explain a rule, and listen to an idea."
+          },
+          "dayActivities": {
+            "circle": {
+              "mk": "Покана за нов сосед",
+              "en": "Invitation for a New Neighbour"
+            },
+            "creative": {
+              "mk": "Знаци за патека на добредојде",
+              "en": "Signs for a Welcome Path"
+            },
+            "movement": {
+              "mk": "Следи правило, смени правило",
+              "en": "Follow a Rule, Change a Rule"
+            },
+            "reflection": {
+              "mk": "Како правиме место?",
+              "en": "How Do We Make Space?"
+            }
+          },
+          "materials": [
+            "paper",
+            "cardboard",
+            "leaves",
+            "crayons"
+          ]
+        },
+        "sessions": [
+          {
+            "start": "09:00",
+            "end": "09:15",
+            "title": {
+              "mk": "Соседот пред вратата",
+              "en": "Neighbour at the Door"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата слушаат приказна за нов сосед што бара игра во која има место за сите. Како подготовка за Меѓународен ден на Бошњаците, тие предлагаат поздрави и правила без да претпоставуваат кој го одбележува денот. Едно дете глуми сосед, а другите избираат дали ќе понудат помош, прашање или покана за игра. На крај, кој поздрав би му покажал на соседот дека неговата идеја е важна?",
+              "en": "With adult supervision, children hear a story about a new neighbour seeking a game with room for everyone. As preparation for International Bosniak Day, they suggest greetings and rules without assuming who observes the day. One child plays the neighbour, while the others choose whether to offer help, a question, or an invitation to play. At the end, which greeting would show the neighbour that their idea matters?"
+            }
+          },
+          {
+            "start": "10:00",
+            "end": "10:30",
+            "title": {
+              "mk": "Знаци што велат добредојде",
+              "en": "Signs That Say Welcome"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата цртаат големи знаци за поздрав, помош и слушање на чист картон. Возрасниот потсетува дека знаците се подготовка за Меѓународен ден на Бошњаците и за добредојде на сите соседи. Тимовите избираат симбол, боја или патека со стрели и проверуваат дали друг тим го разбира знакот. На крај, кој знак би сакале прв да го види посетител на нашата училница?",
+              "en": "With adult supervision, children draw large signs for greeting, helping, and listening on clean cardboard. The adult reminds them that the signs prepare for International Bosniak Day and welcome all neighbours. Teams choose a symbol, colour, or arrow path and check whether another team understands the sign. At the end, which sign would they want a visitor to see first in our classroom?"
+            }
+          },
+          {
+            "start": "10:45",
+            "end": "11:30",
+            "title": {
+              "mk": "Игра со правила на добредојде",
+              "en": "Welcome Rules Game"
+            },
+            "description": {
+              "mk": "Со надзор од возрасен, децата играат бавна игра на движење меѓу картонски станици за поздрав и помош. Еден тим избира правило, како одење по стрела, а следниот тим добива право да го смени во полесно правило. Децата тестираат дали новото правило му помага на секој играч да се приклучи и да знае што следува. На крај, кое правило би го задржале за игра во која секој сосед има место?",
+              "en": "With adult supervision, children play a slow movement game between cardboard stations for greeting and helping. One team chooses a rule, such as walking along an arrow, and the next team may change it into an easier rule. Children test whether the new rule helps every player join and know what comes next. At the end, which rule would they keep for a game where every neighbour has a place?"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
