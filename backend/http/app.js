@@ -44,6 +44,7 @@ import { openStore } from '../storage/database.js';
 import { securityHeaders, jsonBody, rateLimiter } from './security.js';
 import { validateParentNote, informationalNote } from '../domain/parent-notes.js';
 import { suggestParentNote } from '../services/parent-notes.js';
+import { withRequestSignal, assertRequestActive, requestProvider } from '../services/request-context.js';
 
 const FRONTEND = fileURLToPath(new URL('../../frontend/', import.meta.url));
 const MIME = {
@@ -65,6 +66,10 @@ export function createApp({
   holidayProvider = getHolidayCalendar,
   autoRefreshMs = 0
 } = {}) {
+  curriculumProvider = requestProvider(curriculumProvider);
+  dayCurriculumProvider = requestProvider(dayCurriculumProvider);
+  dayPlanProvider = requestProvider(dayPlanProvider);
+  noteAdviceProvider = requestProvider(noteAdviceProvider);
   const limit = rateLimiter();
   const demos = new Map();
   const locks = new Map();
@@ -87,6 +92,7 @@ export function createApp({
     return record;
   }
   function save(user, demoId, week, expected, updateProfile = false) {
+    assertRequestActive();
     if (demoId) {
       const record = demoRecord(demoId);
       if ((record.week?.revision || 0) !== expected) throw invalid('plan_changed', 409);
@@ -600,7 +606,10 @@ export function createApp({
     if (demoId) return years.map(year => calendarSnapshot(year));
     return Promise.all(years.map(year => Promise.resolve(holidayProvider(year))));
   }
-  const server = http.createServer(async (request, response) => {
+  const server = http.createServer((request, response) => {
+    const controller = new AbortController();
+    response.once('close', () => { if (!response.writableFinished) controller.abort(); });
+    return withRequestSignal(controller.signal, async () => {
     securityHeaders(response);
     const send = (status, body) => {
       response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -649,15 +658,16 @@ export function createApp({
 
       throw invalid('not_found', 404);
     } catch (error) {
-      sendRequestError({ response, send, error });
+      if (!response.destroyed) sendRequestError({ response, send, error });
     }
+    });
   });
   server.requestTimeout = 60000;
   server.headersTimeout = 15000;
   const automatic =
     autoRefreshMs > 0 ? startAutoRefresh({ store, refreshWeek: refreshStoredWeek, intervalMs: autoRefreshMs }) : null;
   server.on('listening', () => {
-    automatic?.tick().catch(() => {});
+    automatic?.tick();
   });
   server.on('close', () => automatic?.stop());
   server.on('close', () => store.close());

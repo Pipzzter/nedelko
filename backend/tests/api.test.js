@@ -1,4 +1,5 @@
-import test from 'node:test';
+import test, { beforeEach } from 'node:test';
+beforeEach(t => t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-21T06:45:00Z') }));
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { createApp } from '../http/app.js';
@@ -11,6 +12,7 @@ import { createCurriculum } from '../services/curriculum.js';
 import { demoWeekById } from '../config/demo.js';
 import { rateLimiter } from '../http/security.js';
 import { PREFERENCE_BOUNDS } from '../domain/preferences.js';
+import { requestSignal } from '../services/request-context.js';
 
 const DEFAULT_SETTINGS = { ...EMPTY_SETTINGS, gradinka: { name: 'Test kindergarten', locationId: 'centar' }, groupName: 'Test group', teacherPrompt: 'Explore nature through music, movement and reused materials.' };
 
@@ -31,6 +33,26 @@ async function app(t, options = {}) {
 const account = { email: 'teacher@test.mk', displayName: 'Test teacher', password: 'OnlyForAutomatedTests23', kindergarten: 'Test kindergarten', ageGroup: '4-5', locationId: 'centar' };
 const demoBody = result => ({ demoId: result.demoId, revision: result.week.revision });
 
+test('disconnecting generation aborts its request context and never saves a late provider result', async t => {
+  let entered; let aborted;
+  const started = new Promise(resolve => { entered = resolve; });
+  const stopped = new Promise(resolve => { aborted = resolve; });
+  const { client, base, store } = await app(t, { curriculumProvider: async () => {
+    const signal = requestSignal(); entered();
+    await new Promise(resolve => signal.addEventListener('abort', () => { aborted(); resolve(); }, { once: true }));
+    return { themes: [], source: 'ai' };
+  } });
+  const teacher = client(); const registration = await teacher('/api/auth/register', account);
+  const cookie = registration.headers.get('set-cookie').split(';')[0];
+  const controller = new AbortController();
+  const pending = fetch(base + '/api/week/generate', { method: 'POST', signal: controller.signal,
+    headers: { Cookie: cookie, 'Content-Type': 'application/json' }, body: JSON.stringify({ settings: DEFAULT_SETTINGS }) });
+  await started; controller.abort(); await assert.rejects(pending, { name: 'AbortError' });
+  await stopped;
+  assert.equal(store.week(registration.body.user.id, '2026-09-21'), null);
+  assert.equal((await teacher('/api/dashboard')).body.week, null);
+});
+
 test('holiday endpoint needs a session or valid isolated demo, and cannot accept source URLs', async t => {
   const { client } = await app(t); const request = client();
   assert.equal((await request('/api/holidays?year=2026')).status, 401);
@@ -44,7 +66,7 @@ test('holiday endpoint needs a session or valid isolated demo, and cannot accept
 
 test('weekly generation allows six owner attempts per hour, isolates accounts and leaves demos uncapped', async t => {
   const startedAt = Date.parse('2026-09-21T06:45:00Z');
-  t.mock.timers.enable({ apis: ['Date'], now: startedAt });
+  t.mock.timers.setTime(startedAt);
   let liveCalls = 0; let demoCalls = 0;
   const { client, store } = await app(t, { curriculumProvider: async (dates, settings, options) => {
     if (options.useAI) liveCalls++; else demoCalls++;
@@ -94,7 +116,7 @@ test('failed weekly AI retries consume the owner budget without replacing the sa
 
 test('holiday requests stop at thirty per owner and hour, including isolated demos', async t => {
   const startedAt = Date.parse('2026-09-21T06:45:00Z');
-  t.mock.timers.enable({ apis: ['Date'], now: startedAt });
+  t.mock.timers.setTime(startedAt);
   let calls = 0;
   const { client } = await app(t, { holidayProvider: async year => { calls++; return calendarSnapshot(year); } });
   const owner = client(); const other = client();
@@ -115,7 +137,7 @@ test('holiday requests stop at thirty per owner and hour, including isolated dem
 });
 
 test('rate buckets reset at the boundary without extending the window on rejected calls', t => {
-  t.mock.timers.enable({ apis: ['Date'], now: 1000 });
+  t.mock.timers.setTime(1000);
   const limit = rateLimiter();
   limit('first', 1, 100);
   assert.throws(() => limit('first', 1, 100), { code: 'rate_limited', status: 429 });
