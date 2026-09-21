@@ -19,7 +19,7 @@ export function validateNoteAdvice(value, week) {
   if (!value || !['informational', 'actionable'].includes(value.kind)) throw invalid('invalid_note_advice');
   const explanation = textPair(value.explanation, 600);
   if (value.kind === 'informational' || value.audience !== 'group') return { kind: 'informational', explanation };
-  if (!week.days.some(day => day.date === value.date) || !['activity', 'schedule', 'inside'].includes(value.scope)) throw invalid('invalid_note_advice');
+  if (!week.days.some(day => day.date === value.date) || !['activity', 'schedule', 'inside', 'outside'].includes(value.scope)) throw invalid('invalid_note_advice');
   if (value.scope === 'activity' && !week.days.find(day => day.date === value.date).timeline.some(row => row.id === value.rowId)) throw invalid('invalid_note_advice');
   const instruction = teacherInstruction(value.instruction);
   if (!instruction) throw invalid('invalid_note_advice');

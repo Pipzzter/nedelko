@@ -199,10 +199,10 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
             if (!note || note.weekStart !== week.weekStart || note.status === 'applied') throw invalid('proposal_expired', 409);
             const conditions = await conditionsProvider({ locationId: week.settings.locationId, mode, scenario, demoWeek, fresh: true });
             let next;
-            if (proposal.scope === 'inside') {
+            if (['inside', 'outside'].includes(proposal.scope)) {
               const day = week.days.find(day => day.date === proposal.date);
               assertUpcoming(day, conditions.clock, day.timeline.find(row => row.kind === 'eco'));
-              next = editWeek(week, { settings: week.settings, days: week.days.map(day => day.date === proposal.date ? { ...day, outdoorPreference: 'inside' } : day) }, conditions);
+              next = editWeek(week, { settings: week.settings, days: week.days.map(day => day.date === proposal.date ? { ...day, outdoorPreference: proposal.scope } : day) }, conditions);
             } else next = applyDayChange(week, proposal, conditions);
             next = save(user, demoId, next, week.revision);
             updateNote(user, demoId, week, note, 'applied', proposal.advice); proposals.delete(body.proposalId);
@@ -222,12 +222,12 @@ export function createApp({ store = openStore(), conditionsProvider = getConditi
             return send(200, { advice: publicAdvice, proposal: null });
           }
           const day = week.days.find(day => day.date === advice.date);
-          if (!['activity', 'schedule', 'inside'].includes(advice.scope)) throw invalid('invalid_note_advice');
-          const row = day?.timeline.find(row => row.id === (advice.scope === 'inside' ? 'eco' : advice.rowId));
+          if (!['activity', 'schedule', 'inside', 'outside'].includes(advice.scope)) throw invalid('invalid_note_advice');
+          const row = day?.timeline.find(row => row.id === (['inside', 'outside'].includes(advice.scope) ? 'eco' : advice.rowId));
           if (advice.scope !== 'schedule' && !row) throw invalid('invalid_timeline');
           assertUpcoming(day, clock, advice.scope === 'schedule' ? undefined : row);
           let result; let preview;
-          if (advice.scope === 'inside') preview = day;
+          if (['inside', 'outside'].includes(advice.scope)) preview = day;
           else {
             result = await dayPlanProvider(day, week.settings, { scope: advice.scope, rowId: advice.rowId, instruction: teacherInstruction(advice.instruction), clock, useAI: !demoId, weekDays: week.days });
             if (!result.change) return send(503, { error: 'ai_day_failed', generationIssue: result.generationIssue });

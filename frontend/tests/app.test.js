@@ -105,6 +105,7 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   await wait(() => document.querySelector('#activity-title').textContent === 'A musical game');
   assert.equal(document.querySelector('.change-activity textarea'), null);
   clickText('Change schedule'); await wait(() => document.querySelector('.change-schedule textarea'));
+  assert.ok(document.querySelector('.change-schedule .location-actions button'), 'the schedule assistant can move a day inside or outside');
   await enter('.change-schedule textarea', 'Move the last game to 15:00');
   document.querySelector('.change-schedule form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   await wait(() => document.querySelector('.schedule-proposal'));

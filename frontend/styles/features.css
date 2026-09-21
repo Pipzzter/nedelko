@@ -89,6 +89,11 @@
   .change-activity { padding-top: 20px; border-top: 1px solid var(--line); }
   .change-form { display: grid; gap: 12px; margin-top: 14px; }
   .change-form > button { justify-self: start; }
+  .location-actions { display: grid; gap: 8px; margin-top: 14px; padding: 14px; border-radius: 12px; background: var(--activity-bg); }
+  .location-actions > span { font-size: 12px; font-weight: 600; color: var(--activity-ink); }
+  .location-actions > div { display: flex; flex-wrap: wrap; gap: 8px; }
+  .location-actions .button { min-height: 40px; padding: 8px 14px; font-size: 12px; }
+  .location-actions > small { font-size: 11px; color: var(--muted); }
   .change-schedule { padding-top: 20px; border-top: 1px solid var(--line); }
   .locked-activity { display: flex; gap: 8px; margin-top: 22px; color: var(--muted); font-size: 12px; }
   .schedule-proposal { margin-top: 20px; }
