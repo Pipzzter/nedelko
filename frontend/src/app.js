@@ -84,13 +84,15 @@ function App() {
       return result.calendar[0].date;
     });
   }
-  const run = async (operation, propagate = false) => {
+  const run = async (operation, propagate = false, background = false) => {
     if (running.current) {
       if (propagate) throw Object.assign(new Error('operation_pending'), { code: 'operation_pending' });
+      if (!background) setError('operation_pending');
       return;
     }
     running.current = true;
-    setBusy(true);
+    // Polls share the operation lock without disabling a teacher's active draft.
+    if (!background) setBusy(true);
     setError('');
     try {
       return await operation();
@@ -104,7 +106,7 @@ function App() {
       if (propagate) throw err;
     } finally {
       running.current = false;
-      setBusy(false);
+      if (!background) setBusy(false);
     }
   };
   const load = async (id = demoId, selectedLocation = location, selectedScenario = scenario, fresh = false) => {
@@ -116,12 +118,13 @@ function App() {
     });
     accept(await api(`/dashboard?${query}`));
   };
-  const refresh = () =>
+  const refreshDashboard = (background = false) =>
     run(async () => {
       // Clear approval in the UI immediately, including while the network is unavailable.
-      if (data?.week) setData({ ...data, week: { ...data.week, approval: null, checkedAt: null } });
+      setData(current => current?.week ? { ...current, week: { ...current.week, approval: null, checkedAt: null } } : current);
       await load(demoId, location, scenario, true);
-    });
+    }, false, background);
+  const refresh = () => refreshDashboard();
   const beginDemo = (demoWeek = config.defaultDemoWeek) =>
     run(async () => {
       const result = await api('/demo', { locationId: location, demoWeek });
@@ -196,7 +199,7 @@ function App() {
   useEffect(() => {
     if (page !== 'home' || !data) return;
     const resume = () => {
-      if (!document.hidden) refresh();
+      if (!document.hidden) refreshDashboard(true);
     };
     const interval = setInterval(resume, 60000);
     document.addEventListener('visibilitychange', resume);
@@ -204,7 +207,7 @@ function App() {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', resume);
     };
-  }, [page, demoId, data?.week?.revision]);
+  }, [page, demoId, location, scenario, data?.week?.revision]);
   useEffect(() => {
     const handler = () => {
       if (demoRoute() || pages.has(window.location.hash.slice(1))) setPage(currentPage());

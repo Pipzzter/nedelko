@@ -12,8 +12,12 @@ import { demoWeekById } from '../../backend/config/demo.js';
 import { rowContent } from '../../backend/domain/day-edit.js';
 
 test('DOM integration: empty account, create kindergarten, one-page management, live step, bilingual messages and isolated demo', async t => {
-  let aiAvailable = false; let generatedSettings;
-  const server = createApp({ store: openStore(':memory:'), conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', mode, demoWeek } = {}) => demoConditions(LOCATIONS.find(l => l.id === locationId) || LOCATIONS[0], scenario, Date.now(), mode === 'demo' ? demoWeekById(demoWeek) : null),
+  let aiAvailable = false; let generatedSettings; let demoClockOffset = 0;
+  const server = createApp({ store: openStore(':memory:'), conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', mode, demoWeek } = {}) => {
+      const profile = mode === 'demo' ? demoWeekById(demoWeek) : null;
+      const timedProfile = profile && { ...profile, clock: new Date(Date.parse(profile.clock) + demoClockOffset).toISOString() };
+      return demoConditions(LOCATIONS.find(l => l.id === locationId) || LOCATIONS[0], scenario, Date.now(), timedProfile);
+    },
     curriculumProvider: async (dates, settings, options) => {
       if (options.useAI) generatedSettings = settings;
       const curriculum = await createCurriculum(dates, settings, { ...options, useAI: false });
@@ -34,12 +38,33 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   const saved = new Map(); window.location = { hash: '#home', href: base + '/#home', hostname: '127.0.0.1' }; window.history = { pushState: (_s, _unused, hash) => { window.location.hash = hash; } }; window.scrollTo = () => {};
   globalThis.window = window; globalThis.document = window.document; globalThis.localStorage = { getItem: k => saved.get(k), setItem: (k, v) => saved.set(k, v) };
   globalThis.requestAnimationFrame = fn => setTimeout(fn, 0); globalThis.cancelAnimationFrame = clearTimeout;
+  const refreshTimers = new Map(); const nativeSetInterval = globalThis.setInterval; const nativeClearInterval = globalThis.clearInterval;
+  t.mock.method(globalThis, 'setInterval', (callback, delay, ...args) => {
+    const timer = nativeSetInterval(callback, delay, ...args);
+    if (delay === 60000) refreshTimers.set(timer, callback);
+    return timer;
+  });
+  t.mock.method(globalThis, 'clearInterval', timer => { refreshTimers.delete(timer); nativeClearInterval(timer); });
+  let holdDashboard = false; let releaseDashboard; let dashboardRequests = 0; let editRequests = 0; let shareRequests = 0;
+  const dashboardQueries = []; let latestDashboard;
+  t.after(() => releaseDashboard?.());
   let clipboard = '';
   const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async value => { clipboard = value; } } });
   t.after(() => { if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard); else delete navigator.clipboard; });
   globalThis.fetch = async (path, options = {}) => {
+    if (typeof path === 'string' && path.startsWith('/api/dashboard?')) {
+      dashboardRequests++;
+      dashboardQueries.push(new URL(path, base).searchParams);
+      if (holdDashboard) {
+        holdDashboard = false;
+        await new Promise(resolve => { releaseDashboard = () => { releaseDashboard = null; resolve(); }; });
+      }
+    }
+    if (path === '/api/week/day/edit') editRequests++;
+    if (path === '/api/week/share') shareRequests++;
     const response = await nativeFetch(typeof path === 'string' && path.startsWith('/') ? base + path : path, { ...options, headers: { ...options.headers, Cookie: cookie } });
+    if (typeof path === 'string' && path.startsWith('/api/dashboard?') && response.ok) latestDashboard = await response.clone().json();
     if (response.headers.get('set-cookie')) cookie = response.headers.get('set-cookie').split(';')[0]; return response;
   };
   t.after(async () => { const { render } = await import('../../frontend/vendor/preact.js'); render(null, document.getElementById('app')); globalThis.fetch = nativeFetch; await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }); });
@@ -99,6 +124,40 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   clickText('EN'); await wait(() => document.documentElement.lang === 'en');
   assert.equal(document.querySelector('.change-activity'), null, 'meal details have no AI control');
   assert.ok(document.querySelector('.edit-activity'), 'meal details have a pencil editor');
+  document.querySelector('.edit-activity').dispatchEvent(new window.Event('click', { bubbles: true }));
+  await wait(() => document.querySelector('.activity-editor textarea[lang="en"]'));
+  await enter('.activity-editor textarea[lang="en"]', 'Keep typing through the background refresh');
+  const draft = document.querySelector('.activity-editor textarea[lang="en"]');
+  await wait(() => refreshTimers.size === 1);
+  holdDashboard = true; [...refreshTimers.values()][0]();
+  await wait(() => releaseDashboard && document.querySelector('.network-progress'));
+  assert.equal(draft.disabled, false, 'automatic dashboard polling must not disable the focused editor');
+  assert.equal(document.querySelector('.activity-editor textarea[lang="en"]'), draft);
+  assert.equal(document.getElementById('app-screen').hasAttribute('inert'), false);
+  assert.equal(document.querySelector('.ai-loading-screen'), null);
+  const pendingRequests = dashboardRequests;
+  document.dispatchEvent(new window.Event('visibilitychange'));
+  assert.equal(dashboardRequests, pendingRequests, 'a visibility refresh cannot overlap an active poll');
+  clickText('Create parent link');
+  await wait(() => document.querySelector('.alert.error'));
+  assert.match(document.querySelector('.alert.error').textContent, /Another update is in progress/);
+  assert.equal(shareRequests, 0, 'a mutation stays serialized and explains why it must be retried');
+  document.querySelector('.activity-editor').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+  await wait(() => document.querySelector('.activity-editor [role="alert"]'));
+  assert.equal(editRequests, 0, 'the operation mutex prevents a write from overlapping the held poll');
+  assert.equal(draft.disabled, false);
+  releaseDashboard(); await wait(() => !document.querySelector('.network-progress'));
+  assert.equal(draft.value, 'Keep typing through the background refresh');
+  assert.equal(draft.disabled, false);
+  holdDashboard = true;
+  document.querySelector('.air-card .icon-button').dispatchEvent(new window.Event('click', { bubbles: true }));
+  await wait(() => releaseDashboard && draft.disabled);
+  const manualRequests = dashboardRequests;
+  [...refreshTimers.values()][0]();
+  assert.equal(dashboardRequests, manualRequests, 'automatic polling yields to an explicit refresh');
+  releaseDashboard(); await wait(() => !draft.disabled);
+  document.querySelector('.activity-editor .quiet').dispatchEvent(new window.Event('click', { bubbles: true }));
+  await wait(() => !document.querySelector('.activity-editor'));
   const editable = document.querySelector('.timeline li.kind-activity:not(.holiday-lesson) .timeline-activity');
   editable.dispatchEvent(new window.Event('click', { bubbles: true }));
   await wait(() => document.querySelector('.change-activity'));
@@ -139,6 +198,23 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
   assert.match(document.querySelector('.adaptation-note').textContent, /Today is an indoor day.*Suggested outdoor day, provisional/);
   assert.equal(document.querySelector('.adaptation-note').getAttribute('role'), 'alert');
   assert.match(document.querySelector('.calendar-day').textContent, /Inside/);
+  const demoRevision = latestDashboard.week.revision;
+  await new Promise(resolve => setTimeout(resolve, 30));
+  for (const offset of [60000, 120000]) {
+    const latestObservation = document.querySelector('.air-bottom .data-label').textContent;
+    const latestAir = document.querySelector('.air-reading').textContent;
+    demoClockOffset = offset;
+    holdDashboard = true; [...refreshTimers.values()][0]();
+    await wait(() => releaseDashboard && document.querySelector('.network-progress'));
+    assert.equal(dashboardQueries.at(-1).get('scenario'), 'polluted', 'automatic polling uses the teacher-selected scenario');
+    assert.equal(document.querySelector('.air-bottom .data-label').textContent, latestObservation, 'approval invalidation retains the newest displayed observations while refreshing');
+    assert.equal(document.querySelector('.air-reading').textContent, latestAir);
+    releaseDashboard(); await wait(() => !document.querySelector('.network-progress'));
+    assert.equal(latestDashboard.demoScenario, 'polluted');
+    assert.equal(latestDashboard.week.revision, demoRevision, 'observation refreshes keep the editor revision stable');
+    assert.notEqual(document.querySelector('.air-bottom .data-label').textContent, latestObservation);
+    assert.match(document.querySelector('.adaptation-note').textContent, /Today is an indoor day/);
+  }
   const leaveDemo = document.querySelector('.demo-switch input'); leaveDemo.checked = false;
   leaveDemo.dispatchEvent(new window.Event('change', { bubbles: true }));
   await wait(() => !document.querySelector('.demo-banner') && document.querySelector('.share-url'));
