@@ -1,7 +1,8 @@
 import { html, useState, useRef, useEffect, text } from '../lib/ui.js';
+import { ScheduleEditor } from './ScheduleEditor.js';
 import { t, errorText } from '../locales/index.js';
 
-export function ChangeAssistant({ day, row, scope, lang, busy, demo, onSuggest, onApply, onPlace, placeDisabled = false }) {
+export function ChangeAssistant({ day, row, scope, lang, busy, demo, onSuggest, onApply, onPlace, onEdit, clock, revision, placeDisabled = false }) {
   const [open, setOpen] = useState(false); const [instruction, setInstruction] = useState('');
   const [proposal, setProposal] = useState(null); const [error, setError] = useState(''); const [working, setWorking] = useState(false);
   const input = useRef(null);
@@ -28,7 +29,8 @@ export function ChangeAssistant({ day, row, scope, lang, busy, demo, onSuggest, 
   return html`<section class=${`change-assistant change-${scope}`}>
     <button type="button" class="button secondary" disabled=${busy || working} aria-expanded=${open} onClick=${() => setOpen(value => !value)}>${t(title, lang)}</button>
     ${open && scope === 'schedule' && onPlace && html`<div class="location-actions"><span>${t('activityPlace', lang)}</span><div>${['outside', 'inside', 'auto'].map(value => html`<button key=${value} type="button" class=${`button ${(day.outdoorPreference || 'auto') === value ? 'primary' : 'secondary'}`} disabled=${busy || working || placeDisabled || (day.outdoorPreference || 'auto') === value} onClick=${() => onPlace(value)}>${t(value === 'auto' ? 'automatic' : value, lang)}</button>`)}</div><small>${t('dayPlaceHelp', lang)}</small></div>`}
-    ${open && html`<form class="change-form" onSubmit=${submit}>
+    ${open && scope === 'schedule' && onEdit && html`<${ScheduleEditor} key=${`${day.date}/${JSON.stringify(day.timeline.map(row => row.start))}`} day=${day} clock=${clock} lang=${lang} revision=${revision} busy=${busy || working} onSave=${onEdit}/>`}
+    ${open && !(demo && scope === 'schedule' && onEdit) && html`<form class="change-form" onSubmit=${submit}>
       <label>${t(scope === 'activity' ? 'activityChangePrompt' : 'scheduleChangePrompt', lang)}
         <textarea ref=${input} rows="3" maxLength="2000" required value=${instruction} disabled=${busy || working}
           placeholder=${t(scope === 'activity' ? 'aiDayPlaceholder' : 'scheduleChangePlaceholder', lang)}
