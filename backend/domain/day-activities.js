@@ -15,11 +15,37 @@ export function weatherContext(summary) {
 }
 export function activityRole(start) {
   const n = minutes(start);
-  return n < 510 ? 'welcome' : n < 570 ? 'circle' : n < 615 ? 'movement' : n < 720 ? 'creative' : n < 840 ? 'calm' : n < 900 ? 'together' : n < 945 ? 'reflection' : 'departure';
+  if (n < 510) {
+    return 'welcome';
+  }
+  if (n < 570) {
+    return 'circle';
+  }
+  if (n < 615) {
+    return 'movement';
+  }
+  if (n < 720) {
+    return 'creative';
+  }
+  if (n < 840) {
+    return 'calm';
+  }
+  if (n < 900) {
+    return 'together';
+  }
+  if (n < 945) {
+    return 'reflection';
+  }
+  return 'departure';
 }
 export function defaultDayActivities(index, materials = ['paper', 'cardboard']) {
   const choices = playChoices(materials);
-  return Object.fromEntries(['circle', 'creative', 'movement', 'reflection'].map(role => [role, structuredClone(choices[(index * 3 + ROLES.indexOf(role)) % choices.length].label)]));
+  return Object.fromEntries(
+    ['circle', 'creative', 'movement', 'reflection'].map((role) => [
+      role,
+      structuredClone(choices[(index * 3 + ROLES.indexOf(role)) % choices.length].label)
+    ])
+  );
 }
 export function activityText(role, index, summary, theme) {
   const choices = playChoices(theme.materials);
@@ -29,23 +55,41 @@ export function activityText(role, index, summary, theme) {
 }
 export function adaptActivities(day, index, today, clockMinutes) {
   day.learningWeather = weatherContext(day.summary);
-  day.timeline = day.timeline.map(row => {
-    if (!row.activityRole || row.customized || row.plannedSession || day.date < today || day.date === today && minutes(row.start) < clockMinutes) return row;
+  day.timeline = day.timeline.map((row) => {
+    if (
+      !row.activityRole ||
+      row.customized ||
+      row.plannedSession ||
+      day.date < today ||
+      (day.date === today && minutes(row.start) < clockMinutes)
+    )
+      return row;
     return { ...row, ...activityText(row.activityRole, index, day.summary, day.theme) };
   });
 }
 export function diversifyActivities(day, index, today, clockMinutes) {
   const seen = { mk: new Set(), en: new Set() };
-  const remember = row => { for (const lang of ['mk', 'en']) seen[lang].add(titleKey(row.label[lang])); };
-  const canChange = row => row.kind === 'activity' && !row.customized && !row.plannedSession && !row.occasionIds?.length &&
-    day.date >= today && (day.date !== today || minutes(row.start) >= clockMinutes);
-  day.timeline.filter(row => !canChange(row)).forEach(remember);
+  const remember = (row) => {
+    for (const lang of ['mk', 'en']) seen[lang].add(titleKey(row.label[lang]));
+  };
+  const canChange = (row) =>
+    row.kind === 'activity' &&
+    !row.customized &&
+    !row.plannedSession &&
+    !row.occasionIds?.length &&
+    day.date >= today &&
+    (day.date !== today || minutes(row.start) >= clockMinutes);
+  day.timeline.filter((row) => !canChange(row)).forEach(remember);
   const choices = playChoices(day.theme?.materials);
   for (const row of day.timeline.filter(canChange)) {
-    if (['mk', 'en'].some(lang => seen[lang].has(titleKey(row.label[lang])))) {
-      const selected = Array.from({ length: choices.length }, (_, i) => choices[(i + index) % choices.length])
-        .find(item => ['mk', 'en'].every(lang => !seen[lang].has(titleKey(item.label[lang]))));
-      if (selected) { row.label = structuredClone(selected.label); row.note = structuredClone(selected.note); }
+    if (['mk', 'en'].some((lang) => seen[lang].has(titleKey(row.label[lang])))) {
+      const selected = Array.from({ length: choices.length }, (_, i) => choices[(i + index) % choices.length]).find(
+        (item) => ['mk', 'en'].every((lang) => !seen[lang].has(titleKey(item.label[lang])))
+      );
+      if (selected) {
+        row.label = structuredClone(selected.label);
+        row.note = structuredClone(selected.note);
+      }
     }
     remember(row);
   }

@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+cd "$(git rev-parse --show-toplevel)"
+exec node --env-file-if-exists=static-analysis/.env scripts/gate.js --pre-push

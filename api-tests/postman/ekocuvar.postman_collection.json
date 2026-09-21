@@ -1,0 +1,3011 @@
+{
+  "info": {
+    "_postman_id": "5b66b453-b40a-43d9-a8b1-139bdd4a8d1b",
+    "name": "EkoCuvar local API regression tests",
+    "description": "Run all folders in order with the EkoCuvar local environment. Planning, editing, sharing and approval use explicitly synthetic demos. Auth requests create a unique disposable example.test account. Every request disables the shared cookie jar and sends only this run’s captured session cookie. Successful cleanup deletes the demo, revokes sharing, logs out and clears runtime variables. Use npm --prefix api-tests test for an isolated in-memory app, or npm --prefix api-tests run test:local for an existing native/Docker app. See docs/development/api-tests.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "(() => {",
+          "  pm.test('Response is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+          "  pm.test('Response cannot be cached', () => pm.expect(pm.response.headers.get('Cache-Control')).to.equal('no-store'));",
+          "  pm.test('Content sniffing is disabled', () => pm.expect(pm.response.headers.get('X-Content-Type-Options')).to.equal('nosniff'));",
+          "  if (pm.response.code < 200 || pm.response.code >= 300) return;",
+          "  const data = pm.response.json();",
+          "  const cookie = pm.response.headers.get('Set-Cookie');",
+          "  if (cookie) pm.environment.set('sessionCookie', cookie.split(';')[0]);",
+          "  if (data.demoId) pm.environment.set('demoId', data.demoId);",
+          "  if (!data.week) return;",
+          "  pm.environment.set('previousRevision', pm.environment.get('revision'));",
+          "  pm.environment.set('revision', String(data.week.revision));",
+          "  pm.environment.set('week', JSON.stringify(data.week));",
+          "  pm.environment.set('settings', JSON.stringify(data.week.settings));",
+          "  const day = data.week.days.filter(day => day.theme && !day.closed).pop();",
+          "  pm.environment.set('editDate', day.date);",
+          "  pm.environment.set('mealRowId', day.timeline.find(row => row.kind === 'meal').id);",
+          "  pm.environment.set('activityRowId', day.timeline.find(row => row.kind === 'activity' && !row.occasionIds?.length).id);",
+          "})();"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Public API and request boundaries",
+      "description": "Configuration, anonymous access, JSON validation and same-origin restrictions. The first request resets only this collection’s runtime variables; browser cookie jars are disabled for every request.",
+      "item": [
+        {
+          "name": "Read configuration and initialize this run",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/config",
+            "description": "Read configuration and initialize this run. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('email', '');",
+                  "pm.environment.set('password', '');",
+                  "pm.environment.set('sessionCookie', '');",
+                  "pm.environment.set('ownerId', '');",
+                  "pm.environment.set('demoId', '');",
+                  "pm.environment.set('revision', '');",
+                  "pm.environment.set('previousRevision', '');",
+                  "pm.environment.set('week', '');",
+                  "pm.environment.set('settings', '');",
+                  "pm.environment.set('editDate', '');",
+                  "pm.environment.set('activityRowId', '');",
+                  "pm.environment.set('mealRowId', '');",
+                  "pm.environment.set('proposalId', '');",
+                  "pm.environment.set('parentToken', '');",
+                  "pm.environment.set('noteNonce', '');",
+                  "pm.environment.set('noteId', '');",
+                  "pm.environment.set('revokedCookie', '');",
+                  "const runId = pm.variables.replaceIn('{{$guid}}');",
+                  "pm.environment.set('email', `api-tests-${runId}@example.test`);",
+                  "pm.environment.set('password', pm.variables.replaceIn('{{$guid}}') + '-ApiTests9!');",
+                  "pm.environment.set('noteNonce', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Locations and demo choices are available', () => {",
+                  "  pm.expect(body.locations.some(location => location.id === pm.environment.get('locationId'))).to.be.true;",
+                  "  pm.expect(body.demoWeeks.some(week => week.id === pm.environment.get('demoWeek'))).to.be.true;",
+                  "  pm.expect(body.demoScenarios).to.include('polluted');",
+                  "});",
+                  "pm.test('Configuration contains no provider credentials', () => {",
+                  "  pm.expect(pm.response.text()).not.to.match(/OPENAI_API_KEY|PULSE_PASSWORD|password_hash|sk-proj-/);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Anonymous session is empty",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "Anonymous session is empty. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('No signed-in user', () => pm.expect(body.user).to.equal(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard requires authentication",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/dashboard",
+            "description": "Dashboard requires authentication. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: sign_in_required', () => pm.expect(body.error).to.equal('sign_in_required'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Account generation requires authentication",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/generate",
+            "description": "Account generation requires authentication. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: sign_in_required', () => pm.expect(body.error).to.equal('sign_in_required'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Calendar requires authentication or a demo",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/holidays?year=2026",
+            "description": "Calendar requires authentication or a demo. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: sign_in_required', () => pm.expect(body.error).to.equal('sign_in_required'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown parent link is unavailable",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/parents/0000000000000000000000000000000000000000000000000000000000000000",
+            "description": "Unknown parent link is unavailable. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: parent_link_unavailable', () => pm.expect(body.error).to.equal('parent_link_unavailable'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unsupported HTTP method is rejected",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/config",
+            "description": "Unsupported HTTP method is rejected. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 405', () => pm.response.to.have.status(405));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: method_not_allowed', () => pm.expect(body.error).to.equal('method_not_allowed'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Malformed JSON is rejected",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/demo",
+            "description": "Malformed JSON is rejected. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: invalid_json', () => pm.expect(body.error).to.equal('invalid_json'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Non-JSON request is rejected",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": "{{baseUrl}}/api/demo",
+            "description": "Non-JSON request is rejected. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 415', () => pm.response.to.have.status(415));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: json_required', () => pm.expect(body.error).to.equal('json_required'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cross-origin mutation is rejected",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "https://outside.example.test"
+              }
+            ],
+            "url": "{{baseUrl}}/api/demo",
+            "description": "Cross-origin mutation is rejected. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: cross_origin', () => pm.expect(body.error).to.equal('cross_origin'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown demo week is rejected",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/demo",
+            "description": "Unknown demo week is rejected. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoWeek\": \"invalid-demo-week\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: invalid_demo_week', () => pm.expect(body.error).to.equal('invalid_demo_week'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown location is rejected",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/demo",
+            "description": "Unknown location is rejected. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locationId\": \"invalid-location\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: unexpected_error', () => pm.expect(body.error).to.equal('unexpected_error'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Account sessions",
+      "description": "Uses a newly generated example.test account per run. The runner never needs existing teacher credentials. Running against a persistent app leaves this disposable account because the API has no account-deletion route.",
+      "item": [
+        {
+          "name": "Invalid registration email is rejected",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Invalid registration email is rejected. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"not-an-email\",\n  \"password\": \"{{password}}\",\n  \"displayName\": \"API test teacher\",\n  \"kindergarten\": \"API test kindergarten\",\n  \"ageGroup\": \"4-5\",\n  \"locationId\": \"{{locationId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: email_format', () => pm.expect(body.error).to.equal('email_format'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register disposable teacher account",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Register disposable teacher account. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"displayName\": \"API test teacher\",\n  \"kindergarten\": \"API test kindergarten\",\n  \"ageGroup\": \"4-5\",\n  \"locationId\": \"{{locationId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Public account matches registration', () => {",
+                  "  pm.expect(body.user.email).to.equal(pm.environment.get('email'));",
+                  "  pm.expect(body.user.displayName).to.equal('API test teacher');",
+                  "  pm.expect(body.user).to.have.all.keys('id', 'email', 'displayName');",
+                  "});",
+                  "pm.test('Session cookie has security attributes', () => {",
+                  "  const cookie = pm.response.headers.get('Set-Cookie');",
+                  "  pm.expect(cookie.includes('HttpOnly')).to.be.true;",
+                  "  pm.expect(cookie.includes('SameSite=Strict')).to.be.true;",
+                  "});",
+                  "pm.environment.set('ownerId', body.user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read authenticated account",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "Read authenticated account. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Session belongs to the created account', () => pm.expect(body.user.id).to.equal(pm.environment.get('ownerId')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Duplicate account is rejected",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Duplicate account is rejected. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"displayName\": \"API test teacher\",\n  \"kindergarten\": \"API test kindergarten\",\n  \"ageGroup\": \"4-5\",\n  \"locationId\": \"{{locationId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: email_taken', () => pm.expect(body.error).to.equal('email_taken'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Log out registered session",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": "Log out registered session. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('revokedCookie', pm.environment.get('sessionCookie'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Logout acknowledged', () => pm.expect(body.ok).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Revoked session cannot authenticate",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{revokedCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "Revoked session cannot authenticate. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Revoked session is anonymous', () => pm.expect(body.user).not.to.exist);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Wrong password is rejected",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Wrong password is rejected. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"wrong-password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: login_failed', () => pm.expect(body.error).to.equal('login_failed'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Log in with generated credentials",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Log in with generated credentials. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Login returns the same account', () => pm.expect(body.user.id).to.equal(pm.environment.get('ownerId')));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Synthetic week lifecycle and approval",
+      "description": "All planning writes carry the newly created demoId. Conditions are explicitly synthetic. Revisions always come from the last server response; a recheck is required before approval and every refresh invalidates it.",
+      "item": [
+        {
+          "name": "Create isolated synthetic demo",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/demo",
+            "description": "Create isolated synthetic demo. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locationId\": \"{{locationId}}\",\n  \"demoWeek\": \"{{demoWeek}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Demo has five ordered weekdays and bilingual messages', () => {",
+                  "  pm.expect(body.mode).to.equal('demo');",
+                  "  pm.expect(body.week.demoWeek).to.equal(pm.environment.get('demoWeek'));",
+                  "  pm.expect(body.week.days).to.have.lengthOf(5);",
+                  "  pm.expect(body.week.days.map(day => new Date(day.date + 'T12:00:00Z').getUTCDay())).to.eql([1, 2, 3, 4, 5]);",
+                  "  pm.expect(body.week.messages.weekly.mk).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.week.messages.weekly.en).to.include('DEMO');",
+                  "  pm.expect(body.week.approval).to.equal(null);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read synthetic holiday calendar",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/holidays?year=2026&demoId={{demoId}}",
+            "description": "Read synthetic holiday calendar. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Calendar uses the approved source', () => {",
+                  "  pm.expect(body.calendar.events).to.be.an('array').and.not.empty;",
+                  "  pm.expect(body.calendar.sourceUrl).to.match(/^https:\\/\\/www\\.economy\\.gov\\.mk\\//);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid calendar year is rejected",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/holidays?year=-1&demoId={{demoId}}",
+            "description": "Invalid calendar year is rejected. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: invalid_calendar_year', () => pm.expect(body.error).to.equal('invalid_calendar_year'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown demo scenario is rejected",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/dashboard?demoId={{demoId}}&scenario=not-a-scenario",
+            "description": "Unknown demo scenario is rejected. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: invalid_scenario', () => pm.expect(body.error).to.equal('invalid_scenario'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notice cannot be approved before recheck",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/approve",
+            "description": "Notice cannot be approved before recheck. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: recheck_required', () => pm.expect(body.error).to.equal('recheck_required'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recheck synthetic same-day conditions",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/recheck",
+            "description": "Recheck synthetic same-day conditions. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"scenario\": \"normal\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Recheck records the demo date', () => pm.expect(body.week.checkedDate).to.equal(body.today));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve server-generated demo notice",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/approve",
+            "description": "Approve server-generated demo notice. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"messages\": {\n    \"en\": \"FORGED_NOTICE\",\n    \"mk\": \"FORGED_NOTICE\"\n  },\n  \"aqi\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Approval uses server messages with demo provenance', () => {",
+                  "  pm.expect(body.week.approval.messages.en).to.include('DEMO');",
+                  "  pm.expect(body.week.approval.messages.en).not.to.include('FORGED_NOTICE');",
+                  "  pm.expect(body.week.approval.messages.mk).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pollution refresh moves today indoors and invalidates approval",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/dashboard?demoId={{demoId}}&scenario=polluted&fresh=1",
+            "description": "Pollution refresh moves today indoors and invalidates approval. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Pollution cannot leave today outdoors or approved', () => {",
+                  "  const today = body.week.days.find(day => day.date === body.today);",
+                  "  pm.expect(today.mode).to.equal('inside');",
+                  "  pm.expect(today.reason).to.equal('pollution');",
+                  "  pm.expect(body.week.approval).to.equal(null);",
+                  "  pm.expect(body.week.checkedAt).to.equal(null);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Old revision cannot overwrite a refreshed plan",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/recheck",
+            "description": "Old revision cannot overwrite a refreshed plan. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{previousRevision}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: plan_changed', () => pm.expect(body.error).to.equal('plan_changed'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh normal synthetic conditions",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/dashboard?demoId={{demoId}}&scenario=normal",
+            "description": "Refresh normal synthetic conditions. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Refresh leaves approval empty', () => pm.expect(body.week.approval).to.equal(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change demo city",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/location",
+            "description": "Change demo city. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"locationId\": \"bitola\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Selected city is applied', () => pm.expect(body.environment.location.id).to.equal(\"bitola\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Regenerate the demo from its saved settings",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/generate",
+            "description": "Regenerate the demo from its saved settings. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"settings\": {{settings}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Generation preserves demo isolation and clears approval', () => {",
+                  "  pm.expect(body.demoId).to.equal(pm.environment.get('demoId'));",
+                  "  pm.expect(body.week.days).to.have.lengthOf(5);",
+                  "  pm.expect(body.week.approval).to.equal(null);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Teacher edits and proposals",
+      "description": "Exercises full-week editing, direct bilingual day edits, drag/arrow ordering, reviewed time boundaries and persistence after refresh; theme and activity suggestions include stale/reused proposal rejection. Demo suggestions come from the local library.",
+      "item": [
+        {
+          "name": "Save a bilingual weekly theme edit",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/edit",
+            "description": "Save a bilingual weekly theme edit. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{{editPayload}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const week = JSON.parse(pm.environment.get('week'));",
+                  "const day = week.days.find(day => day.date === pm.environment.get('editDate'));",
+                  "day.theme.title = { mk: 'Нашите мали откритија', en: 'Our little discoveries' };",
+                  "pm.variables.set('editPayload', JSON.stringify({ demoId: pm.environment.get('demoId'), revision: week.revision, settings: week.settings, days: week.days }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Weekly edit updates the selected theme', () => {",
+                  "  const day = body.week.days.find(day => day.date === pm.environment.get('editDate'));",
+                  "  pm.expect(day.theme.title.en).to.equal('Our little discoveries');",
+                  "  pm.expect(body.week.approval).to.equal(null);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save a direct bilingual day edit",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/day/edit",
+            "description": "Save a direct bilingual day edit. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"action\": \"content\",\n  \"date\": \"{{editDate}}\",\n  \"rowId\": \"{{mealRowId}}\",\n  \"content\": {\n    \"label\": {\n      \"mk\": \"Наш појадок\",\n      \"en\": \"Our breakfast\"\n    },\n    \"note\": {\n      \"mk\": \"Јадеме заедно.\",\n      \"en\": \"We eat together.\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Direct edit persists both languages', () => {",
+                  "  const day = body.week.days.find(day => day.date === pm.environment.get('editDate'));",
+                  "  const row = day.timeline.find(row => row.id === pm.environment.get('mealRowId'));",
+                  "  pm.expect(row.label.mk).to.equal('Наш појадок');",
+                  "  pm.expect(row.note.en).to.equal('We eat together.');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reorder the complete day while preserving durations",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/day/edit",
+            "description": "Reorder the complete day while preserving durations. Uses only this run’s synthetic demo and the latest server revision.",
+            "body": {
+              "mode": "raw",
+              "raw": "{{manualEditPayload}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const week = JSON.parse(pm.environment.get('week'));",
+                  "const day = week.days.find(day => day.date === pm.environment.get('editDate'));",
+                  "const rowIds = day.timeline.map(row => row.id);",
+                  "rowIds.splice(2, 0, rowIds.shift());",
+                  "const minutes = time => Number(time.slice(0, 2)) * 60 + Number(time.slice(3));",
+                  "pm.variables.set('expectedOrder', JSON.stringify(rowIds));",
+                  "pm.variables.set('durations', JSON.stringify(Object.fromEntries(day.timeline.map(row => [row.id, minutes(row.end) - minutes(row.start)]))));",
+                  "pm.variables.set('manualEditPayload', JSON.stringify({ demoId: pm.environment.get('demoId'), revision: week.revision, date: day.date, action: 'reorder', rowIds }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Saved row order matches the drag or arrow request', () => {",
+                  "  const day = body.week.days.find(day => day.date === pm.environment.get('editDate'));",
+                  "  pm.expect(day.timeline.map(row => row.id)).to.eql(JSON.parse(pm.variables.get('expectedOrder')));",
+                  "  const minutes = time => Number(time.slice(0, 2)) * 60 + Number(time.slice(3));",
+                  "  const durations = JSON.parse(pm.variables.get('durations'));",
+                  "  for (const [index, row] of day.timeline.entries()) {",
+                  "    pm.expect(minutes(row.end) - minutes(row.start)).to.equal(durations[row.id]);",
+                  "    if (index) pm.expect(row.start).to.equal(day.timeline[index - 1].end);",
+                  "  }",
+                  "  pm.expect(body.week.approval).to.equal(null);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save reviewed timetable boundaries",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/day/edit",
+            "description": "Save reviewed timetable boundaries. Uses only this run’s synthetic demo and the latest server revision.",
+            "body": {
+              "mode": "raw",
+              "raw": "{{manualEditPayload}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const week = JSON.parse(pm.environment.get('week'));",
+                  "const day = week.days.find(day => day.date === pm.environment.get('editDate'));",
+                  "const minutes = time => Number(time.slice(0, 2)) * 60 + Number(time.slice(3));",
+                  "const index = day.timeline.findIndex((row, index) => index > 0 && row.kind !== 'eco' && day.timeline[index - 1].kind !== 'eco' && minutes(row.end) - minutes(row.start) > 5);",
+                  "if (index < 1) throw new Error('No editable non-eco boundary in the synthetic day.');",
+                  "const starts = day.timeline.map(row => row.start);",
+                  "const moved = minutes(starts[index]) + 5;",
+                  "starts[index] = String(Math.floor(moved / 60)).padStart(2, '0') + ':' + String(moved % 60).padStart(2, '0');",
+                  "pm.variables.set('expectedStarts', JSON.stringify(starts));",
+                  "pm.variables.set('manualEditPayload', JSON.stringify({ demoId: pm.environment.get('demoId'), revision: week.revision, date: day.date, action: 'timing', starts }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Reviewed times are applied without gaps', () => {",
+                  "  const day = body.week.days.find(day => day.date === pm.environment.get('editDate'));",
+                  "  pm.expect(day.timeline.map(row => row.start)).to.eql(JSON.parse(pm.variables.get('expectedStarts')));",
+                  "  for (let index = 1; index < day.timeline.length; index++) {",
+                  "    pm.expect(day.timeline[index - 1].end).to.equal(day.timeline[index].start);",
+                  "  }",
+                  "  pm.expect(day.timeline[0].start).to.equal(body.week.settings.dayStart);",
+                  "  pm.expect(day.timeline[day.timeline.length - 1].end).to.equal(body.week.settings.dayEnd);",
+                  "  pm.expect(body.week.approval).to.equal(null);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh preserves edited content, order and times",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/dashboard?demoId={{demoId}}&fresh=1",
+            "description": "A refresh must retain direct teacher edits in this synthetic demo."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const week = JSON.parse(pm.environment.get('week'));",
+                  "pm.variables.set('editedDay', JSON.stringify(week.days.find(day => day.date === pm.environment.get('editDate'))));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Teacher content and timeline survive refresh', () => {",
+                  "  const before = JSON.parse(pm.variables.get('editedDay'));",
+                  "  const after = body.week.days.find(day => day.date === before.date);",
+                  "  const fields = day => day.timeline.map(row => ({ id: row.id, start: row.start, end: row.end, label: row.label, note: row.note }));",
+                  "  pm.expect(fields(after)).to.eql(fields(before));",
+                  "  pm.expect(after.theme.title).to.eql(before.theme.title);",
+                  "  pm.expect(body.week.approval).to.equal(null);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Preview a replacement eco theme",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/day/suggest",
+            "description": "Preview a replacement eco theme. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"date\": \"{{editDate}}\",\n  \"instruction\": \"Explore nature through music.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Theme preview needs teacher application', () => {",
+                  "  pm.expect(body.proposalId).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.theme.title.mk).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.theme.title.en).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.environment.set('proposalId', body.proposalId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Apply the reviewed eco theme",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/day/apply",
+            "description": "Apply the reviewed eco theme. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"proposalId\": \"{{proposalId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Theme change invalidates approval', () => pm.expect(body.week.approval).to.equal(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Applied theme proposal cannot be reused",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/day/apply",
+            "description": "Applied theme proposal cannot be reused. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"proposalId\": \"{{proposalId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: proposal_expired', () => pm.expect(body.error).to.equal('proposal_expired'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Preview an activity change",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/change/suggest",
+            "description": "Preview an activity change. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"date\": \"{{editDate}}\",\n  \"rowId\": \"{{activityRowId}}\",\n  \"scope\": \"activity\",\n  \"instruction\": \"Show a different sample game from the classroom library.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Activity preview is ready for teacher review', () => {",
+                  "  pm.expect(body.scope).to.equal('activity');",
+                  "  pm.expect(body.timeline).to.be.an('array').and.not.empty;",
+                  "  pm.expect(body.proposalId).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.environment.set('proposalId', body.proposalId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Apply the reviewed activity change",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/change/apply",
+            "description": "Apply the reviewed activity change. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"proposalId\": \"{{proposalId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Activity change invalidates approval', () => pm.expect(body.week.approval).to.equal(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Applied activity proposal cannot be reused",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/change/apply",
+            "description": "Applied activity proposal cannot be reused. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"proposalId\": \"{{proposalId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: proposal_expired', () => pm.expect(body.error).to.equal('proposal_expired'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 Parent sharing and notes",
+      "description": "Enables a revocable link, reads it anonymously, submits a synthetic group note, checks nonce deduplication, and follows teacher review/application. Parent responses must omit account settings and private instructions.",
+      "item": [
+        {
+          "name": "Enable parent sharing",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/share",
+            "description": "Enable parent sharing. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"action\": \"enable\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Share link contains an opaque token', () => pm.expect(body.share.path).to.match(/^\\/#parents\\/[a-f0-9]{64}$/));",
+                  "pm.environment.set('parentToken', body.share.path.split('/').pop());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read the anonymous parent projection",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": ""
+              }
+            ],
+            "url": "{{baseUrl}}/api/parents/{{parentToken}}",
+            "description": "Read the anonymous parent projection. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Parent view is bilingual, synthetic and contains no private plan fields', () => {",
+                  "  pm.expect(body.mode).to.equal('demo');",
+                  "  pm.expect(body.days).to.have.lengthOf(5);",
+                  "  pm.expect(body.weeklyMessage.mk).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.weeklyMessage.en).to.include('DEMO');",
+                  "  for (const field of ['settings', 'profile', 'user', 'teacherPrompt', 'approval', 'notes']) {",
+                  "    pm.expect(body).not.to.have.property(field);",
+                  "  }",
+                  "  pm.expect(pm.response.headers.get('X-Robots-Tag')).to.include('noindex');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Parent token cannot authorize teacher edits",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": ""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/day/edit",
+            "description": "Parent token cannot authorize teacher edits. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{parentToken}}\",\n  \"revision\": {{revision}},\n  \"action\": \"content\",\n  \"date\": \"{{editDate}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: sign_in_required', () => pm.expect(body.error).to.equal('sign_in_required'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submit a synthetic group note anonymously",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": ""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/parents/{{parentToken}}/notes",
+            "description": "Submit a synthetic group note anonymously. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Could the group try another nature game?\",\n  \"date\": \"{{editDate}}\",\n  \"nonce\": \"{{noteNonce}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Parent submission acknowledged', () => pm.expect(body.received).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Repeated note nonce does not duplicate the demo note",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": ""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/parents/{{parentToken}}/notes",
+            "description": "Repeated note nonce does not duplicate the demo note. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Could the group try another nature game?\",\n  \"date\": \"{{editDate}}\",\n  \"nonce\": \"{{noteNonce}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Duplicate acknowledged', () => pm.expect(body.received).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read the teacher demo inbox",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/parent-notes?demoId={{demoId}}",
+            "description": "Read the teacher demo inbox. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Exactly one unread note and no private nonce', () => {",
+                  "  pm.expect(body.notes).to.have.lengthOf(1);",
+                  "  pm.expect(body.unread).to.equal(1);",
+                  "  pm.expect(body.notes[0]).not.to.have.property('nonce');",
+                  "});",
+                  "pm.environment.set('noteId', body.notes[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Demo notes do not appear in the account inbox",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/parent-notes",
+            "description": "Demo notes do not appear in the account inbox. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Account inbox remains empty', () => pm.expect(body).to.eql({ notes: [], unread: 0 }));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark the demo note as read",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/parent-notes/read",
+            "description": "Mark the demo note as read. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"noteId\": \"{{noteId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('No unread notes remain', () => pm.expect(body.unread).to.equal(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Preview a response to the group note",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/parent-notes/suggest",
+            "description": "Preview a response to the group note. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"noteId\": \"{{noteId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Group note produces a reviewable demo proposal', () => {",
+                  "  pm.expect(body.advice.kind).to.equal('actionable');",
+                  "  pm.expect(body.advice.explanation.mk).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.advice.explanation.en).to.include('demo');",
+                  "  pm.expect(body.proposal.proposalId).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.environment.set('proposalId', body.proposal.proposalId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Apply the reviewed parent-note proposal",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/parent-notes/apply",
+            "description": "Apply the reviewed parent-note proposal. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"proposalId\": \"{{proposalId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Applied note invalidates approval', () => pm.expect(body.week.approval).to.equal(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify the note was applied",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/parent-notes?demoId={{demoId}}",
+            "description": "Verify the note was applied. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Note status is applied', () => pm.expect(body.notes[0].status).to.equal(\"applied\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Applied parent-note proposal cannot be reused",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/parent-notes/apply",
+            "description": "Applied parent-note proposal cannot be reused. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"proposalId\": \"{{proposalId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: proposal_expired', () => pm.expect(body.error).to.equal('proposal_expired'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Account session cannot edit a demo as an account plan",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/delete",
+            "description": "Account session cannot edit a demo as an account plan. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"revision\": {{revision}},\n  \"userId\": \"{{ownerId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: no_plan', () => pm.expect(body.error).to.equal('no_plan'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Revoke the parent link",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/share",
+            "description": "Revoke the parent link. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}},\n  \"action\": \"revoke\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Sharing disabled', () => pm.expect(body.share).to.equal(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Revoked parent link is unavailable",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": ""
+              }
+            ],
+            "url": "{{baseUrl}}/api/parents/{{parentToken}}",
+            "description": "Revoked parent link is unavailable. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: parent_link_unavailable', () => pm.expect(body.error).to.equal('parent_link_unavailable'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Revoked parent link cannot receive notes",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": ""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/parents/{{parentToken}}/notes",
+            "description": "Revoked parent link cannot receive notes. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Synthetic note after revocation\",\n  \"nonce\": \"{{noteNonce}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test('Error code: parent_link_unavailable', () => pm.expect(body.error).to.equal('parent_link_unavailable'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 Cleanup",
+      "description": "Deletes only the demo generated by this run and logs out its disposable account. Credentials and runtime state are cleared on success. There is no API to delete a registered account; the isolated runner discards its entire in-memory database.",
+      "item": [
+        {
+          "name": "Delete this run’s synthetic week",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/week/delete",
+            "description": "Delete this run’s synthetic week. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demoId\": \"{{demoId}}\",\n  \"revision\": {{revision}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Demo week removed', () => pm.expect(body.week).to.equal(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirm the demo week is empty",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/dashboard?demoId={{demoId}}",
+            "description": "Confirm the demo week is empty. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Deleted demo stays empty', () => pm.expect(body.week).to.equal(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Log out the test account",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": "Log out the test account. Run the collection in order; runtime IDs and revisions are captured from server responses.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Logout acknowledged', () => pm.expect(body.ok).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirm logout and clear runtime variables",
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "Confirm logout and clear runtime variables. Run the collection in order; runtime IDs and revisions are captured from server responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Session is anonymous', () => pm.expect(body.user).to.equal(null));",
+                  "",
+                  "pm.environment.set('email', '');",
+                  "pm.environment.set('password', '');",
+                  "pm.environment.set('sessionCookie', '');",
+                  "pm.environment.set('ownerId', '');",
+                  "pm.environment.set('demoId', '');",
+                  "pm.environment.set('revision', '');",
+                  "pm.environment.set('previousRevision', '');",
+                  "pm.environment.set('week', '');",
+                  "pm.environment.set('settings', '');",
+                  "pm.environment.set('editDate', '');",
+                  "pm.environment.set('activityRowId', '');",
+                  "pm.environment.set('mealRowId', '');",
+                  "pm.environment.set('proposalId', '');",
+                  "pm.environment.set('parentToken', '');",
+                  "pm.environment.set('noteNonce', '');",
+                  "pm.environment.set('noteId', '');",
+                  "pm.environment.set('revokedCookie', '');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -5,5 +5,12 @@
 .local/
 node_modules/
 coverage/
+.scannerwork/
+.sonar/
 .idea/
 *.log
+problems.md
+# Private analysis credentials and local issue screenshots.
+static-analysis/.env
+/img.png
+/img_*.png

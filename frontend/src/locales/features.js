@@ -56,7 +56,6 @@ export const featureCopy = {
   printWeek: ['Печати недела', 'Print week'], parentUnavailable: ['Линкот е истечен или исклучен. Побарајте нов линк од воспитувачот.', 'This link has expired or been disabled. Ask your teacher for a new link.'],
   parentRefreshFailed: ['Новите информации не се достапни. Обидете се повторно пред да се потпрете на планот.', 'Updated information is unavailable. Please refresh before relying on the plan.'],
   todayUpdate: ['Информација за денес', 'Today’s update'], automaticUpdates: ['Условите се проверуваат автоматски додека апликацијата е вклучена.', 'Conditions update automatically while the app is running.'],
-  promptNotApplied: ['Примерите од библиотеката не го толкуваат вашиот текстуален опис.', 'Library examples do not interpret your written brief.'],
 };
 
 export const featureErrors = {

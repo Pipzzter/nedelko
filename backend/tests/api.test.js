@@ -289,3 +289,28 @@ test('changing city fetches that city and adapts learning choices and outdoor da
   assert.deepEqual(changed.body.week.settings.blocks, initial.week.settings.blocks);
   assert.equal(changed.body.week.approval, null);
 });
+
+test('direct day edits enforce ownership, revisions and parent read-only boundaries and survive refresh', async t => {
+  const { client } = await app(t); const owner = client(); const other = client(); const parent = client();
+  await owner('/api/auth/register', account);
+  await other('/api/auth/register', { ...account, email: 'manual-other@test.mk' });
+  const generated = (await owner('/api/week/generate', { settings: DEFAULT_SETTINGS })).body;
+  const day = generated.week.days.at(-1); const row = day.timeline.find(row => row.kind === 'meal');
+  const edit = { action: 'content', date: day.date, rowId: row.id, revision: generated.week.revision, content: {
+    label: { mk: 'Наш појадок', en: 'Our breakfast' }, note: { mk: 'Појадуваме заедно.', en: 'We eat together.' },
+  } };
+  assert.equal((await parent('/api/week/day/edit', edit)).status, 401);
+  assert.equal((await other('/api/week/day/edit', edit)).status, 404);
+  assert.equal((await owner('/api/week/day/edit', { ...edit, revision: 0 })).status, 409);
+  const result = await owner('/api/week/day/edit', edit); assert.equal(result.status, 200);
+  assert.equal(result.body.week.days.at(-1).timeline.find(item => item.id === row.id).label.en, 'Our breakfast');
+  assert.equal(result.body.week.approval, null);
+  assert.equal((await owner('/api/week/day/edit', edit)).status, 409);
+  const refreshed = (await owner('/api/dashboard?fresh=1')).body;
+  const saved = refreshed.week.days.at(-1).timeline.find(item => item.id === row.id);
+  assert.equal(saved.note.en, 'We eat together.'); assert.equal(saved.start, row.start); assert.equal(saved.end, row.end);
+  const share = (await owner('/api/week/share', { action: 'enable' })).body.share;
+  const token = share.path.split('/').at(-1);
+  assert.equal((await parent(`/api/parents/${token}`)).body.days.at(-1).timeline.find(item => item.id === row.id).note.en, 'We eat together.');
+  assert.equal((await parent('/api/week/day/edit', { ...edit, token, revision: refreshed.week.revision })).status, 401);
+});

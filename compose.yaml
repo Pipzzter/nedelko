@@ -1,0 +1,29 @@
+name: ekocuvar
+
+services:
+  app:
+    build: .
+    init: true
+    ports:
+      - "127.0.0.1:${APP_PORT:-4173}:4173"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      PULSE_USERNAME: ${PULSE_USERNAME:-}
+      PULSE_PASSWORD: ${PULSE_PASSWORD:-}
+    volumes:
+      - app_data:/app/.local
+      - app_cache:/app/.cache
+    read_only: true
+    tmpfs:
+      - /tmp:size=32M,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [app]
+
+networks:
+  app:
+
+volumes:
+  app_data:
+  app_cache:

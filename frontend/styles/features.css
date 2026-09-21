@@ -1,4 +1,38 @@
 @layer components {
+  .app-shell > .workspace { margin-left: 0; }
+  .teacher-navbar { height: auto; min-height: 88px; flex-wrap: wrap; gap: 20px; padding-block: 16px; }
+  .teacher-navbar nav { display: flex; align-items: center; gap: 8px; }
+  .teacher-navbar nav a { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 12px; text-decoration: none; }
+  .teacher-navbar nav a.active { background: var(--green); color: var(--forest); }
+  .teacher-navbar .topbar-actions { margin-left: auto; flex-wrap: wrap; }
+  .parent-brand-header { display: flex; align-items: center; gap: 18px; padding: 24px 4%; }
+  .parent-brand-header .language-switch { margin-left: auto; }
+  .parent-notes-page { max-width: 1000px; margin-inline: auto; }
+  .parent-notes-page .notes-inbox { max-height: none; overflow: visible; }
+  .lesson-card { position: relative; }
+  .edit-activity { position: absolute; top: 10px; right: 10px; z-index: 1; background: var(--white); }
+  .activity-editor fieldset { border: 0; padding: 0; margin: 18px 0; }
+  .activity-editor legend { font-weight: 650; margin-bottom: 8px; }
+  .activity-editor label { display: grid; gap: 5px; margin-bottom: 12px; }
+  .activity-editor textarea { width: 100%; }
+  .activity-editor .material-choice { display: flex; align-items: center; gap: 10px; }
+  .activity-transitions { padding-left: 18px; font-size: 12px; color: var(--muted); margin-top: 15px; }
+  .timeline li[draggable="true"] { cursor: grab; }
+  .reorder-controls { display: flex; justify-content: flex-end; gap: 5px; }
+  .reorder-controls .button { min-height: 28px; padding: 2px 10px; }
+  .schedule-editor { margin-block: 20px; padding: 20px; background: var(--paper); border-radius: 16px; }
+  .schedule-editor ol { list-style: none; padding: 0; margin-block: 15px; }
+  .schedule-editor li { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 10px; }
+  .schedule-editor label { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .schedule-editor input { width: 125px; }
+  .reorder-help { margin-bottom: 14px; }
+  .message-note p { overflow-wrap: anywhere; }
+  @media (max-width: 800px) {
+    .teacher-navbar { gap: 12px; }
+    .teacher-navbar nav { order: 3; width: 100%; }
+    .teacher-navbar .location-control { display: none; }
+    .teacher-navbar .topbar-actions { gap: 12px; }
+  }
   .group-heading { color: var(--forest); font-weight: 650; margin: 10px 0 4px; }
   .group-heading:empty { display: none; }
   .teacher-brief { margin-bottom: 24px; padding: clamp(22px, 4vw, 36px); background: linear-gradient(120deg, #eaf2e5, #fffefa); border-color: #cfddc5; }
@@ -7,9 +41,6 @@
   .teacher-brief label, .day-assistant label, .profile-fields label { display: grid; gap: 8px; margin-top: 18px; font-weight: 600; }
   .teacher-brief textarea, .day-assistant textarea { width: 100%; resize: vertical; min-height: 105px; line-height: 1.6; background: #fffefa; padding: 16px; border: 1px solid #c5d1bd; border-radius: 14px; }
   .brief-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin: 8px 0; font-size: 12px; color: var(--forest); }
-  .generation-status { display: grid; gap: 8px; padding: 17px 21px; border: 1px solid var(--line); border-left: 3px solid #719364; border-radius: 12px; background: #f1f5ec; margin-bottom: 22px; font-size: 13px; }
-  .generation-status.has-issue { border-left-color: #af8140; background: #fcf5e8; }
-  .generation-status p { max-width: 90ch; }
   .profile-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
   .day-assistant { border: 1px solid #c8d7c0; border-radius: 16px; padding: 22px; margin-bottom: 24px; background: #f1f6eb; }
   .day-assistant h3 { margin: 5px 0 8px; }
@@ -154,11 +185,11 @@
 }
 @layer components {
   .ai-waiting { overflow: hidden; }
-  .waiting-for-response { visibility: hidden; }
-  .ai-loading-screen { position: fixed; inset: 0; z-index: 1000; background: var(--paper); display: grid; place-items: center; padding: 30px; overflow-y: auto; outline: none; }
-  .ai-loading-content { width: min(560px, 100%); text-align: center; }
-  .loading-mark { display: grid; place-items: center; width: 86px; height: 86px; border: 1px solid #cad9c1; background: #e8efdf; border-radius: 27px; margin: 0 auto 30px; color: var(--forest); }
-  .ai-loading-content h1 { font-size: clamp(28px, 4vw, 42px); margin: 14px 0 20px; }
+  .waiting-for-response { pointer-events: none; }
+  .ai-loading-screen { position: fixed; inset: 0; z-index: 1000; background: #293e3266; backdrop-filter: blur(2px); display: grid; place-items: center; padding: 30px; overflow-y: auto; outline: none; }
+  .ai-loading-content { width: min(460px, 100%); text-align: center; background: var(--paper); border: 1px solid var(--line); border-radius: 24px; padding: 30px; box-shadow: 0 18px 70px #14271b33; }
+  .loading-mark { display: grid; place-items: center; width: 54px; height: 54px; border: 1px solid #cad9c1; background: #e8efdf; border-radius: 27px; margin: 0 auto 30px; color: var(--forest); }
+  .ai-loading-content h1 { font-size: clamp(22px, 3vw, 28px); margin: 14px 0 20px; }
   .ai-loading-content > p { color: #6d7a68; line-height: 1.8; max-width: 48ch; margin-inline: auto; }
   .ai-progress-track { height: 9px; border-radius: 20px; background: #e0e7d6; overflow: hidden; margin: 34px auto 16px; }
   .ai-progress-track > span, .network-progress > span { display: block; width: 38%; height: 100%; background: var(--forest); border-radius: inherit; animation: request-travel 1.6s ease-in-out infinite; }
@@ -168,4 +199,10 @@
   .network-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; overflow: hidden; background: #e0e7d6; z-index: 999; }
   @keyframes request-travel { 0% { transform: translateX(-105%); } 100% { transform: translateX(370%); } }
   @media (prefers-reduced-motion: reduce) { .ai-progress-track > span, .network-progress > span { animation: none; width: 100%; opacity: .55; } }
+}
+
+@layer responsive {
+  .app-shell > .workspace { margin-left: 0; }
+  .teacher-navbar { height: auto; min-height: 88px; flex-wrap: wrap; padding-block: 16px; }
+  .lesson-card { position: relative; }
 }
