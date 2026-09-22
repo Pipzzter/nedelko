@@ -11,7 +11,7 @@ test('daily topics are never assigned to an undefined date after the planning we
   const brief = 'Day 1: Gardening. Day 2: Water.';
   assert.deepEqual(assignDailyTopics(brief, []), []);
   assert.deepEqual(assignDailyTopics(brief, dates, '2026-09-26'), []);
-  assert.deepEqual(assignDailyTopics(brief, dates, dates[4]).map(topic => topic.date), [dates[4], dates[4]]);
+  assert.deepEqual(assignDailyTopics(brief, dates, dates[4]), [], 'Day 1/2 must not move to Friday');
   assert.throws(() => assignDailyTopics('<invalid>', []), { code: 'invalid_instruction' });
 });
 // Synthetic model responses, not evidence of a real model run.

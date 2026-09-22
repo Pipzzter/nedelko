@@ -9,10 +9,12 @@ export function dailyTopics(value) {
   if (!matches.length) return [];
   return matches
     .map((match, index) => {
-      const text = trimTopic(brief.slice(match.index + match[0].length, matches[index + 1]?.index ?? brief.length))
+      const section = trimTopic(brief.slice(match.index + match[0].length, matches[index + 1]?.index ?? brief.length));
+      const text = trimTopic(section.split(/[!?\n]|\.(?=\s|$)/u)[0])
         .replace(/^(?:talking\s+about|about|за)\s+/iu, '')
         .trim();
-      return { id: `topic-${index + 1}`, text, language: /[а-шѓќѕјљњџ]/iu.test(text) ? 'mk' : 'en' };
+      const dayNumber = /\d+/u.exec(match[0]);
+      return { id: `topic-${index + 1}`, ...(dayNumber ? { dayIndex: Number(dayNumber[0]) - 1 } : {}), text, language: /[а-шѓќѕјљњџ]/iu.test(text) ? 'mk' : 'en' };
     })
     .filter((topic) => topic.text);
 }
@@ -21,7 +23,9 @@ export function assignDailyTopics(value, dates, today = dates[0]) {
   const topics = dailyTopics(value);
   const upcoming = dates.filter((date) => date >= today);
   if (!upcoming.length) return [];
-  return topics.map((topic, index) => ({ ...topic, date: upcoming[index % upcoming.length] }));
+  let next = 0;
+  return topics.map(topic => ({ ...topic, date: topic.dayIndex === undefined ? upcoming[next++ % upcoming.length] : dates[topic.dayIndex] }))
+    .filter(topic => topic.date && topic.date >= today);
 }
 
 const normalized = (text) => text.normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim();
