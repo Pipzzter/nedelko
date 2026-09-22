@@ -53,7 +53,7 @@ The root Compose stack starts the application. Before starting the separate Sona
 
 ## Optional AI
 
-If `.env` does not already exist, copy [.env.example](.env.example) to `.env` and set `OPENAI_API_KEY` and `OPENAI_MODEL`. Restart the app after changes. Keys stay server-side and are excluded from the image and scanner. Preserve any existing `.env`.
+If `.env` does not already exist, copy [.env.example](.env.example) to `.env` and set `OPENAI_API_KEY`, `OPENAI_MODEL` and `OPENAI_SERVICE_TIER`. The example uses Sol with Fast mode; Fast mode has premium pricing, and `default` selects standard processing. Restart the app after changes. Keys stay server-side and are excluded from the image and scanner. Preserve any existing `.env`.
 
 Validated model output supplies educational content; the server owns air-quality arithmetic, scheduling constraints and approval rules. Library fallback is identified under Manage week. Explicit daily-topic requests cannot silently fall back and overwrite an existing week. Demo suggestions use the local library.
 

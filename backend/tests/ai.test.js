@@ -1,9 +1,54 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { structuredResponse } from '../services/ai.js';
+import { structuredResponse, aiStatus } from '../services/ai.js';
 import { aiFailure } from '../services/ai-errors.js';
 
 function key(t) { const original = process.env.OPENAI_API_KEY; process.env.OPENAI_API_KEY = 'test-key-not-real'; t.after(() => { if (original === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = original; }); }
+function setting(t, name, value) {
+  const previous = process.env[name];
+  if (value === undefined) delete process.env[name]; else process.env[name] = value;
+  t.after(() => { if (previous === undefined) delete process.env[name]; else process.env[name] = previous; });
+}
+test('Fast mode is requested centrally and reports the actual provider tier without assuming a speedup', async t => {
+  key(t); setting(t, 'OPENAI_MODEL', 'gpt-5.6-sol'); setting(t, 'OPENAI_SERVICE_TIER', 'fast');
+  assert.deepEqual(aiStatus(), { configured: true, model: 'gpt-5.6-sol', serviceTier: 'fast' });
+  for (const servedTier of ['priority', 'default', undefined]) {
+    const result = await structuredResponse({ schema: {}, name: 'fast_test', input: 'fixture', reasoningEffort: 'medium',
+      fetcher: async (_url, options) => {
+        const body = JSON.parse(options.body);
+        assert.equal(body.service_tier, 'fast'); assert.equal(body.model, 'gpt-5.6-sol');
+        assert.deepEqual(body.reasoning, { effort: 'medium' });
+        return Response.json({ status: 'completed', service_tier: servedTier,
+          usage: { input_tokens: 20, output_tokens: 5 },
+          output: [{ type: 'message', content: [{ type: 'output_text', text: '{"ok":true}' }] }] });
+      } });
+    assert.equal(result.processing.requestedServiceTier, 'fast');
+    assert.equal(result.processing.serviceTier, servedTier ?? null);
+    assert.equal(result.processing.model, 'gpt-5.6-sol');
+    assert.ok(Number.isInteger(result.processing.durationMs) && result.processing.durationMs >= 0);
+    assert.deepEqual(result.usage, { input: 20, output: 5 });
+  }
+});
+test('tier overrides preserve the configured model and an unset tier follows project settings', async t => {
+  key(t); setting(t, 'OPENAI_MODEL', undefined); setting(t, 'OPENAI_SERVICE_TIER', undefined);
+  assert.equal(aiStatus().model, 'gpt-5.6-sol');
+  for (const configured of [undefined, '', '  ', 'default', 'priority', 'ultrafast', 'flex']) {
+    if (configured === undefined) delete process.env.OPENAI_SERVICE_TIER;
+    else process.env.OPENAI_SERVICE_TIER = configured;
+    await structuredResponse({ schema: {}, name: 'tier_test', input: 'fixture', fetcher: async (_url, options) => {
+      assert.equal(JSON.parse(options.body).service_tier, configured?.trim() || 'auto');
+      return Response.json({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: '{"ok":true}' }] }] });
+    } });
+  }
+});
+test('a rejected service tier fails once instead of silently retrying a different tier', async t => {
+  key(t); setting(t, 'OPENAI_SERVICE_TIER', 'fast'); let calls = 0;
+  await assert.rejects(structuredResponse({ schema: {}, name: 'tier_test', input: 'fixture', fetcher: async () => {
+    calls++;
+    return Response.json({ error: { type: 'invalid_request_error' } }, { status: 400 });
+  } }), error => error.providerStatus === 400);
+  assert.equal(calls, 1);
+});
 test('low reasoning preserves the configured model and is omitted for other model families', async t => {
   key(t); const previous = process.env.OPENAI_MODEL;
   t.after(() => { if (previous === undefined) delete process.env.OPENAI_MODEL; else process.env.OPENAI_MODEL = previous; });

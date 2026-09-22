@@ -1,6 +1,9 @@
 import { requestSignal, assertRequestActive } from './request-context.js';
 
-export function aiStatus() { return { configured: Boolean(process.env.OPENAI_API_KEY), model: process.env.OPENAI_MODEL || 'gpt-6-astra' }; }
+export function aiStatus() {
+  return { configured: Boolean(process.env.OPENAI_API_KEY), model: process.env.OPENAI_MODEL || 'gpt-5.6-sol',
+    serviceTier: process.env.OPENAI_SERVICE_TIER?.trim() || 'auto' };
+}
 
 async function responseJson(response) {
   const chunks = []; let size = 0;
@@ -15,14 +18,15 @@ async function responseJson(response) {
 export async function structuredResponse({ instructions, input, schema, name, fetcher = fetch, maxOutputTokens = 3000, timeoutMs = 25000, reasoningEffort }) {
   assertRequestActive();
   if (!process.env.OPENAI_API_KEY) throw new Error('missing-key');
-  const model = aiStatus().model;
+  const { model, serviceTier } = aiStatus();
   // Only attach reasoning controls to the model families whose support is verified.
   const supportsReasoning = /^gpt-(?:5\.6-(?:sol|terra|luna)|6-astra)(?:-\d{4}-\d{2}-\d{2})?$/.test(model);
   const signal = AbortSignal.any([AbortSignal.timeout(timeoutMs), ...(requestSignal() ? [requestSignal()] : [])]);
+  const started = performance.now();
   const response = await fetcher('https://api.openai.com/v1/responses', {
     method: 'POST', signal, redirect: 'error',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
-    body: JSON.stringify({ model, store: false, instructions, input,
+    body: JSON.stringify({ model, service_tier: serviceTier, store: false, instructions, input,
       ...(reasoningEffort && supportsReasoning ? { reasoning: { effort: reasoningEffort } } : {}),
       max_output_tokens: maxOutputTokens, text: { format: { type: 'json_schema', name, strict: true, schema } } }),
   });
@@ -46,5 +50,8 @@ export async function structuredResponse({ instructions, input, schema, name, fe
   let value;
   try { value = JSON.parse(output); } catch { throw Object.assign(new Error('invalid-json'), { code: 'ai_invalid_output' }); }
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw Object.assign(new Error('invalid-object'), { code: 'ai_invalid_output' });
-  return { value, usage: result.usage ? { input: result.usage.input_tokens, output: result.usage.output_tokens } : null };
+  return { value, usage: result.usage ? { input: result.usage.input_tokens, output: result.usage.output_tokens } : null,
+    processing: { model, requestedServiceTier: serviceTier,
+      serviceTier: typeof result.service_tier === 'string' ? result.service_tier : null,
+      durationMs: Math.round(performance.now() - started) } };
 }
