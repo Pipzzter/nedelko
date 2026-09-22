@@ -213,9 +213,7 @@ The server does not add account IDs, kindergarten/group names, raw sensor readin
 - **A link is not an identity.** Anyone holding an active parent link can view the shared week and submit a private note.
 - **PM2.5 only.** Screening omits other pollutants and individual health needs. It is not a complete air-quality assessment or a medical certification. A future outdoor day needs a complete air forecast; otherwise it stays indoors and provisional. Weather limits are editable logistics preferences, not health or safety thresholds.
 - **Live data can fail.** Observations come from pulse.eco and forecasts from Open-Meteo. The intended rule is that missing, stale, suspect or conflicting evidence stays unknown; refreshes invalidate notice approval. The cache and sensor-identity exceptions found in review are listed below.
-- **AI costs money, and its quality is unmeasured.** Real plans need a working OpenAI key. Educators have not rated the generated lessons.
 - **Rate limits reset on restart.** They are held in process memory.
-- **Not yet verified:** a fresh-machine install by someone outside the team, a separate GitHub account's access, a physical-phone flow, every teammate's ability to explain the project, and use beyond the single pilot session. The [verification record](docs/development/verification-status.md) identifies the source and limits of earlier checks.
 
 <details>
 <summary>Open issues reproduced in the 22 September read-only review</summary>
@@ -225,7 +223,6 @@ These remain code/verification work; this README update does not fix them. Repro
 | Area | Remaining issue |
 | --- | --- |
 | Environmental evidence | A cache hit after a failed forced refresh can clear the failure flag without recovery. Duplicate provider rows can count as separate sensors or crowd out a disagreeing sensor. See [conditions](backend/services/conditions.js) and [QC](backend/domain/qc.js). |
-| Parent-message consistency | Refreshing between multiple eco sessions can change the apparent location of an elapsed session. A replacement notice can name an eligible date that remains scheduled indoors. The retained day-theme replacement endpoint can keep old per-row instructions under a new title. See [week adaptation](backend/domain/week.js) and [message composition](backend/domain/messages.js). |
 | Parent writing and inbox | A failed parent-page poll loses an unsent note; consistently slow inbox responses can be discarded by overlapping polls. See [parent view](frontend/src/pages/ParentWeek.js) and [inbox](frontend/src/components/ParentNotes.js). |
 | Editing and navigation | Activity textareas accept line breaks that the server rejects. The skip link can leave a directly loaded demo route. See [editor](frontend/src/components/ActivityEditor.js), [text validation](backend/domain/settings.js) and [routing](frontend/src/app.js). |
 | Validation and clarity | The server accepts shorter lesson descriptions than the provider schema requests. Historical negative sensor samples can be dropped without rejecting that sensor. Brief privacy help is not rendered; the favicon and mascot are unnecessarily large downloads. |
