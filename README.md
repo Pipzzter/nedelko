@@ -10,23 +10,9 @@
 
 ---
 
-The GitHub repository is named `gun-mayhem-repo` for administrative reasons; the product is Nedelko (Неделко).
-
 **Ready and tested on phone and desktop.** Nedelko is a responsive web app for teachers and parents, in Macedonian and English.
 
 **Подготвена и тестирана на телефон и компјутер.** Неделко е приспособлива веб-апликација за воспитувачи и родители, на македонски и англиски.
-
-## Teacher pilot feedback
-
-The product owner reports a pilot session with a practising kindergarten teacher. In the owner's account, the teacher found Nedelko interesting and promising, liked the AI's suggestions for a whole week, and expected the combined weather, air-pollution and holiday information to save planning time. This is an attributed paraphrase of one session, not a verbatim quotation or measured time saving. See [pilot feedback and proposed research](docs/product/research.md).
-
-## Built with AI
-
-Nedelko was developed with substantial assistance from AI coding agents. In the application, an optional OpenAI model creates bilingual lessons, activity descriptions, supporting sessions and a preferred outdoor-day order. The server validates that output before saving it; teachers review the learning content. Credential-free demos use the deterministic library.
-
-Air-quality arithmetic, weather checks, timetable constraints, closures and notice approval remain deterministic. Parent notices use deterministic templates that embed accepted lesson content; a model does not compose the notices or decide whether children may go outside.
-
-A [real authenticated generation on 21 September 2026](docs/evidence/live-ai-2026-09-21.json) used `gpt-5.6-terra` and returned `source: ai`. The run used synthetic environmental conditions and the bundled holiday snapshot. Its [evidence summary](docs/evidence/README.md) distinguishes that live model call from the offline demo and from live environmental verification.
 
 ## What it does
 
@@ -71,6 +57,14 @@ If `.env` does not already exist, copy [.env.example](.env.example) to `.env` an
 
 Validated model output supplies educational content; the server owns air-quality arithmetic, scheduling constraints and approval rules. Library fallback is identified under Manage week. Explicit daily-topic requests cannot silently fall back and overwrite an existing week. Demo suggestions use the local library.
 
+## Built with AI
+
+Nedelko was developed with substantial assistance from AI coding agents. In the application, an optional OpenAI model creates bilingual lessons, activity descriptions, supporting sessions and a preferred outdoor-day order. The server validates that output before saving it; teachers review the learning content. Credential-free demos use the deterministic library.
+
+Air-quality arithmetic, weather checks, timetable constraints, closures and notice approval remain deterministic. Parent notices use deterministic templates that embed accepted lesson content; a model does not compose the notices or decide whether children may go outside.
+
+A [real authenticated generation on 21 September 2026](docs/evidence/live-ai-2026-09-21.json) used `gpt-5.6-terra` and returned `source: ai`. The run used synthetic environmental conditions and the bundled holiday snapshot. Its [evidence summary](docs/evidence/README.md) distinguishes that live model call from the offline demo and from live environmental verification.
+
 ## Known issues and limitations
 
 - Hosting is loopback-only HTTP, so parent links work on this computer. Production HTTPS, account recovery, delivery and hosted backups are separate work.
@@ -110,6 +104,8 @@ The hook blocks missing credentials, test failures, insufficient coverage, unava
 
 ## Architecture
 
+The GitHub repository is named `gun-mayhem-repo` for administrative reasons; the product is Nedelko (Неделко).
+
 ```mermaid
 flowchart LR
     Teacher[Teacher browser] --> HTTP[Node HTTP API]
@@ -135,3 +131,7 @@ flowchart LR
 | [Quality gates](docs/development/quality-gates.md) | Coverage, SonarQube and pre-push enforcement |
 | [Product research](docs/product/research.md) | Research inputs and possible future work |
 | [Sources](docs/reference/sources.md) · [Third-party notices](docs/reference/third-party.md) | Attribution and vendored licenses |
+
+## Teacher pilot feedback
+
+The product owner reports a pilot session with a practising kindergarten teacher. In the owner's account, the teacher found Nedelko interesting and promising, liked the AI's suggestions for a whole week, and expected the combined weather, air-pollution and holiday information to save planning time. This is an attributed paraphrase of one session, not a verbatim quotation or measured time saving. See [pilot feedback and proposed research](docs/product/research.md).
