@@ -2,7 +2,7 @@ import { simulatedCurriculum } from './curriculum-fixture.js';
 import test, { beforeEach } from 'node:test';
 beforeEach(t => t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-21T06:45:00Z') }));
 import assert from 'node:assert/strict';
-import { once } from 'node:events';
+import { httpFixture } from './http-fixture.js';
 import { createApp } from '../http/app.js';
 import { openStore } from '../storage/database.js';
 import { createCurriculum, createDayCurriculum } from '../services/curriculum.js';
@@ -27,9 +27,7 @@ async function fixture(t, overrides = {}) {
     conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', mode, demoWeek } = {}) => demoConditions(LOCATIONS.find(l => l.id === locationId), scenario, Date.now(), mode === 'demo' ? demoWeekById(demoWeek) : null),
     curriculumProvider: simulatedCurriculum,
     holidayProvider: async year => calendarSnapshot(year), ...overrides });
-  server.listen(0, '127.0.0.1'); await once(server, 'listening');
-  t.after(() => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }));
-  const base = `http://127.0.0.1:${server.address().port}`;
+  const { base, fetch } = await httpFixture(t, server);
   const client = () => {
     let cookie = '';
     return async (path, body, method = body === undefined ? 'GET' : 'POST') => {

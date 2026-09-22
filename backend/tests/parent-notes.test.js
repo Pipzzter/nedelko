@@ -1,7 +1,7 @@
 import { simulatedCurriculum } from './curriculum-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { once } from 'node:events';
+import { httpFixture } from './http-fixture.js';
 import { randomUUID } from 'node:crypto';
 import { createApp } from '../http/app.js';
 import { openStore } from '../storage/database.js';
@@ -19,9 +19,7 @@ async function fixture(t, extra = {}) {
   const store = openStore(':memory:');
   const server = createApp({ store, conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', mode, demoWeek }) => demoConditions(LOCATIONS.find(item => item.id === locationId), scenario, Date.now(), mode === 'demo' ? demoWeekById(demoWeek) : null),
     curriculumProvider: simulatedCurriculum, holidayProvider: async year => calendarSnapshot(year), ...extra });
-  server.listen(0, '127.0.0.1'); await once(server, 'listening');
-  t.after(() => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }));
-  const base = `http://127.0.0.1:${server.address().port}`;
+  const { base, fetch } = await httpFixture(t, server);
   const client = () => {
     let cookie = '';
     return async (path, body, headers = {}) => {

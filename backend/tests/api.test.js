@@ -2,7 +2,7 @@ import { simulatedCurriculum } from './curriculum-fixture.js';
 import test, { beforeEach } from 'node:test';
 beforeEach(t => t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-21T06:45:00Z') }));
 import assert from 'node:assert/strict';
-import { once } from 'node:events';
+import { httpFixture } from './http-fixture.js';
 import { createApp } from '../http/app.js';
 import { calendarSnapshot } from '../domain/holidays.js';
 import { openStore } from '../storage/database.js';
@@ -21,15 +21,13 @@ async function app(t, options = {}) {
   const store = openStore(':memory:');
   const server = createApp({ store, conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', mode, demoWeek } = {}) => demoConditions(LOCATIONS.find(l => l.id === locationId) || LOCATIONS[0], scenario, Date.now(), mode === 'demo' ? demoWeekById(demoWeek) : null),
     curriculumProvider: simulatedCurriculum, holidayProvider: async year => calendarSnapshot(year), ...options });
-  server.listen(0, '127.0.0.1'); await once(server, 'listening');
-  t.after(() => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }));
-  const base = `http://127.0.0.1:${server.address().port}`;
+  const { base, fetch } = await httpFixture(t, server);
   const client = () => { let cookie = ''; return async (path, body, headers = {}) => {
     const response = await fetch(base + path, { method: body === undefined ? 'GET' : 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie, ...headers }, body: body === undefined ? undefined : JSON.stringify(body) });
     if (response.headers.get('set-cookie')) cookie = response.headers.get('set-cookie').split(';')[0];
     return { status: response.status, headers: response.headers, body: await response.json() };
   }; };
-  return { store, base, client };
+  return { store, base, fetch, client };
 }
 const account = { email: 'teacher@test.mk', displayName: 'Test teacher', password: 'OnlyForAutomatedTests23', kindergarten: 'Test kindergarten', ageGroup: '4-5', locationId: 'centar' };
 const demoBody = result => ({ demoId: result.demoId, revision: result.week.revision });
@@ -38,7 +36,7 @@ test('disconnecting generation aborts its request context and never saves a late
   let entered; let aborted;
   const started = new Promise(resolve => { entered = resolve; });
   const stopped = new Promise(resolve => { aborted = resolve; });
-  const { client, base, store } = await app(t, { curriculumProvider: async () => {
+  const { client, base, fetch, store } = await app(t, { curriculumProvider: async () => {
     const signal = requestSignal(); entered();
     await new Promise(resolve => signal.addEventListener('abort', () => { aborted(); resolve(); }, { once: true }));
     return { themes: [], source: 'ai' };
@@ -345,7 +343,7 @@ test('auth rate limits block repeated password attempts', async t => {
 });
 
 test('only frontend files are served and configuration never leaks secrets', async t => {
-  const { client, base } = await app(t); const request = client();
+  const { client, base, fetch } = await app(t); const request = client();
   for (const path of ['/.env', '/backend/server.js', '/%2e%2e%5cbackend%5cserver.js', '/AGENTS.md', '/.local/nedelko.sqlite', '/tests/app.test.js']) assert.equal((await request(path)).status, 404);
   const config = await request('/api/config'); assert.equal(config.status, 200); assert.equal(config.body.locations.length, 24);
   assert.deepEqual(config.body.preferenceBounds, PREFERENCE_BOUNDS);

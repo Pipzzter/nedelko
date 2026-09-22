@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { once } from 'node:events';
+import { httpFixture } from './http-fixture.js';
 import { DEFAULT_SETTINGS, pair, minutes, validateTimeline, validateSettings, materialCatalog } from '../domain/settings.js';
 import { createWeek, adaptWeek, dailyPlanningContext, dashboard } from '../domain/week.js';
 import { localCurriculum, validateCurriculum } from '../domain/curriculum.js';
@@ -174,11 +174,10 @@ test('authenticated generation saves the five-hour Monday and Tuesday breakfast 
   const server = createApp({ store: openStore(':memory:'), conditionsProvider: async () => conditions(new Date().toISOString()),
     holidayProvider: async year => calendarSnapshot(year), curriculumProvider: async (_dates, settings) => curriculum(conditions(), settings),
     dayPlanProvider: async day => ({ source: 'ai', change: { theme: day.theme, timeline: [row('breakfast', '08:45', '09:15', 'meal'), row('long-run', '09:15', '14:15', 'eco')] } }) });
-  server.listen(0, '127.0.0.1'); await once(server, 'listening');
-  t.after(() => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }));
+  const { base, fetch } = await httpFixture(t, server);
   let cookie = '';
   const post = async (path, body) => {
-    const response = await fetch(`http://127.0.0.1:${server.address().port}/api${path}`, { method: 'POST',
+    const response = await fetch(`${base}/api${path}`, { method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie }, body: JSON.stringify(body) });
     cookie = response.headers.get('set-cookie')?.split(';')[0] || cookie;
     return { status: response.status, body: await response.json() };

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { once } from 'node:events';
+import { httpFixture } from '../../backend/tests/http-fixture.js';
 import { parseHTML } from 'linkedom';
 import { createApp } from '../../backend/http/app.js';
 import { calendarSnapshot } from '../../backend/domain/holidays.js';
@@ -31,8 +31,8 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
       const timeline = day.timeline.map(rowContent); timeline.at(-2).end = '15:00'; timeline.at(-1).start = '15:00';
       return { source: 'ai', change: { timeline, theme: day.theme } };
     }, holidayProvider: async year => calendarSnapshot(year) });
-  server.listen(0, '127.0.0.1'); await once(server, 'listening');
-  const base = `http://127.0.0.1:${server.address().port}`; const nativeFetch = globalThis.fetch;
+  const originalFetch = globalThis.fetch;
+  const { base, fetch: nativeFetch } = await httpFixture(t, server);
   const signup = await nativeFetch(`${base}/api/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'dom.teacher@test.mk', password: 'OnlyForAutomatedTests23', displayName: 'Test teacher', kindergarten: 'Our test kindergarten', ageGroup: '4-5', locationId: 'centar' }) });
   let cookie = signup.headers.get('set-cookie').split(';')[0];
   const { window } = parseHTML('<html><body><div id="app"></div></body></html>');
@@ -69,7 +69,7 @@ test('DOM integration: empty account, create kindergarten, one-page management, 
     if (typeof path === 'string' && path.startsWith('/api/dashboard?') && response.ok) latestDashboard = await response.clone().json();
     if (response.headers.get('set-cookie')) cookie = response.headers.get('set-cookie').split(';')[0]; return response;
   };
-  t.after(async () => { const { render } = await import('../../frontend/vendor/preact.js'); render(null, document.getElementById('app')); globalThis.fetch = nativeFetch; await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }); });
+  t.after(async () => { const { render } = await import('../../frontend/vendor/preact.js'); render(null, document.getElementById('app')); globalThis.fetch = originalFetch; });
   const wait = async predicate => { const until = performance.now() + 5000; while (!predicate()) { if (performance.now() >= until) throw new Error('DOM expectation timed out: ' + document.body.textContent.slice(0, 700)); await new Promise(resolve => setTimeout(resolve, 10)); } };
   const clickText = label => { const node = [...document.querySelectorAll('button,a')].find(n => n.textContent.trim() === label); assert.ok(node, `control ${label}`); node.dispatchEvent(new window.Event('click', { bubbles: true })); };
   await import('../../frontend/src/app.js');

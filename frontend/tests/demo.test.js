@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { once } from 'node:events';
+import { httpFixture } from '../../backend/tests/http-fixture.js';
 import { parseHTML } from 'linkedom';
 import { createApp } from '../../backend/http/app.js';
 import { openStore } from '../../backend/storage/database.js';
@@ -13,9 +13,8 @@ test('demo uses the planner and shared parent page; links, languages and isolate
   const server = createApp({ store: openStore(':memory:'),
     conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', demoWeek }) => demoConditions(LOCATIONS.find(l => l.id === locationId), scenario, Date.now(), demoWeekById(demoWeek)),
     curriculumProvider: (dates, settings, options) => { assert.equal(options.useAI, false); return createCurriculum(dates, settings, options); } });
-  server.listen(0, '127.0.0.1'); await once(server, 'listening');
-  const base = `http://127.0.0.1:${server.address().port}`;
-  const nativeFetch = globalThis.fetch;
+  const originalFetch = globalThis.fetch;
+  const { base, fetch: nativeFetch } = await httpFixture(t, server);
   const { window } = parseHTML('<html><body><div id="app"></div></body></html>');
   window.location = { hash: '#home', href: base + '/#home', hostname: '127.0.0.1' };
   window.history = { pushState: (_a, _b, hash) => { window.location.hash = hash; } }; window.scrollTo = () => {};
@@ -26,8 +25,7 @@ test('demo uses the planner and shared parent page; links, languages and isolate
   globalThis.fetch = (path, opts) => nativeFetch(typeof path === 'string' && path.startsWith('/') ? base + path : path, opts);
   t.after(async () => {
     const { render } = await import('../../frontend/vendor/preact.js'); render(null, document.getElementById('app'));
-    globalThis.fetch = nativeFetch;
-    await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); });
+    globalThis.fetch = originalFetch;
   });
   const wait = async predicate => {
     const until = Date.now() + 4000;
