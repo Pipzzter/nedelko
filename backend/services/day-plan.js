@@ -14,7 +14,7 @@ import { skopjeParts } from '../config/index.js';
 export async function suggestDayPlan(day, settings, { scope, rowId, instruction, useAI = true, clock, weekDays = [] }) {
   const request = { scope, rowId };
   const row = day.timeline.find((item) => item.id === rowId);
-  const local = skopjeParts(new Date(clock));
+  const editable = editableWindow(day, clock);
   if (!useAI) {
     return demoDayChange({ scope, settings, day, row, request, clock });
   }
@@ -28,45 +28,56 @@ export async function suggestDayPlan(day, settings, { scope, rowId, instruction,
       timeoutMs: 90000,
       reasoningEffort: 'medium',
       instructions: `${teacherPlanningInstructions(settings.teacherPrompt, instruction)}\n${ACTIVITY_GUIDANCE} Edit the requested kindergarten activity or daily schedule in natural Macedonian and equivalent English. Apply requestedChange directly to the selected scope. For activity scope, change ONLY the selected activity; do not change any times or other sessions. For schedule scope, ${TIMETABLE_GUIDANCE} The requestedChange is the latest teacher instruction and takes priority over the older teacherBrief. Return the complete updated day. Only rows whose start time has already arrived are locked; preserve them exactly, including ID, times, kind, label and note. Never add a new row in elapsed time. Meals, rest, routines and occasion activities that have not started may all be changed or removed. Retain existing IDs where possible. Keep the lesson theme unless the request changes it. Use available material IDs, the supplied age group and adult supervision. Do not decide air quality, weather eligibility, closures or medical permissions. No purchases, dangerous materials, links, child identifiers or em dashes.`,
-      input: JSON.stringify({
-        scope,
-        selectedRowId: rowId || null,
-        requestedChange: teacherInstruction(instruction),
-        teacherBrief: teacherInstruction(settings.teacherPrompt),
-        ageGroup: settings.ageGroup,
-        defaultRoutine: { dayStart: settings.dayStart, dayEnd: settings.dayEnd, duration: settings.duration, blocks: settings.blocks },
-        outdoorPreference: day.outdoorPreference,
-        materials: materialCatalog(settings).filter((item) => settings.materials.includes(item.id)),
-        date: day.date,
-        clock,
-        editableFrom: day.date === local.date ? timeLabel(Math.min(local.minutes + 1, 1439)) : null,
-        theme: day.theme,
-        timeline: day.timeline.map((item) => ({
-          ...rowContent(item),
-          locked:
-            (day.date === local.date &&
-              Number(item.start.slice(0, 2)) * 60 + Number(item.start.slice(3)) <= local.minutes)
-        })),
-        otherDays: weekDays
-          .filter((item) => item.date !== day.date)
-          .map((item) => ({ date: item.date, title: item.theme?.title }))
-      })
+      input: JSON.stringify(changeInput(day, settings, { scope, rowId, instruction, clock, weekDays, editable }))
     });
-    if (scope === 'activity' && row?.kind !== 'eco') activityDescription(result.value.note);
-    if (scope === 'schedule') validateModelTimeline(result.value.timeline);
-    const checked = validateDayChange(day, settings, request, result.value, clock);
-    if (scope === 'schedule') assertTimelineCoverage(checked.timeline, settings, {
-      from: day.date === local.date ? timeLabel(Math.min(local.minutes + 1, 1439)) : null,
-      lockedRows: day.date === local.date ? day.timeline.filter(item => minutes(item.start) <= local.minutes) : []
-    });
-    if (scope === 'schedule') validateRequestedTimings([checked.timeline], [day.date], requestedTimings(instruction, [day.date], local.date, day.date),
-      [{ date: day.date, lockedRows: day.date === local.date ? day.timeline.filter(item => minutes(item.start) <= local.minutes) : [] }]);
+    validateModelChange(day, settings, request, result.value, { row, instruction, clock, editable });
     return { change: result.value, source: 'ai' };
   } catch (error) {
     if (error.code === 'activity_finished') throw error;
     const failure = aiFailure(error.status === 400 || error.status === 409 ? { code: 'ai_invalid_output' } : error);
     return { change: null, generationIssue: failure.issue, generationError: failure.details };
   }
+}
+
+// On the current Skopje date, rows that have started are locked and editing starts next minute.
+function editableWindow(day, clock) {
+  const local = skopjeParts(new Date(clock));
+  const today = day.date === local.date;
+  return { local, from: today ? timeLabel(Math.min(local.minutes + 1, 1439)) : null,
+    locked: (item) => today && minutes(item.start) <= local.minutes };
+}
+
+function changeInput(day, settings, { scope, rowId, instruction, clock, weekDays, editable }) {
+  return {
+    scope,
+    selectedRowId: rowId || null,
+    requestedChange: teacherInstruction(instruction),
+    teacherBrief: teacherInstruction(settings.teacherPrompt),
+    ageGroup: settings.ageGroup,
+    defaultRoutine: { dayStart: settings.dayStart, dayEnd: settings.dayEnd, duration: settings.duration, blocks: settings.blocks },
+    outdoorPreference: day.outdoorPreference,
+    materials: materialCatalog(settings).filter((item) => settings.materials.includes(item.id)),
+    date: day.date,
+    clock,
+    editableFrom: editable.from,
+    theme: day.theme,
+    timeline: day.timeline.map((item) => ({ ...rowContent(item), locked: editable.locked(item) })),
+    otherDays: weekDays
+      .filter((item) => item.date !== day.date)
+      .map((item) => ({ date: item.date, title: item.theme?.title }))
+  };
+}
+
+// Model output is untrusted: validate the proposal exactly as it would be applied.
+function validateModelChange(day, settings, request, value, { row, instruction, clock, editable }) {
+  if (request.scope === 'activity' && row?.kind !== 'eco') activityDescription(value.note);
+  if (request.scope === 'schedule') validateModelTimeline(value.timeline);
+  const checked = validateDayChange(day, settings, request, value, clock);
+  if (request.scope !== 'schedule') return;
+  const lockedRows = day.timeline.filter(editable.locked);
+  assertTimelineCoverage(checked.timeline, settings, { from: editable.from, lockedRows });
+  validateRequestedTimings([checked.timeline], [day.date], requestedTimings(instruction, [day.date], editable.local.date, day.date),
+    [{ date: day.date, lockedRows }]);
 }
 
 function demoDayChange({ scope, settings, day, row, request, clock }) {
