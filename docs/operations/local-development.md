@@ -14,7 +14,7 @@ The shared client's `processing` result records model, requested tier, returned 
 
 Home omits the saved generation-warning banner. Library or mixed-source information is available inside Manage week. Failed new requests still show their actionable error. Bounded diagnostics remain available in `week.generationError` in an authenticated response: HTTP status, recognized provider code and request ID, without raw provider text. Restarting does not retry or replace a saved plan.
 
-`credit_balance_exhausted` means OpenAI reported an empty prepaid balance for the organization used by that request. If credits are available, verify that the `.env` key belongs to that funded organization and project. `insufficient_quota` alone is broader; spending limits and rate limits are reported separately. Do not repeatedly retry billing failures. See the [OpenAI error reference](https://developers.openai.com/api/docs/guides/error-codes). The app remains usable with explicitly labeled library activities.
+`credit_balance_exhausted` means OpenAI reported an empty prepaid balance for the organization used by that request. If credits are available, verify that the `.env` key belongs to that funded organization and project. `insufficient_quota` alone is broader; spending limits and rate limits are reported separately. Do not repeatedly retry billing failures. See the [OpenAI error reference](https://developers.openai.com/api/docs/guides/error-codes). Existing saved plans and explicit library demos remain available. A new real-account plan requires successful AI generation; a failed first attempt leaves the account without a plan, while retaining the form input.
 
 Weekly generation allows OpenAI up to 220 seconds and 30,000 output tokens, and the browser waits up to 270 seconds including environmental/calendar requests. The weekly request uses medium reasoning effort for the verified GPT-5.6 Sol/Terra/Luna and GPT-6 Astra families, keeping the configured model and the same validated output. Other model families receive no added reasoning setting. A timeout does not establish that credits are exhausted. There are no automatic retries that could duplicate model charges.
 
@@ -38,7 +38,7 @@ The session cookie is `nedelko_session`, and browser preferences use `nedelko-la
 
 ## Local scope
 
-The responsive web app is ready and tested on phone and desktop. Native startup binds to loopback and permits only localhost/127.0.0.1 Host headers. In [Docker](docker.md), the process binds the container interface while Compose publishes only on host loopback; the same HTTP Host/origin checks still apply. The default local start command does not expose the app to other devices on the network.
+The responsive app has recorded desktop and 390-pixel browser checks; a physical-phone run is not established by that evidence. Native startup binds to loopback and permits only localhost/127.0.0.1 Host headers. In [Docker](docker.md), the process binds the container interface while Compose publishes only on host loopback; the same HTTP Host/origin checks still apply. The default local start command does not expose the app to other devices on the network.
 
 A public deployment is separate work: HTTPS and Secure cookies, a configured origin instead of the loopback host rule, password/account recovery, operational monitoring, data-retention policy and hosting/backups need concrete deployment choices. No accounts or plans are synchronized to a cloud service in this version.
 

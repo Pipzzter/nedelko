@@ -4,22 +4,41 @@
   <p>Вашата недела во градинка, испланирана. / Your kindergarten week, planned.</p>
   <p><strong>For kindergarten teachers in Skopje and other Macedonian cities,<br>with a read-only family view for parents.</strong></p>
   <p><a href="demo.mp4"><strong>▶ Watch the demo video (demo.mp4, 9 min)</strong></a></p>
-  <p><a href="#what-it-does">What it does</a> · <a href="#who-it-is-for">Who it is for</a> · <a href="#how-to-run-it">How to run it</a> · <a href="#see-it-working">Demo</a> · <a href="#how-the-ai-works">How the AI works</a> · <a href="#what-is-finished-and-what-is-not">Finished and not</a> · <a href="#what-we-would-build-next">Next</a> · <a href="#how-we-built-it">How we built it</a> · <a href="#does-it-hold-up">Tests</a></p>
+  <p><a href="#what-it-does">What it does</a> · <a href="#judging-evidence">Judging evidence</a> · <a href="#who-it-is-for">Who it is for</a> · <a href="#how-to-run-it">How to run it</a> · <a href="#see-it-working">Demo</a> · <a href="#how-the-ai-works">AI</a> · <a href="#what-is-finished-and-what-is-not">Finished and not</a> · <a href="#how-we-built-it">How we built it</a> · <a href="#does-it-hold-up">Tests</a></p>
 </div>
 
 ---
 
 ## What it does
 
-Nedelko plans a kindergarten group's Monday–Friday week in Macedonian and English: an AI model turns the teacher's written brief into daily lessons, each with an indoor and an outdoor version, and a complete timetable for every day. Deterministic checks of local PM2.5 readings and weather forecasts choose which version runs each day, and parents see the week through a read-only link.
+Nedelko helps a kindergarten teacher turn a written brief into a Monday–Friday plan in Macedonian and English, with daily lessons, indoor/outdoor alternatives, timetables and ready-to-copy parent notices. Server rules use local PM2.5 readings and weather forecasts to adapt the planned location. The teacher reviews the plan and rechecks the same morning before approving a daily notice. Generating midweek keeps all five weekdays visible and leaves earlier days empty.
 
-**Неделко** е приспособлива веб-апликација за воспитувачи и родители, на македонски и англиски, подготвена и тестирана на телефон и компјутер.
+**Неделко** им помага на воспитувачите да ја испланираат неделата, да ги приспособат активностите и да подготват пораки за родителите, на македонски и англиски, со приспособлив приказ за помали и поголеми екрани.
+
+## Judging evidence
+
+| Rubric category | Points available | What to inspect |
+| --- | ---: | --- |
+| Usefulness | 30 | [The teacher's recurring job](#who-it-is-for), saved group preferences, daily adjustments and [attributed pilot feedback](#what-a-teacher-told-us). |
+| Does the demo work? | 20 | [One complete sample path](#one-path-from-start-to-finish), a separate real AI walkthrough, and [recordings with source and input provenance](#see-it-working). |
+| Is the AI doing real work? | 20 | [Brief-to-timetable generation, targeted changes and parent-note interpretation](#how-the-ai-works), plus [accepted live model output](docs/evidence/live-ai-2026-09-21.json). |
+| How did you build it? | 15 | [Architecture, decisions, commit/PR traces and AI-coding disclosure](#how-we-built-it), followed by concrete [bug-to-fix examples](#does-it-hold-up). |
+| Can someone else understand it? | 10 | This README's purpose, audience, [setup and environment](#how-to-run-it), [implemented features and known limits](#what-is-finished-and-what-is-not). |
+| Does it hold up? | 5 | [Behavioral/adversarial tests, dated execution results and remaining failures](#does-it-hold-up). |
+
+These are evidence links for the six categories, not self-awarded scores.
 
 ## Who it is for
 
-**Kindergarten teachers** in Skopje and other supported Macedonian cities. Each week a teacher plans activities for one group around meals and rest, decides whether the children can go outside, and keeps parents informed. Air pollution and weather can change the outdoor decision after the plan is written. Nedelko puts the lessons, timetable, air readings, forecasts and holidays into one plan and rechecks it every minute.
+**Primary user: the teacher responsible for one kindergarten group's weekly plan** in Skopje or another supported Macedonian city. Each week brings topics to prepare, materials to choose, meals/rest to schedule and changes to explain to parents. Air pollution and weather can change an outdoor plan after it is written. Nedelko brings those inputs into one workspace and rechecks active weeks every minute while the server is running.
 
-**Parents** open a link from the teacher, see the day's activity and whether it runs inside or outside, and can send the teacher a private note. They need no account.
+**Parents** have a read-only view of the planned activities and can send the teacher a private note without creating an account. In the current local deployment, that view opens on the computer running Nedelko. Access from parents' own devices needs hosting; teachers can already print the plan or copy notices into their existing communication channel.
+
+### Why return next week and next month?
+
+The job repeats as topics, seasons, holidays and conditions change. The account retains the group's location, age range, materials and routine preferences for the next plan. During the week, a teacher can revise one activity or day, adapt an outdoor plan using its indoor alternative, and prepare bilingual notices without re-entering the whole week. SQLite keeps the account and saved plan across restarts.
+
+This gives the teacher a recurring planning tool even before hosted family access is available. Continued use and time saved still need to be measured; the pilot feedback below is the evidence available so far.
 
 ### What a teacher told us
 
@@ -27,8 +46,8 @@ The product owner reports a pilot session with a practising kindergarten teacher
 
 ### How it fits the theme
 
-- **Be helpful:** one named user, the kindergarten teacher, and one weekly job: plan the week and tell parents what changed.
-- **For the community:** the interface and parent notices are in Macedonian and English, the parent page works on a phone without an account, and anyone can try a sample week without signing up.
+- **Be helpful:** a specific user role, the kindergarten teacher, and a recurring job: plan the week, adjust the day and tell parents what changed.
+- **For the community:** Macedonian and English interface and notices, an account-free parent view with a responsive layout, and sample weeks available without registration. Cross-device parent access remains a hosting task.
 - **Go green:** lessons draw on ecology, reuse, reducing waste and the season where they fit the teacher's brief, and outdoor time is planned around local air pollution. This is environmental education; we do not claim measured waste or energy savings.
 
 ## How to run it
@@ -51,7 +70,20 @@ cp .env.example .env   # only if .env does not exist yet (Windows: copy .env.exa
 npm start
 ```
 
-Register a kindergarten (kindergarten name, teacher name, age group and location), write the week's brief and generate the plan. A real account needs a working model: if the key is missing or the call fails, Nedelko shows the reason and keeps the saved plan instead of substituting an unrelated library week. The example sets `OPENAI_SERVICE_TIER=fast`, which has premium pricing; `default` selects standard processing. The key stays on the server. Restart after editing `.env`, and preserve an existing `.env`.
+Register with an email/password, kindergarten name, teacher name, age group and location. Write the week's brief, select available materials, confirm the daily rhythm and generate the plan. A real account needs a working model: if the key is missing or the call fails, Nedelko shows the reason and retains the form and any saved plan. A first failed generation leaves the account without a plan. The sample weeks remain available without a key.
+
+Environment settings are in [.env.example](.env.example); keep keys on the server and restart after changes:
+
+| Setting | Purpose |
+| --- | --- |
+| `OPENAI_API_KEY` | Required for real-account AI generation and suggestions; unused by the sample demo. |
+| `OPENAI_MODEL` | Example and application fallback: `gpt-5.6-sol`. The API project must have access to the selected model. |
+| `OPENAI_SERVICE_TIER` | Example: `fast`, with premium pricing. Use `default` for standard processing; an absent setting uses `auto`. |
+| `PORT` | Native app port, default `4173`. Docker uses `APP_PORT` for its host port instead. |
+| `PULSE_USERNAME`, `PULSE_PASSWORD` | Optional pulse.eco credentials; public availability can change. |
+| `NEDELKO_DATABASE_PATH` | Optional SQLite location. Otherwise reuse the single existing local database, or create `.local/nedelko.sqlite`. |
+
+The running app needs internet access for real model/environmental requests. The synthetic sample path uses bundled data. Never put child names or private details in a teacher brief: its text is sent to the configured model provider and is not automatically anonymised.
 
 ### 3. Or run it with Docker
 
@@ -78,18 +110,24 @@ Contributors run `npm run hooks:install` once per clone. The pre-push hook runs 
 ## See it working
 
 - **Demo video:** [▶ Watch demo.mp4](demo.mp4), a 9-minute walkthrough of the application, added on 22 September 2026. GitHub opens it in the file viewer; use **View raw** or **Download** if it does not play inline.
-- **Backup recording:** [demo.webm](docs/evidence/demo-2026-09-21/demo.webm) (1:55, 21 September 2026) shows the sample week, parent sharing, one real AI generation, synthetic pollution moving a lesson indoors, and 390-pixel phone views. Its [record](docs/evidence/demo-2026-09-21/smoke-summary.json) names the source commit and the synthetic inputs.
+- **Backup recording:** [demo.webm](docs/evidence/demo-2026-09-21/demo.webm) (1:55, 21 September 2026) shows the sample week, parent sharing, one real AI generation, synthetic pollution moving a lesson indoors, and 390-pixel browser views. Its [record](docs/evidence/demo-2026-09-21/smoke-summary.json) names the source commit and the synthetic inputs. These are browser viewport checks; a physical-phone run is not recorded.
 
 ### One path from start to finish
 
-1. Run `npm start`, open [127.0.0.1:4173](http://127.0.0.1:4173) and choose **Explore a sample week**.
+1. From the repository root, run `npm start`, open [127.0.0.1:4173](http://127.0.0.1:4173), choose **EN** to follow these English labels, then **Explore a sample week**. Keep the default **Independence Day** example and its fixed Monday morning.
 2. Home shows the Monday–Friday week, the current air card and each day's indoor or outdoor choice. Select an activity to read it in Macedonian or English.
-3. Use **Change activity** to replace one activity. In the sample week, suggestions come from the local library.
-4. Choose **Create parent link**, then **Preview as a parent**, and keep that tab open.
+3. Select an activity that has not started and use **Change activity** to replace it. The sample suggestion comes from the local library; this step demonstrates editing, not AI interpretation.
+4. Choose **Create parent link**, then **Preview as a parent**, and keep that tab open on the same computer.
 5. In the teacher tab, set **Monday air conditions** to **Polluted morning**. The lesson moves indoors; the parent page follows within a minute, or immediately after a reload.
 6. Use **Recheck conditions**, then **Approve message** for the day's parent notice, and copy it into your usual channel.
 
-With an API key, the same flow works in a real account with an AI-generated plan and live data.
+Expected finish: a saved sample plan, a changed activity, a parent view showing the indoor adaptation, and a copied teacher-approved notice. The example date and conditions remain visibly synthetic throughout. Demo sessions and their links expire after one hour or a server restart; start a new sample if the session has expired.
+
+### Show the real AI workflow
+
+Use the [real-account setup](#2-create-a-real-plan-needs-an-openai-api-key), write a brief, confirm the rhythm and generate. Review the bilingual lesson content and timetable, then request a change to an upcoming activity or day. Open the parent preview and submit a group note; in the teacher inbox, review any suggested change before choosing **Apply**. Recheck the current day's conditions before approving its notice.
+
+Real accounts use current dates and provider data; they have no **Polluted morning** scenario control. Conditions may legitimately keep every outdoor alternative indoors. The backup recording's real model generation took about 98 seconds; its air/weather inputs were explicitly synthetic. Current weekly requests have a 220-second model deadline and a 270-second browser deadline, with visible elapsed time. These limits are not a speed guarantee. On a provider error, the saved plan and brief remain available for retry; do not mistake a library demo for successful AI generation.
 
 ### What is real and what is synthetic
 
@@ -113,7 +151,7 @@ A fixed library cannot interpret a teacher's brief, so real accounts reject a fa
 | Change an activity or a day | The teacher's request in their own words | A revised activity or a revised day timetable | Validated and applied on submit; later rows shift to resolve overlaps; started activities stay locked |
 | Read a parent note | A parent's free-text note | Whether it is information for the teacher or a group change request, with a bilingual explanation | An actionable note can trigger a second model call that drafts the change; the teacher previews it and chooses Apply |
 
-The parent-note flow is a two-step chain: one call classifies the note, another drafts the timetable change, and the teacher decides. The model does not call tools. The server fetches readings, forecasts and holidays first, applies the deterministic rules, and sends the model only a sanitized summary.
+For group timetable/activity requests, the parent-note flow can use two model calls: classify the note, then draft a change for teacher review. Recognised individual-care notes are handled as information without a model call; inside/outside preferences can become a proposal without a second generation. No parent note directly changes the plan. The model does not call tools. For weekly generation, the server fetches readings, forecasts and holidays, applies deterministic rules, and sends a sanitized planning summary.
 
 ### From the teacher's click to a saved plan
 
@@ -147,18 +185,18 @@ sequenceDiagram
 
 ### When the AI is confidently wrong
 
-- **Shape and content checks.** After the strict schema, the server checks both languages, length limits, the teacher's chosen materials, every date exactly once, a timetable row for every minute of the day, and clear timing requests after overlaps are resolved. It also rejects selected markup, instruction and air-safety patterns.
+- **Shape and content checks.** The provider receives a strict JSON schema. Server validators separately check bilingual fields, maximum lengths, selected materials, the outdoor-date permutation and clear timing requests after overlaps are resolved. Weekly generation and full-day AI changes must cover the remaining required planning window without gaps, preserving started rows. Direct manual edits keep their separate timing rules. Selected markup, instruction and air-safety patterns are rejected. Local validation does not yet enforce every provider-schema bound; see the open issues below.
 - **The ranking is advice, not permission.** The model ranks days for outdoor learning; the air and weather gates skip a day that fails, even when the model ranked it first.
 - **Facts stay deterministic.** The model never computes AQI, sees raw sensor values, decides closures or writes the air and weather wording of parent notices.
 - **Failures are named, not hidden.** Credit, quota, rate-limit, authentication, model-availability and timeout failures each report their own reason. When a browser disconnects, the model call is cancelled and a late answer is discarded.
-- **The teacher decides.** Every lesson stays editable, parent-note suggestions need an explicit Apply, and a parent notice becomes approvable only after a same-morning recheck.
+- **The teacher decides.** Upcoming activities remain editable; started rows are locked. Parent-note suggestions need an explicit Apply, and a parent notice becomes approvable only after a same-morning recheck.
 - **What validation cannot show.** A valid lesson is not necessarily a good one. We have not measured lesson quality; see [what we would build next](#what-we-would-build-next).
 
-Model input excludes account IDs, kindergarten and group names, raw sensor readings and AQI values. Teachers are asked to leave child names and private details out of the brief; the app does not anonymise that text automatically.
+The server does not add account IDs, kindergarten/group names, raw sensor readings or AQI values to model context. Teacher-entered briefs and model-assessed parent notes are sent as text, without automatic anonymisation. Leave child names and private details out of a brief; the existing privacy-help copy still needs to be displayed beside the input in the app.
 
 ## What is finished and what is not
 
-### Finished
+### Implemented
 
 - Kindergarten accounts with email and password, and private SQLite-backed plans; one group per account.
 - AI weekly plans from the teacher's brief, AI changes to one activity or a whole day, direct edits, drag-and-drop reordering, and a per-day **Inside**, **Outside** or **Adapt to conditions** choice.
@@ -166,7 +204,7 @@ Model input excludes account IDs, kindergarten and group names, raw sensor readi
 - A read-only, printable parent page in both languages, revocable links that expire after 14 days, private parent notes with a teacher inbox, and AI suggestions from those notes.
 - A same-morning recheck that makes the day's parent notice approvable for 15 minutes; refreshes and edits cancel the approval.
 - Six synthetic sample weeks (Independence Day, Easter, Halloween, winter, an autumn afternoon and a spring garden), each with six air scenarios.
-- Phone and desktop layouts, a Docker setup, automated tests, coverage floors and a local SonarQube gate.
+- Responsive layouts with recorded desktop and 390-pixel browser checks, a Docker setup, automated tests, coverage floors and a local SonarQube gate.
 
 ### Not finished, and known issues
 
@@ -174,10 +212,25 @@ Model input excludes account IDs, kindergarten and group names, raw sensor readi
 - **No delivery.** Teachers copy notices into their usual channel; Nedelko does not send them.
 - **A link is not an identity.** Anyone holding an active parent link can view the shared week and submit a private note.
 - **PM2.5 only.** Screening omits other pollutants and individual health needs. It is not a complete air-quality assessment or a medical certification. A future outdoor day needs a complete air forecast; otherwise it stays indoors and provisional. Weather limits are editable logistics preferences, not health or safety thresholds.
-- **Live data can fail.** Observations come from pulse.eco and forecasts from Open-Meteo. Missing, stale, suspect or conflicting data counts as unknown, never as clean air, and a failed refresh cannot renew approval.
+- **Live data can fail.** Observations come from pulse.eco and forecasts from Open-Meteo. The intended rule is that missing, stale, suspect or conflicting evidence stays unknown; refreshes invalidate notice approval. The cache and sensor-identity exceptions found in review are listed below.
 - **AI costs money, and its quality is unmeasured.** Real plans need a working OpenAI key. Educators have not rated the generated lessons.
 - **Rate limits reset on restart.** They are held in process memory.
-- **Not yet verified:** a fresh-machine install by someone outside the team, a teammate's separate GitHub access, and use beyond the single pilot session. The [verification record](docs/development/verification-status.md) separates current results from historical checks.
+- **Not yet verified:** a fresh-machine install by someone outside the team, a separate GitHub account's access, a physical-phone flow, every teammate's ability to explain the project, and use beyond the single pilot session. The [verification record](docs/development/verification-status.md) identifies the source and limits of earlier checks.
+
+<details>
+<summary>Open issues reproduced in the 22 September read-only review</summary>
+
+These remain code/verification work; this README update does not fix them. Reproductions used synthetic inputs, not observed classroom incidents.
+
+| Area | Remaining issue |
+| --- | --- |
+| Environmental evidence | A cache hit after a failed forced refresh can clear the failure flag without recovery. Duplicate provider rows can count as separate sensors or crowd out a disagreeing sensor. See [conditions](backend/services/conditions.js) and [QC](backend/domain/qc.js). |
+| Parent-message consistency | Refreshing between multiple eco sessions can change the apparent location of an elapsed session. A replacement notice can name an eligible date that remains scheduled indoors. The retained day-theme replacement endpoint can keep old per-row instructions under a new title. See [week adaptation](backend/domain/week.js) and [message composition](backend/domain/messages.js). |
+| Parent writing and inbox | A failed parent-page poll loses an unsent note; consistently slow inbox responses can be discarded by overlapping polls. See [parent view](frontend/src/pages/ParentWeek.js) and [inbox](frontend/src/components/ParentNotes.js). |
+| Editing and navigation | Activity textareas accept line breaks that the server rejects. The skip link can leave a directly loaded demo route. See [editor](frontend/src/components/ActivityEditor.js), [text validation](backend/domain/settings.js) and [routing](frontend/src/app.js). |
+| Validation and clarity | The server accepts shorter lesson descriptions than the provider schema requests. Historical negative sensor samples can be dropped without rejecting that sensor. Brief privacy help is not rendered; the favicon and mascot are unnecessarily large downloads. |
+
+</details>
 
 ## What we would build next
 
@@ -219,7 +272,7 @@ flowchart LR
     Tests --> Sonar[Docker SonarQube quality gate]
 ```
 
-The [architecture overview](docs/architecture/overview.md) walks through each module.
+The Mermaid flowchart above and the earlier sequence diagram show the architecture; the file tree is only a directory guide. The [architecture overview](docs/architecture/overview.md) walks through the modules. [ADR-0012](docs/architecture/adrs/0012-teacher-instruction-priority.md) and [ADR-0015](docs/architecture/adrs/0015-continuous-ai-timetables.md) explain the current teacher-priority and continuous-timetable rules: real generation requires AI, weekly/day schedule requests use medium reasoning, and full-day AI output must cover the required window.
 
 ### Why these tools
 
@@ -231,7 +284,7 @@ The [architecture overview](docs/architecture/overview.md) walks through each mo
 | The teacher's instructions come first | The brief overrides default routines and holiday ideas; a failed generation never saves an unrelated plan | [ADR-0012](docs/architecture/adrs/0012-teacher-instruction-priority.md) |
 | A local pre-push gate | Tests, coverage floors and a SonarQube gate run before a push | [ADR-0005](docs/architecture/adrs/0005-local-quality-gates.md), [ADR-0008](docs/architecture/adrs/0008-critical-coverage-and-analysis-secrets.md) |
 
-All decisions, with the alternatives we rejected, are in the [ADR index](docs/architecture/adrs/README.md).
+The [ADR index](docs/architecture/adrs/README.md) links the decisions and alternatives, including teacher priority and temperature continuity.
 
 ### How we used AI to build it
 
@@ -241,16 +294,26 @@ The product decisions are the team's, recorded in the ADRs. For example, the pro
 
 ### Commit history
 
-The history covers 20–22 September 2026. It shows feature branches merged through numbered pull requests, conventional commit messages (`feat`, `fix`, `refactor`, `test`, `docs`), and fix commits that follow the bugs they address (see below).
+At the audited snapshot `17396b8`, 109 commits span 20–22 September 2026, with contributions attributed to Filip Jordanoski, Mile Stanislavov and Andrej Velichkovski/Velickovski across five Git name/email identities. The history contains a two-parent PR #25 merge (`f3c0dd6`), later PR-numbered subjects #26–#37, and specific `feat`, `fix`, `refactor`, `test` and `docs` messages. These are traces of the team's build and PR workflow; review discussion and approval depth are not established by merge messages alone.
+
+One concrete development sequence is teacher-authored timetables (`8efe32e`), followed by stricter teacher-instruction priority (`976d57c`) and rejection of timetable gaps (`ebb52f0`). The problem/fix table below gives further examples. [ADRs](docs/architecture/adrs/README.md) explain choices, while [test sources](backend/tests/) and [verification records](docs/development/verification-status.md) let a reviewer inspect what was challenged and checked.
 
 ## Does it hold up?
 
-**Tests.** `node:test` suites cover the domain rules, HTTP API, authentication, SQLite storage, provider boundaries and rendered components (DOM tests use the development-only `linkedom`). A Postman collection tests the running API. Commit `ebb52f0` (22 September 2026) records that `npm run verify` passed 235 tests, with 98.53% backend and 95.59% frontend line coverage. The earlier [22 September audit record](docs/evidence/audit-fixes-2026-09-22.md) adds 63 Postman requests with 319 assertions and a passing SonarQube gate for its source version. Coverage must stay at or above 91% for backend and frontend separately. Nine critical modules need at least 90% each.
+**Tests.** `node:test` suites cover domain rules, HTTP, authentication, SQLite persistence, provider boundaries and rendered components. DOM tests use development-only `linkedom`; they do not establish physical-phone behavior. Providers and clocks use controlled fixtures. The [Postman collection](api-tests/postman/nedelko.postman_collection.json) tests chained HTTP workflows. Coverage must stay at or above 91% for backend and frontend separately, include every authored application JS file, and meet 90% in each of nine critical modules.
+
+| Verification record | Result and scope |
+| --- | --- |
+| Commit `ebb52f0`, 22 September | Records `npm run verify`: 235 passing tests, 98.53% backend and 95.59% frontend line coverage for that source. |
+| [Earlier 22 September audit-fix evidence](docs/evidence/audit-fixes-2026-09-22.md) | 213 passing tests, 63 Postman requests / 319 assertions in each API run, and a passing live Sonar gate; exact source hashes and command output are linked. |
+| Read-only audit of `17396b8`, 22 September | Syntax/link checks passed: 127 JS files, 42 Markdown files. `npm test` and `npm run verify` each reached 235 tests: 191 passed, 44 failed because the sandbox denied loopback listeners (`listen EPERM`). Postman could not start its listener. No successful new coverage summary or Sonar result was produced. |
+
+The earlier passes are retained as dated evidence. A fresh complete run on a host permitting loopback is still needed for the reviewed revision. The open issues above were found with additional synthetic probes despite the extensive regression suite.
 
 **Inputs we used to try to break it:**
 
-- Missing, stale, future-dated, malformed or conflicting sensor data becomes unknown, never clean air, and a failed refresh never renews approval.
-- Model output that is incomplete, refused, oversized, missing a language or a holiday, repeating dates or leaving timetable gaps is rejected.
+- Tests challenge missing, stale, future-dated, malformed and conflicting sensor data, and approval after failed refreshes. The newly reproduced cache/identity cases above need additional regressions.
+- Model-boundary tests challenge refusals, incomplete output, missing languages, unlisted materials, duplicate/fabricated ranking dates and timetable gaps. Teacher instructions take priority over optional holidays; required occasion checks apply when no teacher brief is supplied.
 - Timing requests work in English and in Cyrillic or Latin-script Macedonian. Ambiguous or multi-day prose goes to the model as context; the app does not guess an exact time from it.
 - Weak passwords, malformed emails, cross-origin writes, repeated sign-in attempts and over-limit generation requests are rejected.
 - A stale browser tab gets a `409` conflict instead of silently overwriting a newer edit, and activities that have started cannot be changed.
@@ -269,6 +332,10 @@ The history covers 20–22 September 2026. It shows feature branches merged thro
 | Automatic polling interrupted a teacher mid-edit | `a506e04` keeps focus, draft text and the selected scenario during refresh |
 
 The full check history is in the [verification record](docs/development/verification-status.md).
+
+### Submission status
+
+The README, run/environment instructions, known-issue list, Mermaid diagrams and backup recording are present. Browser evidence includes 390-pixel teacher and parent views. Another account's repository access, an outside-team setup, a physical-phone flow and every teammate's explanation remain checks for people to complete. Before submitting, verify the working tree is clean and the submitted commit is actually on the remote; a local `origin/main` reference alone does not establish that. Local pre-push hooks support the process but can be bypassed, so their presence is not proof of a completed gate for every commit.
 
 ## Documentation
 

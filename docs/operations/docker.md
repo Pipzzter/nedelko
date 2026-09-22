@@ -15,14 +15,14 @@ The root stack starts only the application at `http://127.0.0.1:4173`. Before st
 
 ## Configuration and secrets
 
-Root Compose reads `.env` for app substitutions; the analysis stack reads `static-analysis/.env`. Keep existing values; never overwrite a configured file just to follow a setup example. The database password is required before analysis starts; other values are optional:
+Root Compose reads `.env` for app substitutions; the analysis stack reads `static-analysis/.env`. Keep existing values; never overwrite a configured file just to follow a setup example. The database password is required before analysis starts. App startup and synthetic demos need no model key; real-account generation requires one:
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `APP_PORT` | `4173` | Host loopback app port; container stays on 4173 |
 | `SONAR_PORT` | `9000` | Host loopback Sonar port |
 | `SONAR_DB_PASSWORD` | Required, no default | Private analysis DB password; set before the first initialization and retain for existing volumes |
-| `OPENAI_API_KEY`, `OPENAI_MODEL` | Empty; model resolves to `gpt-5.6-sol` | Optional server-side educational generation |
+| `OPENAI_API_KEY`, `OPENAI_MODEL` | Empty; model resolves to `gpt-5.6-sol` | Key required for real-account generation; optional for startup and synthetic demos |
 | `OPENAI_SERVICE_TIER` | `auto`; example `.env` selects `fast` | AI processing tier; Fast mode has premium pricing |
 | `PULSE_USERNAME`, `PULSE_PASSWORD` | Empty | Optional upstream credentials |
 | `NEDELKO_DATABASE_PATH` | Automatic selection | Optional app database path inside the container, relative to `/app` or absolute |

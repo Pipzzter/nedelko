@@ -2,7 +2,7 @@
 
 Start with the [project README](../README.md). Active guidance is grouped by purpose; previous branch narratives and verification notes are historical records, not current acceptance evidence.
 
-Nedelko was built with substantial AI coding assistance. Optional runtime AI supplies validated bilingual curriculum, supporting sessions and a preferred outdoor-date order. Environmental decisions, scheduling constraints, approvals and parent-message templates remain deterministic; the templates can embed accepted educational text. The [live-generation evidence](evidence/README.md) separates a real model call from synthetic conditions and from offline tests.
+Nedelko was built with substantial AI coding assistance. Real-account generation requires a successful model response for bilingual curriculum, supporting sessions, timetables and a preferred outdoor-date order. Explicit sample demos use the local library without AI; a failed real generation preserves any existing plan instead of saving a fallback. Environmental decisions, scheduling constraints, approvals and parent-message templates remain deterministic; templates can embed accepted educational text. The [live-generation evidence](evidence/README.md) separates a real model call from synthetic conditions and from offline tests. The [README's known-issues section](../README.md#not-finished-and-known-issues) records remaining implementation and verification gaps.
 
 | Area | Documents |
 | --- | --- |
