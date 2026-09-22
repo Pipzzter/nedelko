@@ -19,6 +19,7 @@ const copy = {
   exitDemo: ['Излези од демото', 'Leave demo'],
   demoSample: ['ДЕМО · Примерни услови', 'DEMO · Sample conditions'],
   demoForecast: ['Примерна прогноза', 'Sample forecast'],
+  weatherSaved: ['Зачувани', 'Saved weather'], weatherPast: ['Минати податоци', 'Past weather'],
   demoWeek: ['Пример-недела', 'Example week'], demoAir: ['Воздух во понеделник', 'Monday air conditions'],
   disagreement: ['Сензорите не се согласуваат', 'Sensors disagree'], spike: ['Нагло покачување', 'Sudden sensor spike'],
   occasion: ['Празник / тема', 'Holiday / theme'], holidayPreparation: ['Подготовка за', 'Preparing for'],

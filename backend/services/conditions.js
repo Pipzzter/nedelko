@@ -185,9 +185,9 @@ export async function getConditions(
   if (!['demo', 'live'].includes(mode) || !SCENARIOS.includes(scenario))
     throw Object.assign(new Error('Непознат режим или сценарио.'), { status: 400 });
   if (mode === 'demo') return demoConditions(location, scenario, clock(), demoWeekById(demoWeek));
-  const now = clock();
+  let now = clock();
   const forecastUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${location.lat}&longitude=${location.lon}&hourly=pm2_5,pm10&timezone=GMT&forecast_days=7&domains=cams_europe`;
-  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lon}&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m&timezone=GMT&forecast_days=7`;
+  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lon}&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m&timezone=GMT&past_days=7&forecast_days=8`;
   const pulseBase = `https://${location.pulseCity}.pulse.eco/rest`;
   const [metadata, current, prediction, weatherPrediction] = await Promise.all([
     fetchConditions(`${pulseBase}/sensor`, { ttl: 3600000, fresh }),
@@ -254,6 +254,9 @@ export async function getConditions(
     );
     return { ...sensor, samples: [...dedup.values()] };
   });
+  // Providers stamp successful responses after the request begins. Evaluate
+  // freshness at completion so a new response is not mistaken for future data.
+  now = clock();
   const assessment = assessSensors(sensors, now);
   const failedRefresh = malformed || metadata.failedRefresh || current.failedRefresh || history.some((h) => h.failedRefresh);
   if (failedRefresh) {
@@ -267,8 +270,10 @@ export async function getConditions(
   const weather = weatherRows(weatherPrediction.data);
   const forecastAvailable = forecast.length > 0 && !prediction.failedRefresh && forecastAge >= 0 && forecastAge <= POLICY.maxForecastAgeHours;
   const weatherAge = (now - Date.parse(weatherPrediction.fetchedAt)) / 3600000;
-  const weatherAvailable =
-    weather.length > 0 && !weatherPrediction.failedRefresh && weatherAge >= 0 && weatherAge <= POLICY.maxForecastAgeHours;
+  // Recent saved temperatures can be displayed after a failed refresh, while
+  // outdoor eligibility still requires a successful current weather request.
+  const weatherDisplayAvailable = weather.length > 0 && weatherAge >= 0 && weatherAge <= POLICY.maxForecastAgeHours;
+  const weatherAvailable = weatherDisplayAvailable && !weatherPrediction.failedRefresh;
   return {
     mode,
     scenario,
@@ -281,6 +286,7 @@ export async function getConditions(
     cached: current.cached,
     failedRefresh,
     weatherFailedRefresh: weatherPrediction.failedRefresh,
+    weatherDisplayAvailable,
     forecastAvailable,
     weatherAvailable,
     assessment,

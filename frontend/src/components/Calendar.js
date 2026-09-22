@@ -3,8 +3,9 @@ import { t } from '../locales/index.js';
 import { Icon, WeatherIcon } from './Icon.js';
 
 export function Calendar({ data, lang, selected, onSelect }) {
-  const calendar = data.week?.days || data.calendar;
-  if (!calendar?.length) return null;
+  const days = data.week?.days || data.calendar;
+  if (!days?.length) return null;
+  const calendar = days.map(day => ({ ...day, summary: day.weatherDisplay || data.calendar?.find(item => item.date === day.date)?.weatherDisplay || day.summary }));
   const month =
     calendar[0].date.slice(0, 7) === calendar[4].date.slice(0, 7)
       ? monthLabel(calendar[0].date, lang)
@@ -40,6 +41,7 @@ export function Calendar({ data, lang, selected, onSelect }) {
                 degrees(day.summary?.max) +
                 ', ' +
                 t(day.mode || 'empty', lang) +
+                (weatherStatus(day.summary, lang) ? ', ' + weatherStatus(day.summary, lang) : '') +
                 (day.occasions?.length ? ', ' + day.occasions.map((event) => event.name[lang]).join(', ') : '')
               }
               onClick=${() => onSelect(day.date)}
@@ -48,6 +50,7 @@ export function Calendar({ data, lang, selected, onSelect }) {
               <${WeatherIcon} kind=${day.summary?.kind} size=${32} /><span class="day-temperatures"
                 >${degrees(day.summary?.max)} <small>${degrees(day.summary?.min)}</small></span
               >
+              <span class="weather-status" aria-hidden=${!weatherStatus(day.summary, lang) || undefined} title=${weatherStatus(day.summary, lang) ? weatherDetail(day.summary, lang) : undefined}>${weatherStatus(day.summary, lang)}</span>
               <span class="weekday">${shortDay(day.date, lang)}</span
               ><span class="day-number">${Number(day.date.slice(8))}</span>
               ${
@@ -94,4 +97,16 @@ function renderCalendarFooter({ data, lang }) {
     </div>
 
 `;
+}
+
+
+function weatherStatus(summary, lang) {
+  const key = { cached: 'weatherSaved', historical: 'weatherPast', unavailable: 'weatherUnknown' }[summary?.status];
+  return key ? t(key, lang) : '';
+}
+function weatherDetail(summary, lang) {
+  const label = weatherStatus(summary, lang);
+  return Number.isFinite(Date.parse(summary?.fetchedAt))
+    ? `${label}: ${localizedDate(summary.fetchedAt, lang, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+    : label;
 }

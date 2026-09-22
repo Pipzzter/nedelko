@@ -355,3 +355,26 @@ test('live air sources retain safe links and the calendar preserves five selecta
   render(html`<${Calendar} data=${{ ...data, mode: 'demo' }} lang="en" onSelect=${() => {}}/>`, root);
   assert.match(root.querySelector('.calendar-caption').textContent, /Sample forecast/);
 });
+
+test('calendar shows saved and historical temperatures with bilingual provenance and no false loading state', t => {
+  const { root } = dom(t);
+  const days = ['21', '22', '23', '24', '25'].map((day, index) => ({ date: `2026-09-${day}`, mode: 'inside',
+    summary: { min: null, max: null, kind: 'unknown' },
+    weatherDisplay: { min: index === 4 ? null : 0, max: index === 4 ? null : 18, kind: 'cloud',
+      status: ['historical', 'cached', 'forecast', 'demo', 'unavailable'][index], fetchedAt: index === 4 ? null : '2026-09-22T05:00:00Z' } }));
+  for (const lang of ['en', 'mk']) {
+    render(html`<${Calendar} data=${{ week: { days }, mode: 'live' }} lang=${lang} onSelect=${() => {}}/>`, root);
+    const tiles = [...root.querySelectorAll('.calendar-day')];
+    assert.match(tiles[0].querySelector('.day-temperatures').textContent, /18°\s+0°/);
+    assert.equal(tiles[0].querySelector('.weather-status').textContent, lang === 'en' ? 'Past weather' : 'Минати податоци');
+    assert.equal(tiles[1].querySelector('.weather-status').textContent, lang === 'en' ? 'Saved weather' : 'Зачувани');
+    assert.match(tiles[1].querySelector('.weather-status').title, /07:00/);
+    assert.match(tiles[1].getAttribute('aria-label'), lang === 'en' ? /Saved weather/ : /Зачувани/);
+    assert.equal(tiles[2].querySelector('.weather-status').textContent, '');
+    assert.equal(tiles[2].querySelector('.weather-status').getAttribute('aria-hidden'), 'true');
+    assert.equal(tiles[4].querySelector('.weather-status').textContent, lang === 'en' ? 'No forecast' : 'Без прогноза');
+  }
+  const legacy = days.map(({ weatherDisplay, ...day }) => day);
+  render(html`<${Calendar} data=${{ week: { days: legacy }, calendar: days }} lang="en" onSelect=${() => {}}/>`, root);
+  assert.match(root.querySelector('.day-temperatures').textContent, /18°/);
+});

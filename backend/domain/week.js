@@ -40,13 +40,13 @@ export function weatherSummary(conditions, date, settings = DEFAULT_SUMMARY_HOUR
   const rows = (conditions.weatherAvailable ? conditions.weather : []).filter(
     (r) =>
       r.local.date === date &&
-      r.local.minutes >= minutes(settings.dayStart) &&
+      r.local.minutes + 60 > minutes(settings.dayStart) &&
       r.local.minutes < minutes(settings.dayEnd)
   );
   const air = (conditions.forecastAvailable ? conditions.forecast : []).filter(
     (r) =>
       r.local.date === date &&
-      r.local.minutes >= minutes(settings.dayStart) &&
+      r.local.minutes + 60 > minutes(settings.dayStart) &&
       r.local.minutes < minutes(settings.dayEnd)
   );
   const priority = ['storm', 'snow', 'rain', 'fog', 'cloud', 'sun'];
@@ -59,6 +59,21 @@ export function weatherSummary(conditions, date, settings = DEFAULT_SUMMARY_HOUR
     pm25: maximum(air.map((r) => r.pm25)),
     forecastAir: air.some((r) => Number.isFinite(r.pm25))
   };
+}
+
+// Display provenance is separate from the evidence used by planning and notices.
+export function calendarWeather(conditions, date, settings) {
+  const displayAvailable = conditions.weatherAvailable || conditions.weatherDisplayAvailable === true;
+  const summary = weatherSummary({ ...conditions, weatherAvailable: displayAvailable }, date, settings);
+  const available = Number.isFinite(summary.min) && Number.isFinite(summary.max);
+  let status = 'unavailable';
+  if (available) {
+    if (conditions.mode === 'demo') status = 'demo';
+    else if (!conditions.weatherAvailable) status = 'cached';
+    else status = date < skopjeParts(new Date(conditions.clock)).date ? 'historical' : 'forecast';
+  }
+  return { min: summary.min, max: summary.max, kind: summary.kind, status,
+    fetchedAt: conditions.weatherFetchedAt || null };
 }
 
 function windowEvidence(day, conditions, settings) {
@@ -499,7 +514,10 @@ export function dashboard(week, conditions) {
     clock: conditions.clock,
     today: skopjeParts(new Date(conditions.clock)).date,
     mode: conditions.mode,
-    calendar: dates.map(date => ({ date, summary: weatherSummary(conditions, date, summaryHours(week?.days.find(day => day.date === date), week?.settings)) })),
+    calendar: dates.map(date => {
+      const hours = summaryHours(week?.days.find(day => day.date === date), week?.settings);
+      return { date, summary: weatherSummary(conditions, date, hours), weatherDisplay: calendarWeather(conditions, date, hours) };
+    }),
     environment: {
       freshnessMinutes: POLICY.freshnessMinutes,
       location: conditions.location,
@@ -520,6 +538,7 @@ export function dashboard(week, conditions) {
 
 function adaptPlannedDay({ day, conditions, week, today, finishedToday, local, candidates, chosen, modelOrder }) {
   day.summary = weatherSummary(conditions, day.date, summaryHours(day, week.settings));
+  day.weatherDisplay = calendarWeather(conditions, day.date, summaryHours(day, week.settings));
   if (day.date < today || !day.theme || day === finishedToday) return;
   const lessonElapsed =
     day.date === today && day.timeline.some((row) => row.kind === 'eco' && minutes(row.start) <= local.minutes);
