@@ -6,6 +6,7 @@ import { occasionsForWeek } from '../domain/holidays.js';
 import { DEFAULT_SETTINGS, pair } from '../domain/settings.js';
 import { assignDailyTopics } from '../domain/teaching-brief.js';
 const dates = ['2026-09-21', '2026-09-22', '2026-09-23', '2026-09-24', '2026-09-25'];
+const row = (id, start, end, kind = 'activity') => ({ id, start, end, kind, label: pair(id, id) });
 
 test('daily topics are never assigned to an undefined date after the planning week has elapsed', () => {
   const brief = 'Day 1: Gardening. Day 2: Water.';
@@ -25,6 +26,7 @@ function modelThemes() {
       outside: pair(`${names('mk')}: со воспитувачот правиме круг на пријателство во дворот и ги чуваме материјалите.`, `${names('en')}: with the teacher, form a friendship circle in the yard and keep every material for reuse.`),
       habit: pair('Зачувајте ја користената хартија за цртање.', 'Keep used paper for drawing.'), materials: ['paper'],
       dayActivities: Object.fromEntries(['circle', 'creative', 'movement', 'reflection'].map((role, j) => [role, pair(`Тест-активност ${i + 1}.${j + 1}`, `Synthetic session ${i + 1}.${j + 1}`)])),
+      timeline: [row('morning', '07:30', '12:00'), row('afternoon', '12:00', '16:00')],
     };
   });
 }
@@ -173,19 +175,20 @@ test('generated whole-day activities are validated, and regeneration can vary th
 
 test('each model day authors a full bilingual timeline instead of filling fixed session keys', async t => {
   key(t); let mutation = value => value; let sent;
-  const timeline = [{ id: 'run', start: '09:00', end: '14:00', kind: 'eco', label: pair('Running', 'Running'), note: null }];
+  const timeline = [row('arrival', '07:30', '09:00'), row('run', '09:00', '14:00', 'eco'), row('closing', '14:00', '16:00')];
   t.mock.method(globalThis, 'fetch', async (_url, options) => {
     sent = JSON.parse(options.body);
     const themes = modelThemes().map((theme, index) => ({ ...theme,
-      timeline: index === 0 ? mutation(structuredClone(timeline)) : [{ id: 'breakfast', start: index === 1 ? '08:45' : '08:30', end: '09:15', kind: 'meal', label: pair('Breakfast', 'Breakfast') }],
+      timeline: index === 0 ? mutation(structuredClone(timeline)) : [row('arrival', '07:30', index === 1 ? '08:45' : '08:30'),
+        row('breakfast', index === 1 ? '08:45' : '08:30', '09:15', 'meal'), row('play', '09:15', '16:00')],
       outdoorPreference: index === 0 ? 'outside' : 'auto' }));
     return reply(themes);
   });
   const settings = { ...DEFAULT_SETTINGS, teacherPrompt: 'Monday: no breakfast, run outside 09:00?14:00. Tuesday: move breakfast to 08:45.' };
   const result = await createCurriculum(dates, settings);
   assert.equal(result.source, 'ai');
-  assert.equal(result.timelines[0][0].end, '14:00');
-  assert.equal(result.timelines[1][0].start, '08:45');
+  assert.equal(result.timelines[0].find(row => row.id === 'run').end, '14:00');
+  assert.equal(result.timelines[1].find(row => row.id === 'breakfast').start, '08:45');
   assert.deepEqual(result.outdoorPreferences, ['outside', 'auto', 'auto', 'auto', 'auto']);
   assert.equal(sent.text.format.schema.properties.sessions, undefined);
   const schema = sent.text.format.schema.properties.themes.items;
@@ -194,9 +197,30 @@ test('each model day authors a full bilingual timeline instead of filling fixed 
   assert.deepEqual(JSON.parse(sent.input).defaultRoutine.blocks, settings.blocks);
   assert.match(sent.instructions, /editable starting points/);
   assert.match(sent.instructions, /Resolve overlaps/);
+  assert.match(sent.instructions, /Gaps are forbidden/);
+  assert.doesNotMatch(sent.instructions, /Gaps are allowed/);
   for (const change of [rows => [...rows, rows[0]], rows => [{ ...rows[0], end: '08:00' }], rows => [{ ...rows[0], label: { en: 'Only one language' } }]]) {
     mutation = change;
     const rejected = await createCurriculum(dates, settings);
     assert.equal(rejected.source, 'library'); assert.equal(rejected.generationIssue, 'ai_invalid_output');
   }
+});
+
+test('weekly AI rejects missing, empty or incomplete future timetables and allows elapsed days to stay empty', async t => {
+  key(t); let themes = modelThemes();
+  t.mock.method(globalThis, 'fetch', async () => reply(themes));
+  for (const timeline of [undefined, null, [], [row('middle', '09:00', '14:00')],
+    [row('first', '07:30', '09:00'), row('last', '10:00', '16:00')]]) {
+    themes = modelThemes(); themes[2].timeline = timeline;
+    const result = await createCurriculum(dates, DEFAULT_SETTINGS);
+    assert.equal(result.source, 'library'); assert.equal(result.generationIssue, 'ai_invalid_output');
+  }
+  themes = modelThemes(); themes[0].timeline = [];
+  assert.equal((await createCurriculum(dates, DEFAULT_SETTINGS, { today: dates[1] })).source, 'ai');
+  themes[1].timeline = [row('remaining', '10:01', '16:00')];
+  assert.equal((await createCurriculum(dates, DEFAULT_SETTINGS, { today: dates[1],
+    planningDays: [{ date: dates[1], editableFrom: '10:01', lockedRows: [] }] })).source, 'ai');
+  themes[1].timeline[0].start = '10:02';
+  assert.equal((await createCurriculum(dates, DEFAULT_SETTINGS, { today: dates[1],
+    planningDays: [{ date: dates[1], editableFrom: '10:01', lockedRows: [] }] })).generationIssue, 'ai_invalid_output');
 });

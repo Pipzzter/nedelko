@@ -38,6 +38,7 @@ export function aiFailure(error) {
       'invalid_text',
       'both_languages',
       'duplicate_activity',
+      'timeline_gap',
       'activity_detail_required'
     ].includes(error?.code) ||
     ['missing_day_activities', 'missing_holiday_context', 'invalid_outdoor_order', 'missing_teacher_topic'].includes(

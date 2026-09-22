@@ -71,7 +71,10 @@ test('verbatim teacher requirements lead weekly instructions and reach the saved
   const settings = { ...DEFAULT_SETTINGS, teacherPrompt };
   t.mock.method(globalThis, 'fetch', async (_url, options) => {
     sent = JSON.parse(options.body);
-    const themes = localCurriculum(dates, settings).map((theme, index) => ({ ...theme, timeline: index ? [] : [row('09:00', short ? '09:45' : '14:00')], outdoorPreference: 'auto' }));
+    const play = (id, start, end) => ({ ...row(start, end), id, kind: 'free', label: pair('Слободна игра', 'Free play') });
+    const themes = localCurriculum(dates, settings).map((theme, index) => ({ ...theme,
+      timeline: index ? [play('play', '07:30', '16:00')] : [play('arrival', '07:30', '09:00'),
+        row('09:00', short ? '09:45' : '14:00'), play('afternoon', short ? '09:45' : '14:00', '16:00')], outdoorPreference: 'auto' }));
     return Response.json({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ themes, outdoorOrder: dates }) }] }] });
   });
   const generated = await createCurriculum(dates, settings);
@@ -85,7 +88,9 @@ test('verbatim teacher requirements lead weekly instructions and reach the saved
   const clock = '2026-09-21T05:00:00Z';
   const conditions = demoConditions(LOCATIONS[0], 'normal', Date.parse(clock), { clock, temperatures: [20,20,20,20,20,20,20], rainy: [], snowy: [], windy: [] });
   const week = createWeek(settings, generated, conditions);
-  assert.deepEqual(week.days[0].timeline.map(item => [item.label.en, item.start, item.end]), [['Running', '09:00', '14:00']]);
+  const running = week.days[0].timeline.find(item => item.id === 'run');
+  assert.deepEqual([running.label.en, running.start, running.end], ['Running', '09:00', '14:00']);
+  assert.deepEqual(week.days[0].timeline.map(item => [item.start, item.end]), [['07:30', '09:00'], ['09:00', '14:00'], ['14:00', '16:00']]);
   short = true;
   assert.equal((await createCurriculum(dates, settings)).generationIssue, 'ai_invalid_output');
   const revised = teacherPlanningInstructions('Use art.', 'Tuesday: use music instead.');

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { assignDailyTopics, dailyTopics, validateTopicCoverage } from '../domain/teaching-brief.js';
 import { createCurriculum } from '../services/curriculum.js';
 import { localCurriculum } from '../domain/curriculum.js';
-import { DEFAULT_SETTINGS } from '../domain/settings.js';
+import { DEFAULT_SETTINGS, pair } from '../domain/settings.js';
 import { occasionsForWeek } from '../domain/holidays.js';
 
 const brief = `one days talking about good habits,
@@ -25,7 +25,8 @@ test('a model response that ignores a requested topic cannot be accepted as an A
   const old = process.env.OPENAI_API_KEY; process.env.OPENAI_API_KEY = 'test-only';
   t.after(() => { if (old === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = old; });
   const settings = { ...DEFAULT_SETTINGS, teacherPrompt: brief };
-  const themes = localCurriculum(dates, settings);
+  const themes = localCurriculum(dates, settings).map(theme => ({ ...theme,
+    timeline: [{ id: 'day', start: '07:30', end: '16:00', kind: 'activity', label: pair('Игра', 'Play') }] }));
   let sent;
   t.mock.method(globalThis, 'fetch', async (_url, options) => {
     sent = JSON.parse(options.body);

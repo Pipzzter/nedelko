@@ -1,7 +1,8 @@
 import { structuredResponse, aiStatus } from './ai.js';
 import { aiFailure } from './ai-errors.js';
 import { lessonSchema, pairSchema, timelineSchema, TIMETABLE_GUIDANCE, validateModelTimeline } from './curriculum.js';
-import { teacherInstruction, materialCatalog, minutes } from '../domain/settings.js';
+import { teacherInstruction, materialCatalog, minutes, timeLabel } from '../domain/settings.js';
+import { assertTimelineCoverage } from '../domain/timeline.js';
 import { localCurriculum } from '../domain/curriculum.js';
 import { protectedActivity, rowContent, validateDayChange } from '../domain/day-edit.js';
 import { ACTIVITY_GUIDANCE, descriptionSchema, teacherPlanningInstructions } from './learning-guidance.js';
@@ -38,6 +39,7 @@ export async function suggestDayPlan(day, settings, { scope, rowId, instruction,
         materials: materialCatalog(settings).filter((item) => settings.materials.includes(item.id)),
         date: day.date,
         clock,
+        editableFrom: day.date === local.date ? timeLabel(Math.min(local.minutes + 1, 1439)) : null,
         theme: day.theme,
         timeline: day.timeline.map((item) => ({
           ...rowContent(item),
@@ -53,6 +55,10 @@ export async function suggestDayPlan(day, settings, { scope, rowId, instruction,
     if (scope === 'activity' && row?.kind !== 'eco') activityDescription(result.value.note);
     if (scope === 'schedule') validateModelTimeline(result.value.timeline);
     const checked = validateDayChange(day, settings, request, result.value, clock);
+    if (scope === 'schedule') assertTimelineCoverage(checked.timeline, settings, {
+      from: day.date === local.date ? timeLabel(Math.min(local.minutes + 1, 1439)) : null,
+      lockedRows: day.date === local.date ? day.timeline.filter(item => minutes(item.start) <= local.minutes) : []
+    });
     if (scope === 'schedule') validateRequestedTimings([checked.timeline], [day.date], requestedTimings(instruction, [day.date], local.date, day.date),
       [{ date: day.date, lockedRows: day.date === local.date ? day.timeline.filter(item => minutes(item.start) <= local.minutes) : [] }]);
     return { change: result.value, source: 'ai' };

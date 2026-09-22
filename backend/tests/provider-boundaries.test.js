@@ -78,3 +78,31 @@ test('disconnect cancellation reaches the model and rejects late results from an
   await assert.rejects(result, { name: 'AbortError' });
   assert.deepEqual(await requestProvider(async () => ({ independent: true }))(), { independent: true });
 });
+
+test('daily AI rejects schedule gaps and preserves locked history during a complete regeneration', async t => {
+  const { week, day, clock } = fixture(t);
+  const original = structuredClone(day);
+  const request = { scope: 'schedule', instruction: 'Add a paper construction activity.', clock, weekDays: week.days };
+  let output; let sent;
+  t.mock.method(globalThis, 'fetch', async (_url, options) => { sent = JSON.parse(options.body); return reply(output); });
+  const full = day.timeline.map(rowContent);
+  for (const timeline of [[], full.slice(1), full.slice(0, -1), full.filter((_, index) => index !== 2)]) {
+    output = { timeline, theme: day.theme, outdoorPreference: 'inside' };
+    const result = await suggestDayPlan(day, week.settings, request);
+    assert.equal(result.change, null); assert.equal(result.generationIssue, 'ai_invalid_output');
+  }
+  output = { timeline: full, theme: day.theme, outdoorPreference: 'inside' };
+  assert.equal((await suggestDayPlan(day, week.settings, request)).source, 'ai');
+  assert.equal(JSON.parse(sent.input).editableFrom, null);
+  assert.deepEqual(day, original, 'invalid and valid previews never modify the saved day');
+
+  const history = { ...day, timeline: [{ id: 'breakfast', start: '08:30', end: '09:00', kind: 'meal', label: pair('Појадок', 'Breakfast') }] };
+  const remaining = { id: 'remaining', start: '10:01', end: '16:00', kind: 'free', label: pair('Слободна игра', 'Free play') };
+  output = { timeline: [...history.timeline.map(rowContent), remaining], theme: history.theme, outdoorPreference: 'inside' };
+  const todayRequest = { ...request, clock: `${day.date}T08:00:00Z` };
+  assert.equal((await suggestDayPlan(history, week.settings, todayRequest)).source, 'ai');
+  assert.equal(JSON.parse(sent.input).editableFrom, '10:01');
+  assert.equal(JSON.parse(sent.input).timeline[0].locked, true);
+  output.timeline.at(-1).start = '10:02';
+  assert.equal((await suggestDayPlan(history, week.settings, todayRequest)).generationIssue, 'ai_invalid_output');
+});

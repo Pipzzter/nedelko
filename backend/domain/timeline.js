@@ -1,5 +1,20 @@
 import { minutes, timeLabel, invalid } from './settings.js';
 
+// Check the resolved schedule, including opening/closing time and any extensions.
+// Existing elapsed history is immutable; regeneration validates editable time only.
+export function assertTimelineCoverage(rows, settings, { from = null, lockedRows = [] } = {}) {
+  const resolved = resolveTimelineOverlaps(rows, new Set(lockedRows.map(row => row.id)));
+  const start = Math.min(minutes(settings.dayStart), ...resolved.map(row => minutes(row.start)));
+  const end = Math.max(minutes(settings.dayEnd), ...resolved.map(row => minutes(row.end)));
+  let cursor = from === null ? start : Math.max(start, minutes(from));
+  for (const row of resolved) {
+    if (minutes(row.end) <= cursor) continue;
+    if (minutes(row.start) > cursor) throw invalid('timeline_gap');
+    cursor = Math.max(cursor, minutes(row.end));
+  }
+  if (cursor < end) throw invalid('timeline_gap');
+}
+
 // Resolve collisions in the authored order without shortening or deleting rows.
 // Existing started rows are immutable, including any historical overlap.
 export function resolveTimelineOverlaps(rows, lockedIds = new Set()) {

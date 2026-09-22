@@ -221,6 +221,8 @@ export function dailyPlanningContext(dates, settings, conditions, previous) {
   const local = skopjeParts(new Date(conditions.clock));
   const today = local.date;
   return dates.map(date => ({ date, elapsed: date < today,
+    editableFrom: date === today && previous?.days.some(day => day.date === date)
+      ? timeLabel(Math.min(local.minutes + 1, 1439)) : null,
     defaultRoutine: { dayStart: settings.dayStart, dayEnd: settings.dayEnd,
       duration: settings.duration, blocks: structuredClone(settings.blocks) },
     lockedRows: date === today ? (previous?.days.find(day => day.date === date)?.timeline || [])
