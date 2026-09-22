@@ -1,3 +1,4 @@
+import { simulatedCurriculum } from './curriculum-fixture.js';
 import test, { beforeEach } from 'node:test';
 beforeEach(t => t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-21T06:45:00Z') }));
 import assert from 'node:assert/strict';
@@ -19,7 +20,7 @@ const DEFAULT_SETTINGS = { ...EMPTY_SETTINGS, gradinka: { name: 'Test kindergart
 async function app(t, options = {}) {
   const store = openStore(':memory:');
   const server = createApp({ store, conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', mode, demoWeek } = {}) => demoConditions(LOCATIONS.find(l => l.id === locationId) || LOCATIONS[0], scenario, Date.now(), mode === 'demo' ? demoWeekById(demoWeek) : null),
-    curriculumProvider: (dates, settings, options) => createCurriculum(dates, settings, { ...options, useAI: false }), holidayProvider: async year => calendarSnapshot(year), ...options });
+    curriculumProvider: simulatedCurriculum, holidayProvider: async year => calendarSnapshot(year), ...options });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   t.after(() => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }));
   const base = `http://127.0.0.1:${server.address().port}`;
@@ -70,7 +71,7 @@ test('weekly generation allows six owner attempts per hour, isolates accounts an
   let liveCalls = 0; let demoCalls = 0;
   const { client, store } = await app(t, { curriculumProvider: async (dates, settings, options) => {
     if (options.useAI) liveCalls++; else demoCalls++;
-    return createCurriculum(dates, settings, { ...options, useAI: false });
+    return simulatedCurriculum(dates, settings, options);
   } });
   const owner = client(); const other = client(); const anotherSession = client();
   const user = (await owner('/api/auth/register', account)).body.user;
@@ -104,7 +105,7 @@ test('failed weekly AI retries consume the owner budget without replacing the sa
   let calls = 0;
   const { client, store } = await app(t, { curriculumProvider: async (dates, settings, options) => {
     calls++;
-    return { ...await createCurriculum(dates, settings, { ...options, useAI: false }), generationIssue: 'ai_timeout' };
+    return { ...await createCurriculum(dates, settings, { ...options, useAI: false }), source: calls === 1 ? 'ai' : 'library', generationIssue: calls === 1 ? null : 'ai_timeout' };
   } });
   const request = client(); const user = (await request('/api/auth/register', account)).body.user;
   const week = (await request('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
@@ -206,7 +207,7 @@ test('new accounts start empty; one-click generation persists only to the owner'
 });
 
 test('AI retry preserves the saved week on failure and replaces it only after successful validated generation', async t => {
-  let succeed = false;
+  let succeed = true;
   const { client, store } = await app(t, { curriculumProvider: async (dates, settings, options) => {
     const library = await createCurriculum(dates, settings, { ...options, useAI: false });
     return succeed ? { ...library, source: 'ai', outdoorOrder: dates, outdoorDecisionSource: 'ai' } : { ...library, generationIssue: 'ai_timeout' };
@@ -215,6 +216,7 @@ test('AI retry preserves the saved week on failure and replaces it only after su
   const auth = (await request('/api/auth/register', account)).body;
   await other('/api/auth/register', { ...account, email: 'other.teacher@test.mk' });
   const original = (await request('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
+  succeed = false;
   const retry = { settings: { ...DEFAULT_SETTINGS, locationId: 'bitola' }, revision: original.revision, requireAI: true };
   assert.equal((await anon('/api/week/generate', retry)).status, 401);
   assert.equal((await other('/api/week/generate', retry)).status, 409);

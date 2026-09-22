@@ -35,7 +35,6 @@ import { assertUpcoming, validateDayChange } from '../domain/day-edit.js';
 import { manualDayEdit } from '../domain/manual-day-edit.js';
 import { aiStatus } from '../services/ai.js';
 import { parentView } from '../domain/parent-view.js';
-import { dailyTopics } from '../domain/teaching-brief.js';
 import { startAutoRefresh } from '../services/auto-refresh.js';
 import { getHolidayCalendar } from '../services/holidays.js';
 import { calendarSnapshot } from '../domain/holidays.js';
@@ -377,12 +376,9 @@ export function createApp({
         outdoorContext: outdoorPlanningContext(dates, settings, conditions),
         today: skopjeParts(new Date(conditions.clock)).date
       });
-      // An explicit AI retry must never replace the saved week with another fallback.
-      if (
-        !demoId &&
-        (body.requireAI === true || dailyTopics(settings.teacherPrompt).length) &&
-        curriculum.source !== 'ai'
-      )
+      // A library cannot interpret a teacher brief. Reject failed real generation,
+      // including the first attempt, instead of saving an unrelated example.
+      if (!demoId && curriculum.source !== 'ai')
         return send(503, {
           error: 'ai_retry_failed',
           generationIssue: curriculum.generationIssue || 'ai_unavailable',

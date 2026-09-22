@@ -1,3 +1,4 @@
+import { simulatedCurriculum } from './curriculum-fixture.js';
 import test, { beforeEach } from 'node:test';
 beforeEach(t => t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-21T06:45:00Z') }));
 import assert from 'node:assert/strict';
@@ -24,7 +25,7 @@ async function fixture(t, overrides = {}) {
   const store = openStore(':memory:');
   const server = createApp({ store,
     conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', mode, demoWeek } = {}) => demoConditions(LOCATIONS.find(l => l.id === locationId), scenario, Date.now(), mode === 'demo' ? demoWeekById(demoWeek) : null),
-    curriculumProvider: (dates, settings, options) => createCurriculum(dates, settings, { ...options, useAI: false }),
+    curriculumProvider: simulatedCurriculum,
     holidayProvider: async year => calendarSnapshot(year), ...overrides });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   t.after(() => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }));
@@ -396,7 +397,7 @@ test('day AI receives teaching preferences but not kindergarten or group identit
 
 test('generation rejects missing required teacher details before contacting providers or changing a plan',async t=>{
   let calls=0;
-  const {client,store}=await fixture(t,{curriculumProvider:(dates,settings)=>{calls++;return createCurriculum(dates,settings,{useAI:false});}});
+  const {client,store}=await fixture(t,{curriculumProvider:(dates,settings)=>{calls++;return simulatedCurriculum(dates,settings);}});
   const teacher=client();const user=(await teacher('/api/auth/register',account)).body.user;
   for(const [settings,error] of [
     [{...DEFAULT_SETTINGS,gradinka:{name:'  '}},'kindergarten_required'],
@@ -408,12 +409,15 @@ test('generation rejects missing required teacher details before contacting prov
   const generated=await teacher('/api/week/generate',{settings:DEFAULT_SETTINGS});assert.equal(generated.status,201);assert.equal(calls,1);
 });
 
-test('explicit daily topics cannot silently save an unrelated library fallback', async t => {
-  const { client, store } = await fixture(t);
+test('any teacher brief rejects a failed generation without replacing the saved week', async t => {
+  let fail = false;
+  const { client, store } = await fixture(t, { curriculumProvider: (dates, settings, options) => fail
+    ? createCurriculum(dates, settings, { ...options, useAI: false }) : simulatedCurriculum(dates, settings, options) });
   const teacher = client(); const user = (await teacher('/api/auth/register', account)).body.user;
   const previous = (await teacher('/api/week/generate', { settings: DEFAULT_SETTINGS })).body.week;
+  fail = true;
   const result = await teacher('/api/week/generate', { revision: previous.revision,
-    settings: { ...DEFAULT_SETTINGS, teacherPrompt: 'one day about healthy food\none day about saving electricity' } });
+    settings: { ...DEFAULT_SETTINGS, teacherPrompt: 'Teach about falling leaves and layered clothing.' } });
   assert.equal(result.status, 503);
   assert.deepEqual(store.week(user.id, previous.weekStart), previous);
 });
@@ -457,4 +461,20 @@ test('targeted edit proposals enforce owner, revision, timeline integrity and si
   const stale = (await teacher('/api/week/change/suggest', { ...request, revision: week.revision })).body;
   const refreshed = (await teacher('/api/dashboard')).body.week;
   assert.equal((await teacher('/api/week/change/apply', { proposalId: stale.proposalId, revision: refreshed.revision })).status, 409);
+});
+
+
+test('first generation with plain prose cannot create an unrelated fallback plan', async t => {
+  let received;
+  const { client, store } = await fixture(t, { curriculumProvider: async (dates, settings, options) => {
+    received = settings.teacherPrompt;
+    return { ...await createCurriculum(dates, settings, { ...options, useAI: false }), generationIssue: 'ai_not_configured' };
+  } });
+  const teacher = client(); const user = (await teacher('/api/auth/register', account)).body.user;
+  const teacherPrompt = 'Sakam vo vtornik da zboruvame za najbrziot covek.\nOstanatite denovi za listopadot.';
+  const result = await teacher('/api/week/generate', { settings: { ...DEFAULT_SETTINGS, teacherPrompt } });
+  assert.equal(result.status, 503); assert.equal(result.body.generationIssue, 'ai_not_configured');
+  assert.equal(received, teacherPrompt);
+  assert.equal(store.week(user.id, '2026-09-21'), null);
+  assert.equal((await teacher('/api/dashboard')).body.week, null);
 });

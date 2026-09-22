@@ -1,3 +1,4 @@
+import { simulatedCurriculum } from './curriculum-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
@@ -17,7 +18,7 @@ async function fixture(t, extra = {}) {
   t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-21T05:00:00Z') });
   const store = openStore(':memory:');
   const server = createApp({ store, conditionsProvider: async ({ locationId = 'centar', scenario = 'normal', mode, demoWeek }) => demoConditions(LOCATIONS.find(item => item.id === locationId), scenario, Date.now(), mode === 'demo' ? demoWeekById(demoWeek) : null),
-    curriculumProvider: (dates, settings, options) => createCurriculum(dates, settings, { ...options, useAI: false }), holidayProvider: async year => calendarSnapshot(year), ...extra });
+    curriculumProvider: simulatedCurriculum, holidayProvider: async year => calendarSnapshot(year), ...extra });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   t.after(() => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }));
   const base = `http://127.0.0.1:${server.address().port}`;
