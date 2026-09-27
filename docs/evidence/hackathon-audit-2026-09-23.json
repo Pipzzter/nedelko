@@ -1,0 +1,225 @@
+{
+  "recordedAt": "2026-09-23T05:13:24.621Z",
+  "platform": "win32",
+  "node": "v24.15.0",
+  "npm": "11.12.1",
+  "sourceCommit": "120950c7dce96c29332f6443afa6296c9e31e91b",
+  "sourceState": "Uncommitted test and documentation follow-up; application source is unchanged from sourceCommit.",
+  "changedFileSha256": {
+    "frontend/tests/components.test.js": "4dec5c4d17d4e321fffbff2a8c0fbf427ad333bad12738ac992fa6449d3478f9",
+    "frontend/tests/plan-form.test.js": "190dfe8e83299e34b2c5a5efb1d6b516324f49b088c3084d6dda15eee61c4238",
+    "frontend/tests/demo.test.js": "66658a56fbfed36a912c7957315915e677bb97775a183f5906efd21353cabc00",
+    "docs/development/quality-gates.md": "07ada2cd7de795023d224c67ec780359995d32d2a62b89ad636608aa0f7c54ed"
+  },
+  "verification": {
+    "command": "npm.cmd run verify",
+    "exitCode": 0,
+    "completedAt": "2026-09-23T05:11:33.907Z",
+    "tests": 249,
+    "pass": 249,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "initialGateAttempt": {
+    "command": "npm.cmd run gate",
+    "exitCode": 1,
+    "completedAt": "2026-09-23T05:10:30.019Z",
+    "tests": 249,
+    "pass": 248,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "failure": "Demo DOM test inspected the source label after the proposal rendered but before the follow-up inbox refresh completed. Sonar was not reached.",
+    "correction": "Wait for the enabled Apply button before asserting the library provenance label and applying the change."
+  },
+  "focusedDemoRechecks": {
+    "command": "node --test frontend/tests/demo.test.js",
+    "passes": 5,
+    "zeroFailureResults": 5
+  },
+  "gate": {
+    "command": "npm.cmd run gate",
+    "exitCode": 0,
+    "completedAt": "2026-09-23T05:12:23.327Z",
+    "tests": 249,
+    "pass": 249,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "qualityGate": "PASSED"
+  },
+  "coverage": {
+    "minimumLines": 91,
+    "groups": [
+      {
+        "scope": "backend/",
+        "hit": 4848,
+        "found": 4920,
+        "percent": 98.53658536585365,
+        "passed": true
+      },
+      {
+        "scope": "frontend/src/",
+        "hit": 3879,
+        "found": 4055,
+        "percent": 95.6596794081381,
+        "passed": true
+      }
+    ],
+    "criticalFiles": [
+      {
+        "path": "backend/services/auth.js",
+        "hit": 90,
+        "found": 90,
+        "percent": 100,
+        "minimumLines": 90,
+        "passed": true
+      },
+      {
+        "path": "backend/http/app.js",
+        "hit": 1001,
+        "found": 1010,
+        "percent": 99.10891089108911,
+        "minimumLines": 90,
+        "passed": true
+      },
+      {
+        "path": "backend/http/security.js",
+        "hit": 36,
+        "found": 38,
+        "percent": 94.73684210526316,
+        "minimumLines": 90,
+        "passed": true
+      },
+      {
+        "path": "backend/domain/week.js",
+        "hit": 638,
+        "found": 649,
+        "percent": 98.30508474576271,
+        "minimumLines": 90,
+        "passed": true
+      },
+      {
+        "path": "backend/domain/settings.js",
+        "hit": 137,
+        "found": 137,
+        "percent": 100,
+        "minimumLines": 90,
+        "passed": true
+      },
+      {
+        "path": "backend/domain/constraints.js",
+        "hit": 9,
+        "found": 9,
+        "percent": 100,
+        "minimumLines": 90,
+        "passed": true
+      },
+      {
+        "path": "backend/domain/preferences.js",
+        "hit": 21,
+        "found": 21,
+        "percent": 100,
+        "minimumLines": 90,
+        "passed": true
+      },
+      {
+        "path": "backend/domain/qc.js",
+        "hit": 113,
+        "found": 113,
+        "percent": 100,
+        "minimumLines": 90,
+        "passed": true
+      },
+      {
+        "path": "backend/domain/aqi.js",
+        "hit": 33,
+        "found": 33,
+        "percent": 100,
+        "minimumLines": 90,
+        "passed": true
+      }
+    ],
+    "passed": true
+  },
+  "inspectedModules": {
+    "frontend/src/components/Holidays.js": {
+      "hit": 56,
+      "found": 56,
+      "percent": 100
+    },
+    "frontend/src/components/PlanChanges.js": {
+      "hit": 50,
+      "found": 50,
+      "percent": 100
+    },
+    "backend/domain/messages.js": {
+      "hit": 170,
+      "found": 172,
+      "percent": 98.83720930232558
+    },
+    "backend/domain/timeline.js": {
+      "hit": 51,
+      "found": 51,
+      "percent": 100
+    }
+  },
+  "sonar": {
+    "status": "OK",
+    "conditions": [
+      {
+        "status": "OK",
+        "metricKey": "new_coverage",
+        "comparator": "LT",
+        "errorThreshold": "91",
+        "actualValue": "97.1"
+      },
+      {
+        "status": "OK",
+        "metricKey": "new_duplicated_lines_density",
+        "comparator": "GT",
+        "errorThreshold": "3",
+        "actualValue": "0.0"
+      },
+      {
+        "status": "OK",
+        "metricKey": "line_coverage",
+        "comparator": "LT",
+        "errorThreshold": "91",
+        "actualValue": "97.2"
+      },
+      {
+        "status": "OK",
+        "metricKey": "new_violations",
+        "comparator": "GT",
+        "errorThreshold": "0",
+        "actualValue": "0"
+      }
+    ],
+    "openIssues": 0,
+    "measures": {
+      "bugs": "0",
+      "code_smells": "0",
+      "new_coverage": "97.1",
+      "vulnerabilities": "0",
+      "line_coverage": "97.2",
+      "security_hotspots": "0"
+    }
+  },
+  "postman": {
+    "command": "npm.cmd run test:api",
+    "exitCode": 0,
+    "requests": 63,
+    "assertions": 319,
+    "failures": 0,
+    "transport": "Real loopback TCP; isolated in-memory SQLite and synthetic demo providers."
+  },
+  "limits": [
+    "EPERM/EACCES diagnostics inside the permission-error fixture tests are intentional mocks. Postman completed over a real listener.",
+    "No new paid model request, live environmental-provider check, browser recording, physical-phone run, external setup, commit or push."
+  ]
+}

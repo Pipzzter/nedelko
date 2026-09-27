@@ -1,0 +1,134 @@
+Selected command output, 23 September 2026. Local paths and configured secrets are redacted. Full local transcripts remain in ignored .local/.
+
+Base application commit: 120950c7dce96c29332f6443afa6296c9e31e91b
+
+Runtime: v24.15.0; npm 11.12.1; Windows.
+
+Initial npm.cmd run gate attempt (exit 1, before correcting the demo test wait):
+
+129 JavaScript files checked.
+42 documentation files checked for local links.
+ℹ tests 249
+ℹ pass 248
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+
+failing tests:
+
+test at frontend\tests\demo.test.js:12:1
+✖ demo uses the planner and shared parent page; links, languages and isolated deep links work (540.8068ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /library example/. Input:
+  
+  'Preparing a suggestion…Wednesday 9 SeptReview the proposed schedule07:30 - 08:30A bridge for the paper travellerWith the teacher, children imagine a river between two large folded cardboard supports. Try making a bridge first with a flat used sheet, then with a folded one. Take turns testing it with a large paper character and describe what happened. Each team chooses one improvement to help the traveller cross.Apply changeDiscard suggestion'
+  
+      at TestContext.<anonymous> (file:///<repo>/frontend/tests/demo.test.js:93:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Preparing a suggestion…Wednesday 9 SeptReview the proposed schedule07:30 - 08:30A bridge for the paper travellerWith the teacher, children imagine a river between two large folded cardboard supports. Try making a bridge first with a flat used sheet, then with a folded one. Take turns testing it with a large paper character and describe what happened. Each team chooses one improvement to help the traveller cross.Apply changeDiscard suggestion',
+    expected: /library example/,
+    operator: 'match',
+    diff: 'simple'
+  }
+npm.cmd : C:\Program Files\nodejs\node.exe failed (exit 1).
+At line:2 char:87
++ ... lowup-2026-09-23/gate.txt'; npm.cmd run gate *> $auditGateLog; $audit ...
++                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (C:\Program File...ailed (exit 1).:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+C:\Program Files\nodejs\node.exe failed (exit 1).
+
+
+Focused demo recheck: five separate node --test frontend/tests/demo.test.js runs, each exit 0 with 1 pass and 0 failures.
+
+Final npm.cmd run verify (exit 0):
+
+129 JavaScript files checked.
+42 documentation files checked for local links.
+ℹ tests 249
+ℹ pass 249
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+backend/ 98.54% lines (4848/4920); required 91%.
+frontend/src/ 95.66% lines (3879/4055); required 91%.
+
+Final npm.cmd run gate (exit 0):
+
+129 JavaScript files checked.
+42 documentation files checked for local links.
+ℹ tests 249
+ℹ pass 249
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+backend/ 98.54% lines (4848/4920); required 91%.
+frontend/src/ 95.66% lines (3879/4055); required 91%.
+
+05:12:06.713 INFO  gRPC analyze-project server listening on 127.0.0.1:34969
+05:12:06.896 INFO  Plugin version: [13.8.0.44569]
+05:12:08.460 INFO  Found 0 tsconfig.json file(s): []
+05:12:16.747 INFO  128 source files to be analyzed
+05:12:16.747 INFO  Analyzing 124 file(s) using default options [lib: lib.esnext.d.ts, lib.dom.d.ts]
+05:12:16.749 INFO  128/128 source files have been analyzed
+05:12:16.760 INFO  Hit the cache for 0 out of 127
+05:12:16.760 INFO  Miss the cache for 127 out of 127: ANALYSIS_MODE_INELIGIBLE [127/127]
+05:12:16.760 INFO  Sensor JavaScript/TypeScript/CSS analysis [javascript] (done) | time=14083ms
+05:12:16.760 INFO  Sensor IaC Project Sensor [iac]
+05:12:16.761 INFO  Sensor IaC Project Sensor [iac] (done) | time=0ms
+05:12:16.761 INFO  Sensor Zero Coverage Sensor
+05:12:16.762 INFO  Sensor Zero Coverage Sensor (done) | time=1ms
+05:12:16.762 INFO  ------------- Gather SCA dependencies on project
+05:12:16.766 INFO  Dependency analysis skipped
+05:12:16.767 INFO  SCM Publisher is disabled
+05:12:16.775 INFO  CPD Executor 12 files had no CPD blocks
+05:12:16.775 INFO  CPD Executor Calculating CPD for 81 files
+05:12:16.821 INFO  CPD Executor CPD calculation finished (done) | time=45ms
+05:12:17.217 INFO  Analysis report generated in 387ms, dir size=2.5 MB
+05:12:17.332 INFO  Analysis report compressed in 114ms, zip size=1.2 MB
+05:12:17.404 INFO  Analysis report uploaded in 72ms
+05:12:17.405 INFO  ------------- Check Quality Gate status
+05:12:17.406 INFO  Waiting for the analysis report to be processed (max 300s)
+05:12:22.434 INFO  QUALITY GATE STATUS: PASSED - View details on http://sonarqube:9000/dashboard?id=nedelko
+05:12:22.550 INFO  Analysis total time: 23.300 s
+05:12:22.570 INFO  SonarScanner Engine completed successfully
+05:12:22.587 INFO  EXECUTION SUCCESS
+05:12:22.588 INFO  Total time: 26.361s
+Local gate passed: syntax, documentation, tests, coverage and SonarQube.
+
+
+npm.cmd run test:api (exit 0, isolated real HTTP listener):
+
+  Pass  HTTP 200
+  Pass  Session is anonymous
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                 63 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                126 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                  6 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                319 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 6.4 s                                         |
+---------------------------------------------------------------------
+| total data received: 1.38 MB (approx)                             |
+---------------------------------------------------------------------
+| average response time: 10 ms [min: 2 ms, max: 74 ms, s.d.: 17 ms] |
+---------------------------------------------------------------------
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command
+
+
+Sonar read-only API snapshot: gate OK, 0 open issues.

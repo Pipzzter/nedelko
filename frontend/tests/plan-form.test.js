@@ -41,3 +41,52 @@ test('planning validates translations and time integrity while allowing any defa
   const reversed=ready();reversed.dayEnd='06:30';
   assert.ok(planIssues(reversed,config).some(i=>i.key==='checkDayTimes'));
 });
+
+test('form and server agree on operating-window boundaries and malformed times', () => {
+  const cases = [
+    ['06:00', '09:00', null], ['16:00', '19:00', null], ['06:00', '19:00', null],
+    ['05:59', '09:00', 'time_bounds'], ['16:00', '19:01', 'time_bounds'],
+    ['07:30', '10:29', 'time_bounds'], ['10:30', '10:30', 'time_bounds'],
+    ['16:00', '07:30', 'time_bounds'], ['7:30', '16:00', 'invalid_time'],
+    ['07:60', '16:00', 'invalid_time'], ['07:30', '24:00', 'invalid_time'],
+    ['', '16:00', 'invalid_time']
+  ];
+  for (const [dayStart, dayEnd, code] of cases) {
+    const value = { ...ready(), dayStart, dayEnd };
+    assert.equal(planIssues(value, config).some(issue => issue.key === 'checkDayTimes'), !!code, `${dayStart}-${dayEnd}`);
+    if (code) assert.throws(() => validateSettings(value), { code });
+    else assert.doesNotThrow(() => validateSettings(value));
+  }
+});
+
+test('form and server agree on routine timing without imposing an overlap or day-containment policy', () => {
+  const routine = { id: 'routine', kind: 'routine', label: { mk: 'Игра', en: 'Play' } };
+  for (const [start, end, code] of [
+    ['08:00', '08:01', null], ['06:00', '19:00', null],
+    ['09:00', '09:00', 'time_bounds'], ['09:01', '09:00', 'time_bounds'],
+    ['9:00', '10:00', 'invalid_time'], ['09:00', '10:60', 'invalid_time']
+  ]) {
+    const value = { ...ready(), blocks: [{ ...routine, start, end }] };
+    assert.equal(planIssues(value, config).some(issue => issue.key === 'checkRoutineTimes'), !!code, `${start}-${end}`);
+    if (code) assert.throws(() => validateSettings(value), { code });
+    else assert.doesNotThrow(() => validateSettings(value));
+  }
+  const overlapping = [
+    { ...routine, id: 'first', start: '08:00', end: '10:00' },
+    { ...routine, id: 'second', start: '09:00', end: '11:00' }
+  ];
+  for (const blocks of [[], overlapping]) {
+    const value = { ...ready(), blocks };
+    assert.deepEqual(planIssues(value, config), []);
+    assert.doesNotThrow(() => validateSettings(value), 'routine preferences are inputs, not the final generated timetable');
+  }
+});
+
+test('form and server agree that outdoor-day counts must be integers from zero to five', () => {
+  for (const [outdoorDays, accepted] of [[0, true], [5, true], [-1, false], [6, false], [2.5, false], ['2', false], [null, false]]) {
+    const value = { ...ready(), outdoorDays };
+    assert.equal(planIssues(value, config).some(issue => issue.key === 'requiredOutdoorDays'), !accepted, String(outdoorDays));
+    if (accepted) assert.doesNotThrow(() => validateSettings(value));
+    else assert.throws(() => validateSettings(value), { code: 'invalid_outdoor_days' });
+  }
+});

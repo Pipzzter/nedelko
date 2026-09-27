@@ -2,7 +2,7 @@
 
 ## Test strategy
 
-Use Node 24+ and `npm ci`. The runtime has no npm dependencies; `linkedom` supports rendered UI tests. `npm test` discovers backend, frontend and tooling tests. Domain tests validate evidence, scheduling and messages; API tests use real loopback HTTP and SQLite; storage tests reopen a real temporary database; DOM tests render Preact. Providers use synthetic fixtures and injected clocks rather than paid/live requests. These are regression tests, not proof of actual teacher use.
+Use Node 24+ and `npm ci`. The runtime has no npm dependencies; `linkedom` supports rendered UI tests. `npm test` discovers backend, frontend and tooling tests. Domain tests validate evidence, scheduling and messages; API tests prefer real loopback HTTP and use SQLite; storage tests reopen a real temporary database; DOM tests render Preact. Providers use synthetic fixtures and injected clocks rather than paid/live requests. These are regression tests, not proof of actual teacher use.
 
 ```sh
 npm test
@@ -10,7 +10,7 @@ npm run test:coverage
 npm run verify
 ```
 
-`verify` also checks JavaScript syntax and local documentation links. A machine must permit loopback listeners for the API/DOM suite. The scripts never load application `.env` for tests. The separate `npm run verify:ai` command is an explicit paid live-provider check, outside `test`, `verify`, `gate` and the pre-push hook. Its [evidence](../evidence/README.md) identifies synthetic environmental inputs and does not establish live environmental validity.
+`verify` also checks JavaScript syntax and local documentation links. When the shared HTTP fixture encounters a listener permission error (`EPERM` or `EACCES`), it reports the fallback and runs the HTTP parsers, handlers and SQLite assertions over paired in-memory streams. Other listener errors still fail. A fallback pass does not verify TCP connectivity or OS port binding; record the transport limitation with the result. The separate Postman suite (`npm run test:api`) still requires a real loopback listener. The scripts never load application `.env` for tests. The separate `npm run verify:ai` command is an explicit paid live-provider check, outside `test`, `verify`, `gate` and the pre-push hook. Its [evidence](../evidence/README.md) identifies synthetic environmental inputs and does not establish live environmental validity.
 
 ## Coverage contract
 
@@ -92,7 +92,7 @@ Every push containing source refs requires a clean worktree, including untracked
 | Missing `SONAR_DB_PASSWORD` | Set a private value before first startup, or restore the password matching existing volumes |
 | Missing `SONAR_TOKEN` | Complete setup in `static-analysis/.env` |
 | Missing `linkedom` | Run `npm ci` with registry access |
-| `listen EPERM` | Run in a session that permits local HTTP listeners |
+| `listen EPERM` | The shared test fixture reports an in-memory fallback; Postman and actual TCP verification need a session permitting local listeners |
 | Coverage omitted source | Add meaningful tests exercising that module |
 | Coverage below 91% overall or 90% in a critical file | Use the uncovered-line report to add behavior assertions |
 | Quality gate weakened/missing | Run `npm run sonar:configure` with an admin setup token |

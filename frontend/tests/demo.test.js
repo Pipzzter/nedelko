@@ -89,7 +89,10 @@ test('demo uses the planner and shared parent page; links, languages and isolate
   assert.equal(document.querySelector('.day-plan'), null);
   document.querySelector('.note-summary').dispatchEvent(new window.Event('click', { bubbles: true }));
   await wait(() => document.querySelector('.unread-count').textContent === '0');
-  click('Suggest a change'); await wait(() => document.querySelector('.note-proposal'));
+  click('Suggest a change');
+  // The proposal renders before the follow-up inbox request supplies its source label.
+  // Wait for the completed review state before checking provenance or applying it.
+  await wait(() => document.querySelector('.note-proposal button.primary:not([disabled])'));
   assert.match(document.querySelector('.note-review').textContent, /library example/);
   click('Apply change'); await wait(() => document.querySelector('.note-review .note-sent'));
   assert.equal(document.querySelector('.note-proposal'), null);

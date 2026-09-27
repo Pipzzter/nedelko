@@ -2,6 +2,12 @@
 
 This file records actual execution limits, separately from configured targets. Historical reports are preserved in [the archive](../archive/verification-notes.md).
 
+## 2026-09-23 hackathon audit follow-up
+
+On base commit `120950c7dce96c29332f6443afa6296c9e31e91b`, with uncommitted test and documentation changes, both `npm.cmd run verify` and the final `npm.cmd run gate` passed on Windows with Node 24.15.0: 249 tests, 98.54% backend and 95.66% frontend line coverage, every application module and all nine critical-file floors. Sonar reported `PASSED`; a subsequent read-only API check returned `OK` and 0 open issues. The isolated Postman suite passed 63 real-loopback requests and 319 assertions.
+
+The first gate attempt stopped before Sonar because an existing demo test inspected an intermediate render. Its wait now follows the enabled Apply button; five focused runs and both complete checks then passed. The [follow-up record](../evidence/hackathon-audit-2026-09-23.md) preserves this failure, the correction, source hashes and command excerpts. Application source is unchanged; newer known product defects remain open. This run does not add live-model, environmental-provider, physical-phone or outside-team evidence.
+
 ## 2026-09-22 audit corrections
 
 The web app is ready and tested on phone and desktop. The [audit-fix record](../evidence/audit-fixes-2026-09-22.md) describes the current local corrections and their verification. All entries below describe their stated source versions; statements such as “the only later change” apply to those historical checkpoints, not the current checkout.

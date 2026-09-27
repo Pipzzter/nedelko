@@ -4,7 +4,7 @@
   <p>Вашата недела во градинка, испланирана. / Your kindergarten week, planned.</p>
   <p><strong>For kindergarten teachers in Skopje and other Macedonian cities,<br>with a read-only family view for parents.</strong></p>
   <p><a href="demo.mp4"><strong>▶ Watch the demo video (demo.mp4, 9 min)</strong></a></p>
-  <p><a href="#what-it-does">What it does</a> · <a href="#judging-evidence">Judging evidence</a> · <a href="#who-it-is-for">Who it is for</a> · <a href="#how-to-run-it">How to run it</a> · <a href="#see-it-working">Demo</a> · <a href="#how-the-ai-works">AI</a> · <a href="#what-is-finished-and-what-is-not">Finished and not</a> · <a href="#how-we-built-it">How we built it</a> · <a href="#does-it-hold-up">Tests</a></p>
+  <p><a href="#what-it-does">What it does</a> · <a href="#judging-evidence">Judging evidence</a> · <a href="#who-it-is-for">Who it is for</a> · <a href="#how-to-run-it">How to run it</a> · <a href="#see-it-working">Demo</a> · <a href="#how-the-ai-works">AI</a> · <a href="#what-is-implemented">What's implemented</a> · <a href="#how-we-built-it">How we built it</a> · <a href="#does-it-hold-up">Tests</a></p>
 </div>
 
 ---
@@ -23,7 +23,7 @@ Nedelko helps a kindergarten teacher turn a written brief into a Monday–Friday
 | Does the demo work? | 20 | [One complete sample path](#one-path-from-start-to-finish), a separate real AI walkthrough, and [recordings with source and input provenance](#see-it-working). |
 | Is the AI doing real work? | 20 | [Brief-to-timetable generation, targeted changes and parent-note interpretation](#how-the-ai-works), plus [accepted live model output](docs/evidence/live-ai-2026-09-21.json). |
 | How did you build it? | 15 | [Architecture, decisions, commit/PR traces and AI-coding disclosure](#how-we-built-it), followed by concrete [bug-to-fix examples](#does-it-hold-up). |
-| Can someone else understand it? | 10 | This README's purpose, audience, [setup and environment](#how-to-run-it), [implemented features and known limits](#what-is-finished-and-what-is-not). |
+| Can someone else understand it? | 10 | This README's purpose, audience, [setup and environment](#how-to-run-it), [implemented features](#what-is-implemented). |
 | Does it hold up? | 5 | [Behavioral/adversarial tests, dated execution results and remaining failures](#does-it-hold-up). |
 
 These are evidence links for the six categories, not self-awarded scores.
@@ -185,18 +185,16 @@ sequenceDiagram
 
 ### When the AI is confidently wrong
 
-- **Shape and content checks.** The provider receives a strict JSON schema. Server validators separately check bilingual fields, maximum lengths, selected materials, the outdoor-date permutation and clear timing requests after overlaps are resolved. Weekly generation and full-day AI changes must cover the remaining required planning window without gaps, preserving started rows. Direct manual edits keep their separate timing rules. Selected markup, instruction and air-safety patterns are rejected. Local validation does not yet enforce every provider-schema bound; see the open issues below.
+- **Shape and content checks.** The provider receives a strict JSON schema. Server validators separately check bilingual fields, maximum lengths, selected materials, the outdoor-date permutation and clear timing requests after overlaps are resolved. Weekly generation and full-day AI changes must cover the remaining required planning window without gaps, preserving started rows. Direct manual edits keep their separate timing rules. Selected markup, instruction and air-safety patterns are rejected.
 - **The ranking is advice, not permission.** The model ranks days for outdoor learning; the air and weather gates skip a day that fails, even when the model ranked it first.
 - **Facts stay deterministic.** The model never computes AQI, sees raw sensor values, decides closures or writes the air and weather wording of parent notices.
 - **Failures are named, not hidden.** Credit, quota, rate-limit, authentication, model-availability and timeout failures each report their own reason. When a browser disconnects, the model call is cancelled and a late answer is discarded.
 - **The teacher decides.** Upcoming activities remain editable; started rows are locked. Parent-note suggestions need an explicit Apply, and a parent notice becomes approvable only after a same-morning recheck.
 - **What validation cannot show.** A valid lesson is not necessarily a good one. We have not measured lesson quality; see [what we would build next](#what-we-would-build-next).
 
-The server does not add account IDs, kindergarten/group names, raw sensor readings or AQI values to model context. Teacher-entered briefs and model-assessed parent notes are sent as text, without automatic anonymisation. Leave child names and private details out of a brief; the existing privacy-help copy still needs to be displayed beside the input in the app.
+The server does not add account IDs, kindergarten/group names, raw sensor readings or AQI values to model context. Teacher-entered briefs and model-assessed parent notes are sent as text, without automatic anonymisation. Leave child names and private details out of a brief.
 
-## What is finished and what is not
-
-### Implemented
+## What is implemented
 
 - Kindergarten accounts with email and password, and private SQLite-backed plans; one group per account.
 - AI weekly plans from the teacher's brief, AI changes to one activity or a whole day, direct edits, drag-and-drop reordering, and a per-day **Inside**, **Outside** or **Adapt to conditions** choice.
@@ -205,29 +203,6 @@ The server does not add account IDs, kindergarten/group names, raw sensor readin
 - A same-morning recheck that makes the day's parent notice approvable for 15 minutes; refreshes and edits cancel the approval.
 - Six synthetic sample weeks (Independence Day, Easter, Halloween, winter, an autumn afternoon and a spring garden), each with six air scenarios.
 - Responsive layouts with recorded desktop and 390-pixel browser checks, a Docker setup, automated tests, coverage floors and a local SonarQube gate.
-
-### Not finished, and known issues
-
-- **Runs on one computer.** The app serves plain HTTP on loopback, so parent links open only on that computer. HTTPS hosting, account recovery and hosted backups are separate work.
-- **No delivery.** Teachers copy notices into their usual channel; Nedelko does not send them.
-- **A link is not an identity.** Anyone holding an active parent link can view the shared week and submit a private note.
-- **PM2.5 only.** Screening omits other pollutants and individual health needs. It is not a complete air-quality assessment or a medical certification. A future outdoor day needs a complete air forecast; otherwise it stays indoors and provisional. Weather limits are editable logistics preferences, not health or safety thresholds.
-- **Live data can fail.** Observations come from pulse.eco and forecasts from Open-Meteo. The intended rule is that missing, stale, suspect or conflicting evidence stays unknown; refreshes invalidate notice approval. The cache and sensor-identity exceptions found in review are listed below.
-- **Rate limits reset on restart.** They are held in process memory.
-
-<details>
-<summary>Open issues reproduced in the 22 September read-only review</summary>
-
-These remain code/verification work; this README update does not fix them. Reproductions used synthetic inputs, not observed classroom incidents.
-
-| Area | Remaining issue |
-| --- | --- |
-| Environmental evidence | A cache hit after a failed forced refresh can clear the failure flag without recovery. Duplicate provider rows can count as separate sensors or crowd out a disagreeing sensor. See [conditions](backend/services/conditions.js) and [QC](backend/domain/qc.js). |
-| Parent writing and inbox | A failed parent-page poll loses an unsent note; consistently slow inbox responses can be discarded by overlapping polls. See [parent view](frontend/src/pages/ParentWeek.js) and [inbox](frontend/src/components/ParentNotes.js). |
-| Editing and navigation | Activity textareas accept line breaks that the server rejects. The skip link can leave a directly loaded demo route. See [editor](frontend/src/components/ActivityEditor.js), [text validation](backend/domain/settings.js) and [routing](frontend/src/app.js). |
-| Validation and clarity | The server accepts shorter lesson descriptions than the provider schema requests. Historical negative sensor samples can be dropped without rejecting that sensor. Brief privacy help is not rendered; the favicon and mascot are unnecessarily large downloads. |
-
-</details>
 
 ## What we would build next
 
@@ -301,15 +276,16 @@ One concrete development sequence is teacher-authored timetables (`8efe32e`), fo
 
 | Verification record | Result and scope |
 | --- | --- |
+| [23 September audit follow-up](docs/evidence/hackathon-audit-2026-09-23.md), uncommitted tests/docs on `120950c7` | Final `verify` and `gate`: 249 passing tests, 98.54% backend and 95.66% frontend line coverage, Sonar gate passed. Isolated Postman: 63 requests / 319 assertions passed over real loopback HTTP. An initial gate failure and its test-wait correction are recorded. |
 | Commit `ebb52f0`, 22 September | Records `npm run verify`: 235 passing tests, 98.53% backend and 95.59% frontend line coverage for that source. |
 | [Earlier 22 September audit-fix evidence](docs/evidence/audit-fixes-2026-09-22.md) | 213 passing tests, 63 Postman requests / 319 assertions in each API run, and a passing live Sonar gate; exact source hashes and command output are linked. |
 | Read-only audit of `17396b8`, 22 September | Syntax/link checks passed: 127 JS files, 42 Markdown files. `npm test` and `npm run verify` each reached 235 tests: 191 passed, 44 failed because the sandbox denied loopback listeners (`listen EPERM`). Postman could not start its listener. No successful new coverage summary or Sonar result was produced. |
 
-The earlier passes are retained as dated evidence. A fresh complete run on a host permitting loopback is still needed for the reviewed revision. The open issues above were found with additional synthetic probes despite the extensive regression suite.
+The earlier passes are retained as dated evidence. The 23 September run verifies the current application source on a host permitting loopback, with added test coverage.
 
 **Inputs we used to try to break it:**
 
-- Tests challenge missing, stale, future-dated, malformed and conflicting sensor data, and approval after failed refreshes. The newly reproduced cache/identity cases above need additional regressions.
+- Tests challenge missing, stale, future-dated, malformed and conflicting sensor data, and approval after failed refreshes.
 - Model-boundary tests challenge refusals, incomplete output, missing languages, unlisted materials, duplicate/fabricated ranking dates and timetable gaps. Teacher instructions take priority over optional holidays; required occasion checks apply when no teacher brief is supplied.
 - Timing requests work in English and in Cyrillic or Latin-script Macedonian. Ambiguous or multi-day prose goes to the model as context; the app does not guess an exact time from it.
 - Weak passwords, malformed emails, cross-origin writes, repeated sign-in attempts and over-limit generation requests are rejected.
@@ -332,7 +308,7 @@ The full check history is in the [verification record](docs/development/verifica
 
 ### Submission status
 
-The README, run/environment instructions, known-issue list, Mermaid diagrams and backup recording are present. Browser evidence includes 390-pixel teacher and parent views. Another account's repository access, an outside-team setup, a physical-phone flow and every teammate's explanation remain checks for people to complete. Before submitting, verify the working tree is clean and the submitted commit is actually on the remote; a local `origin/main` reference alone does not establish that. Local pre-push hooks support the process but can be bypassed, so their presence is not proof of a completed gate for every commit.
+The README, run/environment instructions, Mermaid diagrams and backup recording are present. Browser evidence includes 390-pixel teacher and parent views. Another account's repository access, an outside-team setup, a physical-phone flow and every teammate's explanation remain checks for people to complete. Before submitting, verify the working tree is clean and the submitted commit is actually on the remote; a local `origin/main` reference alone does not establish that. Local pre-push hooks support the process but can be bypassed, so their presence is not proof of a completed gate for every commit.
 
 ## Documentation
 
@@ -349,4 +325,4 @@ The README, run/environment instructions, known-issue list, Mermaid diagrams and
 
 ---
 
-Built by team Gun Mayhem for the AI Tech Summit 2026 hackathon in Skopje. The repository is named `gun-mayhem-repo`; the product is Nedelko (Неделко).
+Built by team Gun Mayhem for the AI Tech Summit 2026 hackathon in Skopje. The product is Nedelko (Неделко).

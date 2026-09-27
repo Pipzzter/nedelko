@@ -8,6 +8,8 @@ import { ParentNoteForm } from '../src/components/ParentNoteForm.js';
 import { ParentShare } from '../src/components/ParentShare.js';
 import { AirCard } from '../src/components/AirCard.js';
 import { Calendar } from '../src/components/Calendar.js';
+import { Occasions } from '../src/components/Holidays.js';
+import { PlanChanges } from '../src/components/PlanChanges.js';
 import { Auth } from '../src/pages/Auth.js';
 import { focusPlanField } from '../src/lib/plan-form.js';
 import { LOCATIONS } from '../../backend/config/index.js';
@@ -377,4 +379,88 @@ test('calendar shows saved and historical temperatures with bilingual provenance
   const legacy = days.map(({ weatherDisplay, ...day }) => day);
   render(html`<${Calendar} data=${{ week: { days: legacy }, calendar: days }} lang="en" onSelect=${() => {}}/>`, root);
   assert.match(root.querySelector('.day-temperatures').textContent, /18°/);
+});
+
+test('holiday labels distinguish public, community and optional classroom occasions in both languages', t => {
+  const { root } = dom(t);
+  const date = '2026-09-21';
+  const occasions = [
+    { id: 'public', date, kind: 'public', name: { mk: 'Државен празник', en: 'Public occasion' } },
+    { id: 'community', date, kind: 'community', scope: 'orthodox', name: { mk: 'Верски празник', en: 'Community occasion' } },
+    { id: 'classroom', date, kind: 'classroom', name: { mk: 'Ден на играта', en: 'Play day' } }
+  ];
+  for (const [lang, labels] of [
+    ['en', ['Public holiday for all citizens', 'Holiday for: Orthodox Christians', 'Optional theme, not a public holiday']],
+    ['mk', ['Неработен ден за сите граѓани', 'Празник за: православни верници', 'Изборна тема, не државен празник']]
+  ]) {
+    render(html`<${Occasions} day=${{ date, occasions }} lang=${lang}/>`, root);
+    const notes = [...root.querySelectorAll('.occasion-note')];
+    assert.equal(notes.length, 3);
+    notes.forEach((note, index) => {
+      assert.equal(note.querySelector('b').textContent, occasions[index].name[lang]);
+      assert.ok(note.querySelector('span').textContent.includes(labels[index]));
+      assert.ok(note.querySelector('span').textContent.includes(localizedDate(date, lang, { day: 'numeric', month: 'numeric' })));
+    });
+  }
+});
+
+test('holiday preparation identifies the event date and escapes its title without leaving empty badges', t => {
+  const { root } = dom(t);
+  const event = { id: 'future', date: '2026-09-22', kind: 'classroom', name: { mk: '<b>Игра</b>', en: '<b>Play</b>' } };
+  for (const [lang, prefix] of [['mk', 'Подготовка за: '], ['en', 'Preparing for: ']]) {
+    for (const day of [
+      { date: '2026-09-21', preparationFor: event },
+      { date: '2026-09-21', occasions: [event] },
+      { date: event.date, preparationFor: event }
+    ]) {
+      render(html`<${Occasions} day=${day} lang=${lang}/>`, root);
+      assert.equal(root.querySelector('.occasion-note b').textContent, prefix + event.name[lang]);
+      assert.equal(root.querySelector('.occasion-note b b'), null, 'event text cannot become markup');
+      assert.ok(root.querySelector('span').textContent.includes(localizedDate(event.date, lang, { day: 'numeric', month: 'numeric' })));
+    }
+    for (const day of [{ date: event.date }, { date: event.date, occasions: [] }]) {
+      render(html`<${Occasions} day=${day} lang=${lang}/>`, root);
+      assert.equal(root.textContent, '');
+      assert.equal(root.querySelector('.day-occasions'), null);
+    }
+  }
+});
+
+test('same-day plan changes announce unknown evidence and keep replacement days provisional', t => {
+  const { root, fire } = dom(t); const selected = [];
+  const changes = [{ from: '2026-09-21', to: '2026-09-23', reason: 'unknown_air' }];
+  for (const [lang, expected] of [
+    ['en', ['Today is an indoor day.', 'Fresh local readings are unavailable. The plan stays indoors.', 'Suggested outdoor day, provisional', 'A check that morning is still required.', 'Wednesday']],
+    ['mk', ['Денес е ден за активности внатре.', 'Нема потврдени свежи мерења. Планот останува внатре.', 'Предлог за друг ден надвор, привремено', 'Потребна е проверка тоа утро.', 'среда']]
+  ]) {
+    render(html`<${PlanChanges} changes=${changes} today="2026-09-21" lang=${lang} onSelect=${date => selected.push(date)}/>`, root);
+    assert.equal(root.querySelector('section').getAttribute('role'), 'alert');
+    for (const text of expected) assert.ok(root.textContent.includes(text), text);
+    const button = root.querySelector('button');
+    assert.equal(button.getAttribute('type'), 'button');
+    fire(button, 'click');
+    assert.equal(selected.at(-1), changes[0].to);
+  }
+  assert.equal(selected.length, 2);
+});
+
+test('future and read-only plan changes retain the reason and morning-check requirement without edit controls', t => {
+  const { root } = dom(t);
+  const changes = [
+    { from: '2026-09-22', to: '2026-09-23', reason: 'weather' },
+    { from: '2026-09-24', to: null, reason: 'unknown_air' }
+  ];
+  for (const [lang, expected] of [
+    ['en', ['Tuesday: Activities have moved indoors.', 'An indoor activity is prepared because of the weather conditions.', 'Wednesday', 'A check that morning is still required.', 'No suitable replacement day is available yet.']],
+    ['mk', ['вторник: Активностите се префрлени внатре.', 'Поради временските услови, подготвена е активноста внатре.', 'среда', 'Потребна е проверка тоа утро.', 'Засега нема соодветен заменски ден.']]
+  ]) {
+    render(html`<${PlanChanges} changes=${changes} today="2026-09-21" lang=${lang}/>`, root);
+    assert.equal(root.querySelector('section').getAttribute('role'), 'status');
+    assert.equal(root.querySelectorAll('.day-change').length, 2);
+    assert.equal(root.querySelector('button, a'), null);
+    for (const text of expected) assert.ok(root.textContent.includes(text), text);
+    render(html`<${PlanChanges} today="2026-09-21" lang=${lang}/>`, root);
+    assert.equal(root.textContent, '');
+    assert.equal(root.querySelector('section'), null);
+  }
 });

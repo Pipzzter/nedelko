@@ -1,5 +1,7 @@
 # Verification evidence
 
+[Hackathon audit follow-up, 23 September 2026](hackathon-audit-2026-09-23.md) checks the supplied older audit against `120950c7`, adds direct component and timing-parity tests, and records fresh verification, Postman and Sonar results. It includes an initial failed gate attempt and the test synchronization correction. Application source is unchanged; newer known product defects remain open.
+
 [Audit corrections, 22 September 2026](audit-fixes-2026-09-22.md) records the follow-up fixes and current automated checks. The web app is ready and tested on phone and desktop. Earlier recordings and reports below retain their original source versions.
 
 [Teacher-authored timetable checks, 21 September 2026](teacher-timetable-2026-09-21.md) record the scheduling update, current deterministic checks, and real model generation, day editing and parent-note editing with synthetic environmental inputs.
